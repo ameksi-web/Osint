@@ -616,3 +616,36 @@ def test_telethon_proxy_requires_python_socks(monkeypatch):
     monkeypatch.setitem(sys.modules, "python_socks", None)     # import → ImportError
     hint = _proxy_support_error(proxy)
     assert hint and "python-socks" in hint, "без пакета должна быть понятная подсказка, а не «No module named socks»"
+
+
+# ───────────────── запуск без установки в PATH: python -m osintx / python bot.py cli ─────────────────
+def test_module_entrypoint_and_bot_cli_passthrough():
+    """На Windows команда osintx может отсутствовать — должны работать обходные пути."""
+    import subprocess
+    import sys
+    from pathlib import Path as _Path
+
+    root = _Path(__file__).resolve().parent.parent
+
+    module = subprocess.run([sys.executable, "-m", "osintx", "--version"], cwd=root,
+                            capture_output=True, text=True, timeout=90)
+    assert module.returncode == 0, module.stderr
+    assert "1.2" in module.stdout, "python -m osintx должен работать так же, как osintx"
+
+    passthrough = subprocess.run([sys.executable, "bot.py", "cli", "--version"], cwd=root,
+                                 capture_output=True, text=True, timeout=90)
+    assert passthrough.returncode == 0, passthrough.stderr
+    assert "1.2" in passthrough.stdout, "python bot.py cli <команда> проксирует в osintx"
+
+    hint = subprocess.run([sys.executable, "bot.py", "cli"], cwd=root,
+                          capture_output=True, text=True, timeout=90)
+    assert hint.returncode == 1 and "python bot.py cli" in hint.stdout
+
+
+def test_windows_launcher_exists_and_uses_venv():
+    from pathlib import Path as _Path
+
+    bat = _Path(__file__).resolve().parent.parent / "osintx.bat"
+    text = bat.read_text(encoding="utf-8")
+    assert "-m osintx" in text and ".venv\\Scripts\\python.exe" in text
+    assert text.startswith("@echo off")

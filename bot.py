@@ -10,6 +10,8 @@
     python bot.py --net               # диагностика сети: DNS, TCP, TLS, прокси
     python bot.py --token 123:AA...   # запустить с токеном из аргумента
     python bot.py --init              # открыть мастер настройки (.env)
+    python bot.py tgauth              # вход в MTProto (номер + код из Telegram)
+    python bot.py cli search durov    # любая команда osintx — если «osintx» не в PATH
 
 Если зависимости ещё не установлены, скрипт подскажет точную команду.
 """
@@ -23,12 +25,13 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 
-def _missing_dependencies() -> list[str]:
+def _missing_dependencies(need_bot: bool = True) -> list[str]:
+    """Чего не хватает для запуска. Для CLI-команд python-telegram-bot не нужен."""
+    checks = [("httpx", "httpx"), ("phonenumbers", "phonenumbers"), ("dns", "dnspython")]
+    if need_bot:
+        checks.insert(0, ("telegram", "python-telegram-bot"))
     missing = []
-    for module, package in (("telegram", "python-telegram-bot"),
-                            ("httpx", "httpx"),
-                            ("phonenumbers", "phonenumbers"),
-                            ("dns", "dnspython")):
+    for module, package in checks:
         try:
             __import__(module)
         except ImportError:
@@ -52,6 +55,25 @@ def _print_install_help(missing: list[str]) -> None:
 def main(argv: list[str] | None = None) -> int:
     argv = list(sys.argv[1:] if argv is None else argv)
 
+    # `python bot.py tgauth` — вход в MTProto тем же способом, что и `osintx tgauth`
+    if argv and argv[0] in ("tgauth", "tg-auth"):
+        from osintx.tg_auth import main as auth_main
+        return auth_main()
+
+    # `python bot.py cli <команда> …` — любая команда osintx без установки в PATH
+    if argv and argv[0] == "cli":
+        rest = argv[1:]
+        if not rest:
+            print("Использование: python bot.py cli <команда> [аргументы]\n"
+                  "Примеры:\n"
+                  "  python bot.py cli search durov -m telegram\n"
+                  "  python bot.py cli usernames durov\n"
+                  "  python bot.py cli sources --import-wmn\n"
+                  "Полный список команд: python bot.py cli --help")
+            return 1
+        from osintx.cli import main as cli_main
+        return cli_main(rest)
+
     if "--init" in argv or "--setup" in argv:
         from osintx.wizard import run_wizard
         from argparse import Namespace
@@ -62,7 +84,7 @@ def main(argv: list[str] | None = None) -> int:
                 token = argv[index + 1]
         return run_wizard(Namespace(token=token, no_input=("--no-input" in argv)))
 
-    missing = _missing_dependencies()
+    missing = _missing_dependencies(need_bot=True)
     if missing:
         _print_install_help(missing)
         return 1

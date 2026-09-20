@@ -131,6 +131,7 @@ python bot.py --check    # реальная проверка токена чер
 | `pip` падает на `files.pythonhosted.org` | тот же DNS-сбой: смените DNS и повторите `pip install -r requirements.txt`; apscheduler для бота НЕ нужен |
 | «Пробив» не находит данные | часть сайтов блокирует ботов: запустите с домашнего IP, добавьте прокси, смотрите блок «покрытие источников» в отчёте |
 | Часть источников `error`/`blocked` | это не «не найдено», а отказ источника — так и должно быть видно в отчёте |
+| «`osintx` не является внутренней или внешней командой» | команда не установлена в PATH: выполните `pip install -e .` (venv активирован), либо используйте `python -m osintx <команда>`, либо `python bot.py cli <команда>`, либо `osintx.bat <команда>` в корне проекта |
 | Нужен числовой Telegram ID, DC, общие группы | заполните `TG_API_ID`/`TG_API_HASH` (my.telegram.org) и один раз выполните `osintx tgauth` (то же: `osintx tg-auth` или `python -m osintx.tg_auth`) — спросит номер, код из Telegram и пароль 2FA, если он есть |
 | `tgauth`: «No module named 'socks'» | для прокси Telethon нужен пакет: `pip install "python-socks[asyncio]"` (без прокси просто уберите `TELEGRAM_PROXY` из `.env`) |
 | Где лежит сессия Telegram | `$OSINTX_DATA_DIR/<TG_SESSION>.session` (по умолчанию `.osintx-data/osintx.session`); это вход в ваш аккаунт — никому не передавайте, отозвать можно в Telegram → Настройки → Устройства |

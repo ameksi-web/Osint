@@ -143,18 +143,32 @@ osintx changes durov        # там же: что менялось (ник, им
 
 ```bash
 git clone <repo> && cd Osint
-python3 -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt      # или: pip install -e .
-cp .env.example .env                 # опционально: ключи API, токен бота
+python3 -m venv .venv && source .venv/bin/activate     # Windows: .venv\Scripts\activate
+pip install -r requirements.txt      # зависимости
+pip install -e .                     # ← создаёт команду `osintx` в PATH
+cp .env.example .env                 # опционально: ключи API, токен бота   (Windows: copy)
 ```
 
 Минимум для работы: `httpx`, `phonenumbers`, `dnspython`, `rich`, `fastapi`, `uvicorn`, `jinja2`.
 Telethon нужен только для MTProto-модуля Telegram, `python-telegram-bot` — только для бота.
 
-Проверка окружения:
+**Если команда `osintx` не находится** («не является внутренней или внешней командой»),
+есть три равнозначных способа — выбирайте любой, всё делает одно и то же:
+
+```bash
+pip install -e .              # 1) установить проект (появится команда osintx; venv должен быть активен)
+python -m osintx search durov # 2) то же самое без установки — модулем
+python bot.py cli search durov  # 3) через бот-скрипт:  python bot.py cli <любая команда osintx>
+```
+
+На Windows удобно `osintx.bat` из корня проекта — он сам подхватывает `.venv\Scripts\python.exe`
+и понимает те же аргументы: `osintx.bat tgauth`, `osintx.bat usernames durov`.
+
+Проверка окружения (любой из вариантов выше):
 
 ```bash
 osintx doctor
+python -m osintx doctor
 ```
 
 Команда покажет, что установлено, какие ключи заданы и **какие источники реально доступны из вашей сети**.
@@ -409,6 +423,7 @@ screen -S osintx-bot -d -m bash -c "cd $(pwd) && .venv/bin/osintx bot"
 # 1) api_id/api_hash на https://my.telegram.org → API development tools (бесплатно, 1 минута)
 #    в .env:  TG_API_ID=1234567   TG_API_HASH=abcdef0123456789
 osintx tgauth        # одноразовый вход — ТОЛЬКО в терминале на вашем ПК, не в чате бота
+python bot.py tgauth # то же самое, если команда osintx не в PATH
 osintx bot           # после входа /id отдаёт ID, DC, общие группы и поиск по сообщениям
 ```
 
@@ -602,6 +617,7 @@ osintx/
 ├── bot/              # Telegram-бот: run.py, ui.py, watch.py, limits.py
 └── data/             # реестры источников (214 площадок), список одноразовых доменов
 core/wmn.py           # импорт датасетов площадок (WhatsMyName/Sherlock)
+bot.py / osintx.bat   # запуск бота и любой команды без установки в PATH
 tools/build_registry.py
 start_bot.sh / start_bot.bat    # запуск бота одной командой
 deploy/             # systemd-юниты, Dockerfile, docker-compose
