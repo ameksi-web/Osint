@@ -2,6 +2,12 @@
 
 Запуск:  osintx tgauth    (то же самое: osintx tg-auth, python -m osintx.tg_auth)
 
+Важно: вход выполняется как ОБЫЧНЫЙ АККАУНТ (номер телефона), а не как бот. Бот-сессия
+(если ввести токен бота) не умеет глобальный поиск сообщений и GetCommonChats — это
+ограничение Telegram. Пересоздать сессию:  osintx tgauth --reset
+
+Сессию с ограничениями бота показывает сам модуль: статус «mtproto:session» в отчёте.
+
 Порядок действий:
 
   1. Вписать TG_API_ID и TG_API_HASH в ``.env`` (получить: https://my.telegram.org →
@@ -70,8 +76,28 @@ def _proxy_support_error(proxy: dict) -> str | None:
     return None
 
 
-def main() -> int:
+def reset_session(path: str) -> list[str]:
+    """Удалить сохранённую сессию (файлы .session и .session-journal)."""
+    import os
+
+    removed: list[str] = []
+    for candidate in (f"{path}.session", f"{path}.session-journal"):
+        if os.path.exists(candidate):
+            try:
+                os.remove(candidate)
+                removed.append(candidate)
+            except OSError as exc:  # pragma: no cover
+                print(f"Не удалось удалить {candidate}: {exc}")
+    return removed
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = list(sys.argv[1:] if argv is None else argv)
     settings = get_settings()
+    session_path = str(settings.data_dir / settings.tg_session)
+    if any(flag in args for flag in ("--reset", "--relogin", "--re-login")):
+        removed = reset_session(session_path)
+        print("Старая сессия удалена: " + (", ".join(removed) if removed else "файлов не было"))
     if not settings.tg_api_id or not settings.tg_api_hash:
         print("Сначала заполните TG_API_ID и TG_API_HASH в .env (получить: https://my.telegram.org)")
         print(HELP_HINT)
@@ -95,7 +121,6 @@ def main() -> int:
             return 1
         print(f"Прокси: {proxy['proxy_type']}://{proxy['addr']}:{proxy['port']}")
 
-    session_path = str(settings.data_dir / settings.tg_session)
     print(f"Файл сессии: {session_path}.session")
     print("Сейчас спросят номер телефона, затем код из Telegram (и пароль 2FA, если включён).")
     client = TelegramClient(session_path, settings.tg_api_id, settings.tg_api_hash,
@@ -105,6 +130,18 @@ def main() -> int:
     async def run() -> None:
         await client.start()
         me = await client.get_me()
+        if getattr(me, "bot", False):
+            print("\n⚠ Это сессия БОТА, а не вашего аккаунта.")
+            print(f"  Бот: @{me.username} (id {me.id})")
+            print("Telegram запрещает ботам глобальный поиск сообщений (SearchGlobal) и список общих")
+            print("групп (GetCommonChats) — они останутся недоступными, а доступно будет только чтение")
+            print("публичных каналов.")
+            print("\nЧтобы получить «где писал», общие группы и числовой ID цели — войдите как обычный")
+            print("аккаунт (номер телефона вместо токена бота):")
+            print("   osintx tgauth --reset      # удалит эту сессию")
+            print("   osintx tgauth              # номер в формате +79991234567, затем код из Telegram")
+            await client.disconnect()
+            return
         print("\nУспешный вход в Telegram (MTProto).")
         print(f"  Аккаунт: {me.first_name or ''} {me.last_name or ''}".rstrip())
         print(f"  Username: @{me.username}" if me.username else "  Username: нет")
@@ -149,4 +186,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    sys.exit(main(sys.argv[1:]))

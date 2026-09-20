@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "osintx"
-version = "1.2.2"
+version = "1.2.3"
 description = "OsintX — реальный OSINT-комбайн: email, username, телефон, Telegram, домен, IP, имя, утечки. CLI + Web UI + Telegram-бот."
 readme = "README.md"
 requires-python = ">=3.10"

@@ -161,6 +161,15 @@ def aggregate_chats(hits: list[dict[str, Any]], limit: int = 20) -> list[dict[st
     return out[:limit]
 
 
+def _bot_restricted(exc: BaseException) -> bool:
+    """Ошибка «этот метод недоступен ботам» (Telegram ограничивает API бот-сессий)."""
+    name = type(exc).__name__
+    text = f"{name} {exc}".lower()
+    return ("botmethodinvalid" in name.lower() or "botmethod" in name.lower()
+            or "access for bot users is restricted" in text
+            or ("bot" in text and "restricted" in text))
+
+
 def _post_links(body: str, username: str) -> list[str]:
     """Ссылки на конкретные посты канала в порядке появления (свежие сверху)."""
     pattern = re.compile(rf'href="(https://t\.me/{re.escape(username)}/\d+)"', re.IGNORECASE)
@@ -504,9 +513,22 @@ class TelegramModule(Module):
     async def _common_chats(self, ctx: Context, client, entity, result: ModuleResult) -> None:
         """Общие группы цели и вашего аккаунта (MTProto GetCommonChats)."""
         from telethon import functions
+        if (result.meta.get("mtproto_session") or {}).get("bot"):
+            self.add_status(result, SourceStatus(
+                source="mtproto:common-chats", category="telegram", status="unsupported",
+                detail="GetCommonChats недоступен для бот-сессии (Telegram ограничивает API ботов). "
+                       "Общие группы покажет вход как обычный аккаунт: osintx tgauth --reset && osintx tgauth"))
+            return
         try:
             res = await client(functions.messages.GetCommonChatsRequest(user_id=entity, max_id=0, limit=50))
         except Exception as exc:
+            if _bot_restricted(exc):
+                self.add_status(result, SourceStatus(
+                    source="mtproto:common-chats", category="telegram", status="unsupported",
+                    error=f"{type(exc).__name__}: {exc}"[:200],
+                    detail="Метод доступен только сессии обычного пользователя: osintx tgauth --reset, "
+                           "затем osintx tgauth с номером телефона"))
+                return
             self.add_status(result, SourceStatus(source="mtproto:common-chats", category="telegram",
                                                  status="error", error=f"{type(exc).__name__}: {exc}"[:200]))
             return
@@ -567,6 +589,69 @@ class TelegramModule(Module):
                 add_edge(result, entity_id("telegram", current), entity_id("telegram", name),
                          "same_account_username", 0.9, "дополнительный юзернейм того же аккаунта (MTProto)")
 
+    # ─────────────────── бот-сессия: что реально доступно ───────────────────
+    async def _bot_channel(self, ctx: Context, client, target: str, username: str | None,
+                           result: ModuleResult) -> None:
+        """Публичный канал глазами бот-сессии: последние посты и поиск внутри канала.
+
+        Глобальный поиск и общие группы ботам запрещены, но публичные каналы читать можно —
+        это честный максимум того, что даёт бот-токен.
+        """
+        peer = username or target
+        try:
+            messages = await client.get_messages(peer, limit=30)
+        except Exception as exc:
+            self.add_status(result, SourceStatus(
+                source="mtproto:channel", category="telegram",
+                status="unsupported" if _bot_restricted(exc) else "error",
+                error=f"{type(exc).__name__}: {exc}"[:200],
+                detail="бот видит только публичные каналы/чаты, где он состоит или админ"))
+            return
+        posts: list[dict[str, Any]] = []
+        for message in messages or []:
+            date = getattr(message, "date", None)
+            posts.append({
+                "text": (getattr(message, "message", "") or "").strip()[:600],
+                "date": date.strftime("%Y-%m-%d %H:%M") if hasattr(date, "strftime") else "",
+                "url": f"https://t.me/{peer}/{getattr(message, 'id', '')}" if username else "",
+                "views": getattr(message, "views", None),
+            })
+        posts = [p for p in posts if p["text"] or p["url"]]
+        if not posts:
+            self.add_status(result, SourceStatus(source="mtproto:channel", category="telegram",
+                                                 status="not_found",
+                                                 detail=f"у {peer} нет доступных боту сообщений"))
+            return
+        dated = sorted(p["date"][:10] for p in posts if p["date"])
+        self.add_finding(
+            result, source="mtproto:channel", category="telegram", kind="posts", confidence="high",
+            title=f"MTProto (бот): {len(posts)} последних сообщений {peer}"
+                  + (f", с {dated[0]} по {dated[-1]}" if dated else ""),
+            url=posts[0]["url"], value=peer,
+            data={"posts": posts, "count": len(posts), "chat": peer,
+                  "first_date": dated[0] if dated else "", "last_date": dated[-1] if dated else "",
+                  "note": "бот-сессия: доступны только публичные каналы, где бот участник; "
+                          "глобальный поиск и общие группы требуют входа как обычный аккаунт"},
+            evidence=f"client.get_messages({peer!r}, limit=30) через бот-сессию → {len(posts)} сообщений",
+            http_code=200, tags=["telegram", "mtproto", "посты"])
+        self.add_status(result, SourceStatus(source="mtproto:channel", category="telegram", status="found",
+                                             detail=f"{len(posts)} сообщений канала"))
+        await self._topics(ctx, f"{peer} (бот-сессия)", posts, result, source="mtproto:topics",
+                           note="по последним сообщениям канала, прочитанным ботом")
+        query = username or target
+        if not query:
+            return
+        try:
+            found = await client.get_messages(peer, limit=30, search=query)
+        except Exception:
+            return
+        hits = [{"text": (getattr(m, "message", "") or "").strip()[:600],
+                 "date": str(getattr(m, "date", "")), "chat": peer,
+                 "link": f"https://t.me/{peer}/{getattr(m, 'id', '')}" if username else ""}
+                for m in (found or []) if (getattr(m, "message", "") or "").strip()]
+        if hits:
+            self._chats_finding(result, hits, source="mtproto:chats", label=query)
+
     # ───────────────────────── fragment.com ─────────────────────────
     async def _fragment(self, ctx: Context, username: str, result: ModuleResult) -> None:
         url = f"https://fragment.com/username/{username}"
@@ -611,13 +696,32 @@ class TelegramModule(Module):
                 self.add_status(result, SourceStatus(
                     source="mtproto", category="telegram", status="unsupported",
                     detail=f"Сессия {session_path}.session не авторизована. Запусти один раз "
-                           "`python -m osintx.tg_auth` (или `osintx tgauth`) и введи номер+код — "
+                           "`osintx tgauth` (или `python bot.py tgauth`) и введи номер+код — "
                            "после этого MTProto-поиск заработает."))
+                return
+            me = await client.get_me()
+            is_bot = bool(getattr(me, "bot", False))
+            result.meta["mtproto_session"] = {"bot": is_bot, "id": getattr(me, "id", None),
+                                              "username": getattr(me, "username", None)}
+            if is_bot:
+                # Telegram запрещает ботам глобальный поиск и GetCommonChats — работаем тем, что можно
+                self.add_status(result, SourceStatus(
+                    source="mtproto:session", category="telegram", status="unsupported",
+                    detail="Сессия MTProto — это БОТ-аккаунт (@%s), а не ваш Telegram-аккаунт. Telegram "
+                           "запрещает ботам глобальный поиск сообщений (SearchGlobal) и список общих "
+                           "групп (GetCommonChats) — именно поэтому эти пункты недоступны. "
+                           "Что доступно: чтение публичных каналов. Чтобы получить «где писал», общие "
+                           "группы и числовой ID цели — войдите как обычный аккаунт: "
+                           "osintx tgauth --reset, затем osintx tgauth и введите НОМЕР ТЕЛЕФОНА "
+                           "(не токен бота)." % (getattr(me, "username", None) or "bot",)))
+                await self._bot_channel(ctx, client, target, username, result)
+                self.add_status(result, SourceStatus(source="mtproto", category="telegram", status="found",
+                                                     detail="бот-сессия: доступны только публичные каналы"))
                 return
             await self._mtproto_entity(ctx, client, target, username, result)
             await self._mtproto_search(ctx, client, target, result)
             self.add_status(result, SourceStatus(source="mtproto", category="telegram", status="found",
-                                                 detail="сессия активна, данные получены"))
+                                                 detail="сессия пользователя активна, данные получены"))
         except Exception as exc:
             self.add_status(result, SourceStatus(source="mtproto", category="telegram", status="error",
                                                  error=f"{type(exc).__name__}: {exc}"[:250]))
@@ -639,8 +743,16 @@ class TelegramModule(Module):
         full = None
         try:
             full = await client(GetFullUserRequest(entity))
-        except Exception:
-            pass
+        except Exception as exc:
+            if _bot_restricted(exc):
+                self.add_status(result, SourceStatus(
+                    source="mtproto:entity", category="telegram", status="unsupported",
+                    error=f"{type(exc).__name__}: {exc}"[:200],
+                    detail="Бот-сессия видит только публичные каналы и тех, кто писал боту. "
+                           "Полный профиль (bio, общие группы, юзернеймы) даёт вход как обычный аккаунт"))
+            else:
+                self.add_status(result, SourceStatus(source="mtproto:entity", category="telegram",
+                                                     status="error", error=f"{type(exc).__name__}: {exc}"[:200]))
         about = getattr(full, "full_user", None) and getattr(full.full_user, "about", None)
         common_chats = getattr(full.full_user, "common_chats_count", None) if getattr(full, "full_user", None) else None
         data = {
@@ -697,10 +809,19 @@ class TelegramModule(Module):
         """Глобальный поиск по сообщениям — аналог поиска в Void OSINT."""
         from telethon import functions
         try:
+            from telethon import types
             res = await client(functions.messages.SearchGlobalRequest(
-                q=query, filter=None, min_date=None, max_date=None, offset_rate=0, offset_peer=None,
-                offset_id=0, limit=30))
+                q=query, filter=None, min_date=None, max_date=None, offset_rate=0,
+                offset_peer=types.InputPeerEmpty(), offset_id=0, limit=30))
         except Exception as exc:
+            if _bot_restricted(exc):
+                self.add_status(result, SourceStatus(
+                    source="mtproto:search", category="telegram", status="unsupported",
+                    error=f"{type(exc).__name__}: {exc}"[:200],
+                    detail="Глобальный поиск по сообщениям недоступен для бот-сессии (ограничение Telegram). "
+                           "Войдите как обычный аккаунт: osintx tgauth --reset && osintx tgauth (номер телефона). "
+                           "Публичная альтернатива без входа: поиск по постам канала t.me/s/<канал>?q=…"))
+                return
             self.add_status(result, SourceStatus(source="mtproto:search", category="telegram", status="error",
                                                  error=f"{type(exc).__name__}: {exc}"[:200]))
             return

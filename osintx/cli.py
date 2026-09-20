@@ -567,7 +567,7 @@ def cmd_bot(args: argparse.Namespace) -> int:
 
 def cmd_tgauth(args: argparse.Namespace) -> int:
     from .tg_auth import main as auth_main
-    return auth_main()
+    return auth_main(["--reset"] if getattr(args, "reset", False) else [])
 
 
 def cmd_watch(args: argparse.Namespace) -> int:
@@ -740,6 +740,8 @@ def build_parser() -> argparse.ArgumentParser:
     p.set_defaults(func=cmd_bot)
 
     p = sub.add_parser("tgauth", aliases=["tg-auth"], help="Авторизовать MTProto-сессию Telegram")
+    p.add_argument("--reset", action="store_true",
+                   help="удалить сохранённую сессию и войти заново (например, если это бот-сессия)")
     p.set_defaults(func=cmd_tgauth)
 
     p = sub.add_parser("watch", help="Наблюдение за целями (отслеживание новых находок)")

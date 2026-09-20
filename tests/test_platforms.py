@@ -649,3 +649,150 @@ def test_windows_launcher_exists_and_uses_venv():
     text = bat.read_text(encoding="utf-8")
     assert "-m osintx" in text and ".venv\\Scripts\\python.exe" in text
     assert text.startswith("@echo off")
+
+
+# ───────────────── MTProto: бот-сессия и корректные запросы ─────────────────
+class _FakeMe:
+    def __init__(self, bot: bool, username: str = "", uid: int = 1):
+        self.bot, self.username, self.id = bot, username, uid
+        self.first_name, self.last_name, self.phone = "Test", "", "+70000000000"
+
+
+class _FakeMessage:
+    def __init__(self, mid: int, text: str, date: str = "2026-09-18T21:15:00", chat_id: int = 5):
+        self.id, self.message, self.date, self.views = mid, text, date, 100
+        self.peer_id = type("Peer", (), {"channel_id": chat_id, "chat_id": None, "user_id": None})()
+
+
+class _SearchRes:
+    def __init__(self, messages=None, chats=None):
+        self.messages, self.chats = messages or [], chats or []
+
+
+class FakeTelethonClient:
+    """Минимальный «клиент Telethon» для тестов: запоминает вызовы."""
+
+    def __init__(self, *, bot=False, messages=None, search_result=None, calls=None,
+                 raise_bot_method=False):
+        self._bot, self._messages = bot, messages or []
+        self._search_result = search_result
+        self.calls: list[object] = calls if calls is not None else []
+        self._raise_bot_method = raise_bot_method
+
+    async def connect(self):
+        return True
+
+    async def is_user_authorized(self):
+        return True
+
+    async def get_me(self):
+        return _FakeMe(self._bot, "testbot" if self._bot else "tester")
+
+    async def disconnect(self):
+        return True
+
+    async def get_entity(self, name):
+        class _E:
+            id, access_hash, username = 777, 111, "tester"
+        return _E()
+
+    async def get_messages(self, peer, limit=30, search=None):
+        self.calls.append(("get_messages", peer, limit, search))
+        return self._messages
+
+    async def __call__(self, request):
+        if self._raise_bot_method:
+            class BotMethodInvalidError(Exception):
+                pass
+            raise BotMethodInvalidError("The API access for bot users is restricted. (caused by GetCommonChatsRequest)")
+        self.calls.append(request)
+        if self._search_result is not None:
+            return self._search_result
+        return _SearchRes()
+
+
+def _patch_telethon(monkeypatch, client):
+    import telethon
+
+    monkeypatch.setattr(telethon, "TelegramClient", lambda *a, **kw: client, raising=False)
+    return client
+
+
+def test_search_global_uses_input_peer_empty(monkeypatch):
+    """offset_peer=None ломал запрос («Cannot cast NoneType to any kind of Peer»)."""
+    from telethon.tl.types import InputPeerEmpty
+
+    from osintx.modules.telegram import TelegramModule
+
+    client = FakeTelethonClient(search_result=_SearchRes(
+        messages=[_FakeMessage(1, "написал про durov")],
+        chats=[type("C", (), {"id": 5, "title": "osintchat", "username": "osintchat"})()]))
+    ctx = _ctx(FakeHttp({}), {"target_type": "telegram"})
+    result = ModuleResult(module="telegram", target="durov")
+    asyncio.run(TelegramModule()._mtproto_search(ctx, client, "durov", result))
+
+    request = [c for c in client.calls if hasattr(c, "offset_peer")][0]
+    assert isinstance(request.offset_peer, InputPeerEmpty), "offset_peer обязан быть InputPeerEmpty()"
+    finding = [f for f in result.findings if f.source == "mtproto:search"][0]
+    assert finding.data["messages"][0]["chat"] == "osintchat"
+    ctx.store.close()
+
+
+def test_bot_session_is_detected_and_explained(monkeypatch):
+    from osintx.modules.telegram import TelegramModule
+
+    client = FakeTelethonClient(bot=True, messages=[_FakeMessage(11, "пост канала про OSINT")])
+    _patch_telethon(monkeypatch, client)
+    ctx = _ctx(FakeHttp({}), {"target_type": "telegram"})
+    result = ModuleResult(module="telegram", target="durov")
+    asyncio.run(TelegramModule()._mtproto(ctx, "durov", "durov", result))
+
+    session_status = [s for s in result.statuses if s.source == "mtproto:session"]
+    assert session_status and session_status[0].status == "unsupported"
+    assert "БОТ" in session_status[0].detail and "tgauth --reset" in session_status[0].detail
+    assert not [s for s in result.statuses if s.source == "mtproto:search"], \
+        "бот-сессия не должна пытаться делать глобальный поиск"
+    posts = [f for f in result.findings if f.source == "mtproto:channel"]
+    assert posts and posts[0].data["count"] == 1, "бот читает публичный канал — это остаётся доступным"
+    ctx.store.close()
+
+
+def test_bot_method_error_becomes_unsupported_not_crash(monkeypatch):
+    from osintx.modules.telegram import TelegramModule
+
+    client = FakeTelethonClient(raise_bot_method=True)
+    ctx = _ctx(FakeHttp({}), {"target_type": "telegram"})
+    result = ModuleResult(module="telegram", target="durov")
+    asyncio.run(TelegramModule()._mtproto_search(ctx, client, "durov", result))
+    asyncio.run(TelegramModule()._common_chats(ctx, client, type("E", (), {"id": 1})(), result))
+
+    search = [s for s in result.statuses if s.source == "mtproto:search"][0]
+    chats = [s for s in result.statuses if s.source == "mtproto:common-chats"][0]
+    assert search.status == "unsupported" and "бот" in search.detail.lower()
+    assert chats.status == "unsupported" and "обычного пользователя" in chats.detail
+    ctx.store.close()
+
+
+def test_common_chats_skipped_for_bot_session():
+    from osintx.modules.telegram import TelegramModule
+
+    ctx = _ctx(FakeHttp({}), {"target_type": "telegram"})
+    result = ModuleResult(module="telegram", target="durov")
+    result.meta["mtproto_session"] = {"bot": True}
+    asyncio.run(TelegramModule()._common_chats(ctx, None, type("E", (), {"id": 1})(), result))
+
+    status = [s for s in result.statuses if s.source == "mtproto:common-chats"][0]
+    assert status.status == "unsupported" and "GetCommonChats" in status.detail
+    ctx.store.close()
+
+
+def test_tgauth_reset_removes_session(tmp_path):
+    from osintx.tg_auth import reset_session
+
+    base = tmp_path / "osintx"
+    (tmp_path / "osintx.session").write_text("x", encoding="utf-8")
+    (tmp_path / "osintx.session-journal").write_text("x", encoding="utf-8")
+    removed = reset_session(str(base))
+    assert len(removed) == 2
+    assert not (tmp_path / "osintx.session").exists()
+    assert reset_session(str(base)) == [], "повторный сброс ничего не ломает"
