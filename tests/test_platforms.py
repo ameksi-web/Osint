@@ -588,3 +588,31 @@ def test_format_usernames_explains_empty_history():
 
     text = format_usernames([], "nobody")
     assert "не наблюдалось" in text and "osintx search nobody" in text
+
+
+# ───────────────── авторизация MTProto: разбор прокси для Telethon ─────────────────
+def test_telethon_proxy_parsing():
+    from osintx.tg_auth import _telethon_proxy
+
+    assert _telethon_proxy("") is None
+    assert _telethon_proxy("ftp://host:21") is None
+    assert _telethon_proxy("socks5://host") is None          # нет порта
+
+    socks = _telethon_proxy("socks5://127.0.0.1:1080")
+    assert socks == {"proxy_type": "socks5", "addr": "127.0.0.1", "port": 1080, "rdns": True}
+
+    http = _telethon_proxy("http://user:p%40ss@proxy.example:8080")
+    assert http["proxy_type"] == "http" and http["username"] == "user"
+    assert http["password"] == "p@ss", "логин/пароль из URL декодируются"
+    assert _telethon_proxy("socks4://10.0.0.5:9050")["proxy_type"] == "socks4"
+
+
+def test_telethon_proxy_requires_python_socks(monkeypatch):
+    import sys
+
+    from osintx.tg_auth import _proxy_support_error
+
+    proxy = {"proxy_type": "http", "addr": "127.0.0.1", "port": 8080}
+    monkeypatch.setitem(sys.modules, "python_socks", None)     # import → ImportError
+    hint = _proxy_support_error(proxy)
+    assert hint and "python-socks" in hint, "без пакета должна быть понятная подсказка, а не «No module named socks»"

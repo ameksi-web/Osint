@@ -403,17 +403,39 @@ screen -S osintx-bot -d -m bash -c "cd $(pwd) && .venv/bin/osintx bot"
 
 Подробности и варианты (включая веб-сервис и MTProto-вход) — в `deploy/README.md`.
 
-### 6. MTProto: числовой ID, DC и глобальный поиск по сообщениям
+### 6. MTProto: числовой ID, DC, общие группы и глобальный поиск по сообщениям
 
 ```bash
-# 1) api_id/api_hash на https://my.telegram.org → API development tools
-# 2) в .env: TG_API_ID=..., TG_API_HASH=...
-osintx tgauth        # одноразовый вход: номер + код из Telegram
-osintx bot           # после входа /id начнёт отдавать ID, DC и поиск по сообщениям
+# 1) api_id/api_hash на https://my.telegram.org → API development tools (бесплатно, 1 минута)
+#    в .env:  TG_API_ID=1234567   TG_API_HASH=abcdef0123456789
+osintx tgauth        # одноразовый вход — ТОЛЬКО в терминале на вашем ПК, не в чате бота
+osintx bot           # после входа /id отдаёт ID, DC, общие группы и поиск по сообщениям
+```
+
+Что спросит `osintx tgauth` (то же самое: `osintx tg-auth`, `python -m osintx.tg_auth`):
+
+1. **номер телефона** в международном формате (`+79991234567`);
+2. **код из Telegram** — приходит сообщением в сам Telegram (не по SMS), живёт пару минут;
+3. **пароль 2FA** — только если он у вас включён.
+
+Файл сессии появится рядом с базой: `$OSINTX_DATA_DIR/<TG_SESSION>.session`
+(по умолчанию `.osintx-data/osintx.session`). Сессия = вход в ваш аккаунт: не передавайте её
+третьим лицам, отозвать можно в Telegram → Настройки → Устройства.
+
+**Если Telegram блокируется сетью** — тот же прокси, что и у бота:
+
+```bash
+TELEGRAM_PROXY=socks5://127.0.0.1:1080      # или http://user:pass@host:port
+pip install "python-socks[asyncio]"         # Telethon требует этот пакет для любого прокси
+osintx tgauth
 ```
 
 Без MTProto **числовой ID не вычисляется**: публично его взять негде, «генераторы ID по
 юзернейму» — обман. OsintX честно помечает такие пункты как `unsupported`.
+
+**Что даёт вход:** числовой ID и access_hash, DC, дата регистрации, bio целиком, юзернеймы
+аккаунта (для истории ников), **общие группы с вашим аккаунтом** (`GetCommonChats`) и чаты, где
+человек писал (глобальный поиск) — то есть «в каких группах был и где писал» из раздела выше.
 
 ### 7. Как доработать бота под себя
 

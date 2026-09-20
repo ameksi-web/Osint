@@ -131,7 +131,9 @@ python bot.py --check    # реальная проверка токена чер
 | `pip` падает на `files.pythonhosted.org` | тот же DNS-сбой: смените DNS и повторите `pip install -r requirements.txt`; apscheduler для бота НЕ нужен |
 | «Пробив» не находит данные | часть сайтов блокирует ботов: запустите с домашнего IP, добавьте прокси, смотрите блок «покрытие источников» в отчёте |
 | Часть источников `error`/`blocked` | это не «не найдено», а отказ источника — так и должно быть видно в отчёте |
-| Нужен числовой Telegram ID | заполните `TG_API_ID`/`TG_API_HASH` (my.telegram.org) и один раз выполните `osintx tgauth` |
+| Нужен числовой Telegram ID, DC, общие группы | заполните `TG_API_ID`/`TG_API_HASH` (my.telegram.org) и один раз выполните `osintx tgauth` (то же: `osintx tg-auth` или `python -m osintx.tg_auth`) — спросит номер, код из Telegram и пароль 2FA, если он есть |
+| `tgauth`: «No module named 'socks'» | для прокси Telethon нужен пакет: `pip install "python-socks[asyncio]"` (без прокси просто уберите `TELEGRAM_PROXY` из `.env`) |
+| Где лежит сессия Telegram | `$OSINTX_DATA_DIR/<TG_SESSION>.session` (по умолчанию `.osintx-data/osintx.session`); это вход в ваш аккаунт — никому не передавайте, отозвать можно в Telegram → Настройки → Устройства |
 | Не видно, в каких группах человек | это приватные данные Telegram: публично видны только чаты, где найдены его сообщения. Общие с вами группы покажет MTProto после `osintx tgauth` |
 | Нужны прежние юзернеймы, а бот выключен | история лежит в локальной базе: `osintx usernames <цель>` (или `/usernames`), сеть не нужна |
 | VK показывает капчу / «Проверяем, что вы не робот» | это `blocked`, а не «не найдено»: добавьте сервисный ключ `VK_TOKEN` в `.env` — модуль переключится на официальный API |

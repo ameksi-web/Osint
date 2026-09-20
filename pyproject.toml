@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "osintx"
-version = "1.2.0"
+version = "1.2.1"
 description = "OsintX — реальный OSINT-комбайн: email, username, телефон, Telegram, домен, IP, имя, утечки. CLI + Web UI + Telegram-бот."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -24,7 +24,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-mtproto = ["telethon>=1.36"]     # глубокий Telegram-модуль (ID, DC, поиск по сообщениям)
+mtproto = ["telethon>=1.36", "python-socks[asyncio]>=2.4"]   # ID, DC, общие группы, поиск по сообщениям (+ SOCKS-прокси)
 dev = ["pytest>=8.0", "pytest-asyncio>=0.23"]
 
 [project.scripts]
