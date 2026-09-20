@@ -12,6 +12,7 @@
     python bot.py --init              # открыть мастер настройки (.env)
     python bot.py tgauth              # вход в MTProto (номер + код из Telegram)
     python bot.py tgauth --reset      # удалить сессию (в т.ч. бот-сессию) и войти заново
+    python bot.py tgcheck             # проверить, что реально доступно в MTProto-сессии
     python bot.py cli search durov    # любая команда osintx — если «osintx» не в PATH
 
 Если зависимости ещё не установлены, скрипт подскажет точную команду.
@@ -60,6 +61,10 @@ def main(argv: list[str] | None = None) -> int:
     if argv and argv[0] in ("tgauth", "tg-auth"):
         from osintx.tg_auth import main as auth_main
         return auth_main(argv[1:])
+
+    if argv and argv[0] in ("tgcheck", "mtproto-check"):
+        from osintx.tg_auth import check_main
+        return check_main()
 
     # `python bot.py cli <команда> …` — любая команда osintx без установки в PATH
     if argv and argv[0] == "cli":

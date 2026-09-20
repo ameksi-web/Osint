@@ -720,7 +720,7 @@ def _patch_telethon(monkeypatch, client):
 
 def test_search_global_uses_input_peer_empty(monkeypatch):
     """offset_peer=None ломал запрос («Cannot cast NoneType to any kind of Peer»)."""
-    from telethon.tl.types import InputPeerEmpty
+    from telethon.tl.types import InputMessagesFilterEmpty, InputPeerEmpty
 
     from osintx.modules.telegram import TelegramModule
 
@@ -733,6 +733,8 @@ def test_search_global_uses_input_peer_empty(monkeypatch):
 
     request = [c for c in client.calls if hasattr(c, "offset_peer")][0]
     assert isinstance(request.offset_peer, InputPeerEmpty), "offset_peer обязан быть InputPeerEmpty()"
+    assert isinstance(request.filter, InputMessagesFilterEmpty), "filter не может быть None"
+    bytes(request)   # падало: «a TLObject was expected but found something else»
     finding = [f for f in result.findings if f.source == "mtproto:search"][0]
     assert finding.data["messages"][0]["chat"] == "osintchat"
     ctx.store.close()
@@ -845,3 +847,40 @@ def test_cli_version_command_reports_paths(tmp_path, monkeypatch, capsys):
         assert "OsintX" in out and str(tmp_path) in out and "git pull" in out
     finally:
         config.get_settings(reload=True)
+
+
+def test_mtproto_requests_are_serialisable():
+    """Все поля запроса должны быть TL-объектами: filter=None давал
+    “a TLObject was expected but found something else” прямо во время поиска."""
+    from telethon import types
+
+    from osintx.modules.telegram import common_chats_request, search_global_request
+
+    search = search_global_request("durov")
+    assert isinstance(search.filter, types.InputMessagesFilterEmpty)
+    assert isinstance(search.offset_peer, types.InputPeerEmpty)
+    assert len(bytes(search)) > 20
+
+    chats = common_chats_request(types.InputUser(user_id=1, access_hash=1))
+    assert len(bytes(chats)) > 20
+
+    for request in (search, chats):
+        request.to_dict()   # дополнительная проверка структуры
+
+
+def test_search_typeerror_hint_points_to_update(monkeypatch):
+    """Если поиск падает из-за старого кода — в отчёте должна быть подсказка про обновление."""
+    from osintx.modules.telegram import TelegramModule
+
+    class BrokenClient:
+        async def __call__(self, request):
+            raise TypeError("a TLObject was expected but found something else")
+
+    ctx = _ctx(FakeHttp({}), {"target_type": "telegram"})
+    result = ModuleResult(module="telegram", target="durov")
+    asyncio.run(TelegramModule()._mtproto_search(ctx, BrokenClient(), "durov", result))
+
+    status = [s for s in result.statuses if s.source == "mtproto:search"][0]
+    assert status.status == "error"
+    assert "1.2.5" in status.detail and "git pull" in status.detail
+    ctx.store.close()

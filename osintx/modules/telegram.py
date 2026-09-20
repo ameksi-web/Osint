@@ -161,6 +161,28 @@ def aggregate_chats(hits: list[dict[str, Any]], limit: int = 20) -> list[dict[st
     return out[:limit]
 
 
+def search_global_request(query: str, *, limit: int = 30):
+    """Запрос глобального поиска сообщений (аналог Void OSINT).
+
+    Все поля обязаны быть TL-объектами: Telethon падал с «a TLObject was expected but
+    found something else», когда filter был None. Функция отдельная, чтобы это ловилось
+    тестом (проверка ``bytes(request)``) без обращения к сети.
+    """
+    from telethon import types
+    from telethon.tl.functions.messages import SearchGlobalRequest
+
+    return SearchGlobalRequest(q=query, filter=types.InputMessagesFilterEmpty(), min_date=None,
+                               max_date=None, offset_rate=0, offset_peer=types.InputPeerEmpty(),
+                               offset_id=0, limit=limit)
+
+
+def common_chats_request(user_id, *, limit: int = 50, max_id: int = 0):
+    """Запрос общих групп с целью (только сессия обычного пользователя, не бота)."""
+    from telethon.tl.functions.messages import GetCommonChatsRequest
+
+    return GetCommonChatsRequest(user_id=user_id, max_id=max_id, limit=limit)
+
+
 def _bot_restricted(exc: BaseException) -> bool:
     """Ошибка «этот метод недоступен ботам» (Telegram ограничивает API бот-сессий)."""
     name = type(exc).__name__
@@ -512,7 +534,6 @@ class TelegramModule(Module):
 
     async def _common_chats(self, ctx: Context, client, entity, result: ModuleResult) -> None:
         """Общие группы цели и вашего аккаунта (MTProto GetCommonChats)."""
-        from telethon import functions
         if (result.meta.get("mtproto_session") or {}).get("bot"):
             self.add_status(result, SourceStatus(
                 source="mtproto:common-chats", category="telegram", status="unsupported",
@@ -520,7 +541,7 @@ class TelegramModule(Module):
                        "Общие группы покажет вход как обычный аккаунт: osintx tgauth --reset && osintx tgauth"))
             return
         try:
-            res = await client(functions.messages.GetCommonChatsRequest(user_id=entity, max_id=0, limit=50))
+            res = await client(common_chats_request(entity))
         except Exception as exc:
             if _bot_restricted(exc):
                 self.add_status(result, SourceStatus(
@@ -807,12 +828,8 @@ class TelegramModule(Module):
 
     async def _mtproto_search(self, ctx: Context, client, query: str, result: ModuleResult) -> None:
         """Глобальный поиск по сообщениям — аналог поиска в Void OSINT."""
-        from telethon import functions
         try:
-            from telethon import types
-            res = await client(functions.messages.SearchGlobalRequest(
-                q=query, filter=None, min_date=None, max_date=None, offset_rate=0,
-                offset_peer=types.InputPeerEmpty(), offset_id=0, limit=30))
+            res = await client(search_global_request(query))
         except Exception as exc:
             if _bot_restricted(exc):
                 self.add_status(result, SourceStatus(
@@ -822,8 +839,13 @@ class TelegramModule(Module):
                            "Войдите как обычный аккаунт: osintx tgauth --reset && osintx tgauth (номер телефона). "
                            "Публичная альтернатива без входа: поиск по постам канала t.me/s/<канал>?q=…"))
                 return
+            text = f"{type(exc).__name__}: {exc}"
+            hint = ""
+            if "tlobject was expected" in text.lower():
+                hint = ("Это баг старых версий OsintX (в запросе передавался filter=None) — исправлено "
+                        "в 1.2.5. Обновитесь: git pull, затем pip install -e .")
             self.add_status(result, SourceStatus(source="mtproto:search", category="telegram", status="error",
-                                                 error=f"{type(exc).__name__}: {exc}"[:200]))
+                                                 error=text[:200], detail=hint))
             return
         messages = getattr(res, "messages", []) or []
         chats = {getattr(c, "id", None): getattr(c, "title", None) or getattr(c, "username", None)

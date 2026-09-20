@@ -570,6 +570,11 @@ def cmd_tgauth(args: argparse.Namespace) -> int:
     return auth_main(["--reset"] if getattr(args, "reset", False) else [])
 
 
+def cmd_tgcheck(args: argparse.Namespace) -> int:
+    from .tg_auth import check_main
+    return check_main()
+
+
 def cmd_version(args: argparse.Namespace) -> int:
     """osintx version — версия, пути данных и подсказка про обновление."""
     import platform
@@ -757,6 +762,10 @@ def build_parser() -> argparse.ArgumentParser:
 
     p = sub.add_parser("version", aliases=["ver"], help="Показать версию и пути данных")
     p.set_defaults(func=cmd_version)
+
+    p = sub.add_parser("tgcheck", aliases=["mtproto-check"],
+                       help="Проверить MTProto-сессию: аккаунт или бот, что доступно")
+    p.set_defaults(func=cmd_tgcheck)
 
     p = sub.add_parser("tgauth", aliases=["tg-auth"], help="Авторизовать MTProto-сессию Telegram")
     p.add_argument("--reset", "-r", "--relogin", "--logout", action="store_true",

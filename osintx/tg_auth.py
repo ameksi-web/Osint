@@ -190,5 +190,99 @@ def main(argv: list[str] | None = None) -> int:
     return 0
 
 
+def check_main() -> int:
+    """osintx tgcheck — что реально работает в текущей MTProto-сессии.
+
+    Проверяет (по возможности живьём): авторизована ли сессия, это аккаунт или бот,
+    сериализуются ли наши запросы, отдаёт ли Telegram глобальный поиск сообщений и
+    список общих групп. Для бот-сессий сразу объясняет, что доступно, а что нет.
+    """
+    settings = get_settings()
+    if not settings.tg_api_id or not settings.tg_api_hash:
+        print("Сначала заполните TG_API_ID и TG_API_HASH в .env (получить: https://my.telegram.org)")
+        print(HELP_HINT)
+        return 1
+    try:
+        from telethon import TelegramClient
+        from telethon import types
+    except ImportError:
+        print("Telethon не установлен:  pip install telethon")
+        return 1
+
+    from .modules.telegram import common_chats_request, search_global_request
+
+    print("1) Проверка самих запросов (без сети):")
+    for label, request in (("глобальный поиск", search_global_request("telegram")),
+                           ("общие группы", common_chats_request(types.InputUser(user_id=1, access_hash=1)))):
+        try:
+            size = len(bytes(request))
+            print(f"   ✅ {label}: запрос собран корректно ({size} байт)")
+        except Exception as exc:
+            print(f"   ❌ {label}: {type(exc).__name__}: {exc}")
+            return 1
+
+    proxy = _telethon_proxy((settings.telegram_proxy or settings.proxy or "").strip())
+    session_path = str(settings.data_dir / settings.tg_session)
+    client = TelegramClient(session_path, settings.tg_api_id, settings.tg_api_hash,
+                            device_model="OsintX CLI", system_version="1.0", app_version="1.0",
+                            proxy=proxy)
+
+    async def run() -> int:
+        await client.connect()
+        print("\n2) Сессия:")
+        if not await client.is_user_authorized():
+            print(f"   ❌ {session_path}.session не авторизована — запустите: osintx tgauth")
+            return 1
+        me = await client.get_me()
+        is_bot = bool(getattr(me, "bot", False))
+        print(f"   {'🤖 БОТ' if is_bot else '👤 аккаунт'}: @{getattr(me, 'username', None) or '—'} "
+              f"(id {me.id})")
+        if is_bot:
+            print("   ⚠ Telegram запрещает бот-сессиям глобальный поиск и список общих групп.")
+            print("     Нужен вход своим аккаунтом: osintx tgauth --reset && osintx tgauth (номер телефона)")
+
+        print("\n3) Глобальный поиск сообщений (SearchGlobal):")
+        try:
+            res = await client(search_global_request("telegram", limit=5))
+            found = [m for m in (getattr(res, "messages", []) or []) if getattr(m, "message", "")]
+            print(f"   ✅ работает: получено {len(found)} сообщений с текстом"
+                  + (f", например: «{found[0].message[:60]}»" if found else ""))
+        except Exception as exc:
+            if "restricted" in f"{exc}".lower():
+                print("   ⛔ недоступно: это ограничение Telegram для бот-сессий (нужен вход номером)")
+            else:
+                print(f"   ❌ {type(exc).__name__}: {exc}")
+
+        print("\n4) Общие группы (GetCommonChats):")
+        try:
+            res = await client(common_chats_request(me))
+            chats = getattr(res, "chats", []) or []
+            print(f"   ✅ работает: общих групп с этим аккаунтом (самим собой) — {len(chats)}")
+        except Exception as exc:
+            if "restricted" in f"{exc}".lower():
+                print("   ⛔ недоступно для бот-сессии (нужен вход номером телефона)")
+            else:
+                print(f"   ❌ {type(exc).__name__}: {exc}")
+
+        print("\nИтог: значения «✅» доступны в поиске; «⛔» — ограничение Telegram для бот-сессий,")
+        print("«❌» — реальная ошибка, её стоит показать разработчику вместе с текстом выше.")
+        return 0
+
+    try:
+        return client.loop.run_until_complete(run())
+    except KeyboardInterrupt:
+        print("\nПрервано.")
+        return 130
+    except Exception as exc:
+        print(f"Ошибка проверки: {type(exc).__name__}: {exc}")
+        print("Если это сетевое — смотрите: python bot.py --net")
+        return 1
+    finally:
+        try:
+            client.loop.run_until_complete(client.disconnect())
+        except Exception:
+            pass
+
+
 if __name__ == "__main__":
     sys.exit(main(sys.argv[1:]))
