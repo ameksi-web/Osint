@@ -437,6 +437,25 @@ osintx bot           # после входа /id отдаёт ID, DC, общие
 (по умолчанию `.osintx-data/osintx.session`). Сессия = вход в ваш аккаунт: не передавайте её
 третьим лицам, отозвать можно в Telegram → Настройки → Устройства.
 
+**Войти заново (например, если сессия оказалась бот-сессией):**
+
+```bash
+osintx tgauth --reset      # то же: -r, --relogin, --logout
+osintx tgauth              # спросит НОМЕР ТЕЛЕФОНА, затем код из Telegram
+```
+
+Если команда отвечает `unrecognized arguments: --reset` — значит, в вашей копии старый код:
+проверьте `osintx --version` (нужна 1.2.3+), обновитесь (`git pull`, а если ставили без `-e` —
+`pip install -e .`). **Без обновления** можно просто удалить файл сессии руками и запустить
+`osintx tgauth` снова:
+
+```bat
+del .osintx-data\osintx.session .osintx-data\osintx.session-journal
+osintx tgauth
+```
+
+Проверить версию и пути: `osintx version` (или `osintx --version`).
+
 **Если Telegram блокируется сетью** — тот же прокси, что и у бота:
 
 ```bash

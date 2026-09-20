@@ -570,6 +570,22 @@ def cmd_tgauth(args: argparse.Namespace) -> int:
     return auth_main(["--reset"] if getattr(args, "reset", False) else [])
 
 
+def cmd_version(args: argparse.Namespace) -> int:
+    """osintx version — версия, пути данных и подсказка про обновление."""
+    import platform
+
+    import osintx
+    from .config import get_settings
+
+    settings = get_settings()
+    print(f"OsintX {osintx.__version__}")
+    print(f"Python {platform.python_version()} ({platform.system()} {platform.release()})")
+    print(f"Каталог данных: {settings.data_dir}")
+    print(f"Файл сессии MTProto: {settings.data_dir / settings.tg_session}.session")
+    print("Обновление кода: git pull   (и pip install -e . , если ставили не в режиме -e)")
+    return 0
+
+
 def cmd_watch(args: argparse.Namespace) -> int:
     store = get_store()
     if args.action == "add":
@@ -739,9 +755,12 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--token", help="Токен бота (если не задан в .env)")
     p.set_defaults(func=cmd_bot)
 
+    p = sub.add_parser("version", aliases=["ver"], help="Показать версию и пути данных")
+    p.set_defaults(func=cmd_version)
+
     p = sub.add_parser("tgauth", aliases=["tg-auth"], help="Авторизовать MTProto-сессию Telegram")
-    p.add_argument("--reset", action="store_true",
-                   help="удалить сохранённую сессию и войти заново (например, если это бот-сессия)")
+    p.add_argument("--reset", "-r", "--relogin", "--logout", action="store_true",
+                   help="удалить сохранённую сессию и войти заново (например, если вы вошли бот-токеном)")
     p.set_defaults(func=cmd_tgauth)
 
     p = sub.add_parser("watch", help="Наблюдение за целями (отслеживание новых находок)")
@@ -754,9 +773,23 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
+# флаги входа заново: их принимают и osintx tgauth, и старая форма с опечатками
+RESET_FLAGS = ("--reset", "-r", "--relogin", "--re-login", "--logout", "--forget")
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
-    args = parser.parse_args(argv)
+    args, extra = parser.parse_known_args(argv)
+    if extra:
+        # Терпимость к «почти правильным» вызовам: --reset у tgauth и подсказка вместо
+        # сухого «unrecognized arguments» (частая ситуация после обновления).
+        command = (argv or sys.argv[1:2])[:1]
+        reset_like = [flag for flag in extra if flag in RESET_FLAGS]
+        if command and command[0] in ("tgauth", "tg-auth") and reset_like:
+            args.reset = True
+        else:
+            parser.error("unrecognized arguments: " + " ".join(extra) +
+                         "\nПодсказка: osintx <команда> --help · полный список: osintx --help")
     try:
         return args.func(args)
     except KeyboardInterrupt:

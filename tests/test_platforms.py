@@ -796,3 +796,52 @@ def test_tgauth_reset_removes_session(tmp_path):
     assert len(removed) == 2
     assert not (tmp_path / "osintx.session").exists()
     assert reset_session(str(base)) == [], "повторный сброс ничего не ломает"
+
+
+# ───────────────── CLI: терпимость к флагам и подсказки ─────────────────
+def test_cli_accepts_reset_flag_for_tgauth(tmp_path, monkeypatch):
+    """`osintx tgauth --reset` должен работать, а не падать на «unrecognized arguments»."""
+    from osintx import cli, config
+
+    monkeypatch.setenv("OSINTX_DATA_DIR", str(tmp_path))
+    monkeypatch.delenv("TG_API_ID", raising=False)
+    monkeypatch.delenv("TG_API_HASH", raising=False)
+    config.get_settings(reload=True)
+    try:
+        (tmp_path / "osintx.session").write_text("старая бот-сессия", encoding="utf-8")
+        code = cli.main(["tgauth", "--reset"])
+        assert code == 1, "без TG_API_ID команда вежливо отказывается"
+        assert not (tmp_path / "osintx.session").exists(), "сессия должна быть удалена"
+        # короткий и «человеческий» варианты флага
+        assert cli.main(["tgauth", "-r"]) == 1
+        assert cli.main(["tgauth", "--logout"]) == 1
+    finally:
+        config.get_settings(reload=True)
+
+
+def test_cli_unknown_flag_gives_hint(tmp_path, monkeypatch):
+    from osintx import cli, config
+
+    monkeypatch.setenv("OSINTX_DATA_DIR", str(tmp_path))
+    config.get_settings(reload=True)
+    try:
+        import pytest
+
+        with pytest.raises(SystemExit) as exc:
+            cli.main(["tgauth", "--не-существует"])
+        assert exc.value.code == 2
+    finally:
+        config.get_settings(reload=True)
+
+
+def test_cli_version_command_reports_paths(tmp_path, monkeypatch, capsys):
+    from osintx import cli, config
+
+    monkeypatch.setenv("OSINTX_DATA_DIR", str(tmp_path))
+    config.get_settings(reload=True)
+    try:
+        assert cli.main(["version"]) == 0
+        out = capsys.readouterr().out
+        assert "OsintX" in out and str(tmp_path) in out and "git pull" in out
+    finally:
+        config.get_settings(reload=True)
