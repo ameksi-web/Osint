@@ -184,8 +184,9 @@ class PersonModule(Module):
                 break
 
             def on_found(hit: dict[str, Any], site: dict[str, Any], _c: str = candidate) -> None:
-                finding = make_finding(site, _c, hit, category="person", confidence="medium",
-                                       title=f"{site['name']}: логин «{_c}» занят — возможный аккаунт этого человека",
+                finding = make_finding(site, _c, hit, category="person", confidence="low",
+                                       title=f"{site['name']}: логин «{_c}» занят — возможный (не подтверждённый) "
+                                             f"аккаунт человека с таким ФИО",
                                        data={"candidate_from_name": name})
                 result.findings.append(finding)
                 add_edge(result, entity_id("person", name), entity_id("username", _c),

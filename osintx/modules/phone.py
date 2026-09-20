@@ -74,7 +74,11 @@ class PhoneModule(Module):
         operator = carrier.name_for_number(parsed, "ru") or carrier.name_for_number(parsed, "en")
         geo = geocoder.description_for_number(parsed, "ru") or geocoder.description_for_number(parsed, "en")
         tz = list(pn_timezone.time_zones_for_number(parsed))
-        line = LINE_TYPES.get(parsed.number_type, f"тип {parsed.number_type}")
+        try:
+            ntype = phonenumbers.number_type(parsed)
+        except Exception:
+            ntype = -1
+        line = LINE_TYPES.get(ntype, f"тип {ntype}")
         formats = {
             "E164": e164,
             "международный": phonenumbers.format_number(parsed, phonenumbers.PhoneNumberFormat.INTERNATIONAL),
@@ -90,8 +94,8 @@ class PhoneModule(Module):
                                "operator": operator or None, "geocoded": geo or None,
                                "line_type": line, "timezones": tz, "country_code": parsed.country_code,
                                "national_number": parsed.national_number,
-                               "is_mobile": parsed.number_type in (1, 2, 27),
-                               "can_sms": parsed.number_type in (1, 2, 6, 27), "formats": formats},
+                               "is_mobile": ntype in (1, 2, 27),
+                               "can_sms": ntype in (1, 2, 6, 27), "formats": formats},
                          evidence=f"libphonenumber: is_valid={valid}, is_possible={possible}, "
                                   f"region={region_code}, type={line}")
         add_entity(result, "phone", e164, region=region_code, operator=operator or None, valid=valid)

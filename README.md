@@ -40,13 +40,23 @@
 | **логин** | `username` | **119 площадок** из реестра с калибровкой + официальные API: GitHub (профиль, репозитории, языки, публичный email), GitLab, Keybase (криптоподтверждённые связи!), Reddit, Hacker News, StackOverflow; выгрузка og-метаданных профилей; проверка вариантов написания |
 | **Telegram** | `telegram` | `t.me/<name>`: тип (юзер/канал/группа/бот), имя, bio, число подписчиков, признак верификации и скама, аватар; публичный превью канала `t.me/s/`: посты, даты, извлечение email/телефонов/ссылок из постов; fragment.com (занят/аукцион/цена); **MTProto** (Telethon, с TG_API_ID/HASH): числовой ID, access_hash, DC, premium, общие чаты, bio целиком, **глобальный поиск по сообщениям** |
 | **телефон** | `phone` | libphonenumber (страна, регион, оператор, тип линии, часовые пояса, форматы E.164), Numverify/Veriphone (с ключами), реестр веб-проверок, ссылки на мессенджеры |
-| **домен** | `domain` | DNS (A/AAAA/MX/NS/SOA/TXT/CAA/CNAME/DNSSEC), RDAP (регистратор, даты, статусы, abuse-контакт), **Certificate Transparency (crt.sh)** — все поддомены, HackerTarget hostsearch, urlscan.io, Wayback Machine, security.txt/robots.txt/sitemap.xml, HTTP-заголовки и определение технологий, поиск email/телефонов/соцсетей на сайте, **перебор 400 поддоменов** по словарю с реальным DNS-резолвом, попытка AXFR (передача зоны), обратный IP-поиск (соседи по хостингу), dorks |
+| **домен** | `domain` | DNS (A/AAAA/MX/NS/SOA/TXT/CAA/CNAME/DNSSEC), RDAP (регистратор, даты, статусы, abuse-контакт), **Certificate Transparency (crt.sh)** — все поддомены, HackerTarget hostsearch, urlscan.io, Wayback Machine, security.txt/robots.txt/sitemap.xml, HTTP-заголовки и определение технологий, поиск email/телефонов/соцсетей на сайте, **перебор поддоменов по словарю** (до 250 имён, в глубоком режиме — весь список) с реальным DNS-резолвом, попытка AXFR (передача зоны), обратный IP-поиск (соседи по хостингу), dorks |
 | **IP** | `ip` | гео и ASN (ipwho.is + ipapi.co — два независимых источника), **Shodan InternetDB** (открытые порты, CVE, hostnames — без ключа), RDAP (владелец блока, abuse), RIPE Stat (whois RIR), BGPView (префиксы, RIR), PTR, **Tor Onionoo** (релей/exit-нода), StopForumSpam, обратный IP-поиск, Shodan/VirusTotal/ipinfo (с ключами) |
 | **ФИО** | `person` | транслитерация и генерация логинов из ФИО, **реальная проверка этих логинов** по 22 ключевым площадкам, кандидаты email + реальная DNS-проверка MX, Wikidata, Wikipedia (ru/en), **OpenSanctions** (санкционные и PEP-списки), genderize/nationalize (честно помечены как догадка), ссылки на реестры юрлиц (ЕГРЮЛ, rusprofile) |
 | **крипта** | `crypto` | Bitcoin: blockstream.info (баланс, транзакции, число UTXO), Blockchair; Ethereum: Blockchair dashboard, Ethplorer (токены, счётчики) |
 
-Плюс движение по цепочке: найден email → проверяется домен и Telegram; найден логин → проверяется
-Telegram и связанные адреса; найден домен → все поддомены, IP и опубликованные адреса.
+**Движение по цепочке.** Поиск не заканчивается на одном модуле: из email автоматически
+извлекается локальная часть — она проверяется как логин по всем 119 площадкам и как Telegram-профиль,
+а домен адреса уходит в доменный модуль (DNS, MX, SPF/DMARC, поддомены). Найден домен — тянутся
+поддомены, IP и опубликованные на сайте адреса; найден логин — проверяется Telegram и связанные адреса.
+
+```
+$ osintx search torvalds@gmail.com
+  email     → torvalds@gmail.com   20 источников
+  domain    → gmail.com            10 источников   (MX, SPF, DMARC, поддомены)
+  telegram  → torvalds              4 источника
+  username  → torvalds            169 источников   (GitHub API: реальный профиль)
+```
 
 **Связывание данных (граф).** Каждый поиск строит граф сущностей и связей
 (`email → аккаунт`, `логин → криптоподтверждённый профиль`, `домен → IP`, `телефон → Telegram`).

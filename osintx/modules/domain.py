@@ -45,17 +45,29 @@ SUBDOMAIN_WORDLIST = [
     "zabbix", "nagios", "victor", "sentry", "sonar", "gitea", "gogs", "drone", "argo", "vault",
     "consul", "etcd", "traefik", "rancher", "openshift", "azure", "aws", "gcp", "oracle", "1cweb",
 ]
+# (где искать, точный признак, достоверность)
 TECH_SIGNATURES = {
-    "nginx": ("server", "nginx"), "apache": ("server", "apache"), "iis": ("server", "microsoft-iis"),
-    "cloudflare": ("server", "cloudflare"), "gunicorn": ("server", "gunicorn"),
-    "wordpress": ("x-powered-by+body", "wp-content"), "bitrix": ("body", "bitrix"),
-    "joomla": ("body", "joomla"), "drupal": ("body", "drupal"), "react": ("body", "__react"),
-    "next.js": ("body", "_next/static"), "vue": ("body", "vue.js"), "angular": ("body", "ng-version"),
-    "jquery": ("body", "jquery"), "bootstrap": ("body", "bootstrap"), "laravel": ("cookie", "laravel_session"),
-    "php": ("x-powered-by", "php"), "asp.net": ("x-powered-by", "asp.net"), "express": ("x-powered-by", "express"),
-    "django": ("cookie", "csrftoken"), "shopify": ("body", "shopify"), "tilda": ("body", "tilda"),
-    "wix": ("body", "wix"), "google-analytics": ("body", "google-analytics"),
-    "yandex-metrica": ("body", "mc.yandex.ru"), "hotjar": ("body", "hotjar"),
+    "nginx": ("server", "nginx", "high"), "apache": ("server", "apache", "high"),
+    "iis": ("server", "microsoft-iis", "high"), "cloudflare": ("server", "cloudflare", "high"),
+    "gunicorn": ("server", "gunicorn", "high"), "openresty": ("server", "openresty", "high"),
+    "litespeed": ("server", "litespeed", "high"), "caddy": ("server", "caddy", "high"),
+    "php": ("x-powered-by", "php", "high"), "asp.net": ("x-powered-by", "asp.net", "high"),
+    "express": ("x-powered-by", "express", "high"), "next.js": ("x-powered-by", "next.js", "high"),
+    "wordpress": ("body", "wp-content/", "high"), "woocommerce": ("body", "woocommerce", "medium"),
+    "bitrix": ("body", "/bitrix/", "high"), "joomla": ("body", "/components/com_", "medium"),
+    "drupal": ("body", "drupal-settings-json", "high"), "1c-bitrix": ("body", "bitrix24", "medium"),
+    "react": ("body", "react-dom", "medium"), "nextjs-assets": ("body", "_next/static", "high"),
+    "vue": ("body", "vue.runtime", "medium"), "angular": ("body", "ng-version=", "high"),
+    "jquery": ("body", "jquery.min.js", "medium"), "bootstrap": ("body", "bootstrap.min.css", "medium"),
+    "laravel": ("cookie", "laravel_session", "high"), "django": ("cookie", "csrftoken", "medium"),
+    "shopify": ("body", "cdn.shopify.com", "high"), "tilda": ("body", "tilda.ws", "high"),
+    "wix": ("body", "static.wixstatic.com", "high"), "squarespace": ("body", "squarespace.com", "medium"),
+    "google-analytics": ("body", "google-analytics.com/analytics.js", "medium"),
+    "gtag": ("body", "googletagmanager.com/gtag", "medium"),
+    "yandex-metrica": ("body", "mc.yandex.ru", "medium"),
+    "hotjar": ("body", "static.hotjar.com", "medium"), "intercom": ("body", "widget.intercom.io", "medium"),
+    "jivo": ("body", "code.jivo.ru", "medium"), "bitrix24-widget": ("body", "bitrix24.ru", "medium"),
+    "hubspot": ("body", "js.hs-scripts.com", "medium"), "sentry": ("body", "browser.sentry-cdn.com", "medium"),
 }
 
 
@@ -65,7 +77,7 @@ class DomainModule(Module):
     categories = ("domain",)
     target_types = ("domain", "email", "url")
 
-    def __init__(self, *, brute_subdomains: bool = True, wordlist_limit: int = 250):
+    def __init__(self, *, brute_subdomains: bool = True, wordlist_limit: int | None = None):
         self.brute_subdomains = brute_subdomains
         self.wordlist_limit = wordlist_limit
 
@@ -345,8 +357,10 @@ class DomainModule(Module):
             return
         headers = {k.lower(): v for k, v in web_resp.headers.items()}
         body = web_resp.text[:400_000]
-        tech: list[str] = []
-        for name, (where, needle) in TECH_SIGNATURES.items():
+        tech: list[tuple[str, str]] = []
+        for name, spec in TECH_SIGNATURES.items():
+            where, needle = spec[0], spec[1]
+            strength = spec[2] if len(spec) > 2 else "medium"
             haystack = ""
             if "server" in where:
                 haystack = headers.get("server", "")
@@ -357,7 +371,7 @@ class DomainModule(Module):
             else:
                 haystack = body.lower()
             if needle.lower() in haystack.lower():
-                tech.append(name)
+                tech.append((name, strength))
         title = ""
         m = re.search(r"<title[^>]*>(.*?)</title>", body, re.DOTALL | re.IGNORECASE)
         if m:
@@ -373,10 +387,11 @@ class DomainModule(Module):
         self.add_finding(result, source="http", category="domain", kind="meta", confidence="high",
                          title=f"Веб-сервер отвечает (HTTP {web_resp.status_code}): "
                                f"{headers.get('server', 'сервер не раскрыт')}, технологии: "
-                               f"{', '.join(tech) or 'не определены'}",
+                               f"{', '.join(n for n, _w in tech) or 'не определены'}",
                          url=str(web_resp.url), value=domain,
                          data={"status": web_resp.status_code, "title": title, "server": headers.get("server"),
-                               "x_powered_by": headers.get("x-powered-by"), "technologies": tech,
+                               "x_powered_by": headers.get("x-powered-by"),
+                               "technologies": [{"name": n, "marker_strength": w} for n, w in tech],
                                "emails_on_site": emails, "phones_on_site": phones, "social_links": social_links,
                                "headers": {k: v for k, v in headers.items() if k in
                                            ("server", "x-powered-by", "content-type", "strict-transport-security",
@@ -434,7 +449,7 @@ class DomainModule(Module):
     # ───────────────────────── перебор поддоменов ─────────────────────────
     async def _brute(self, ctx: Context, domain: str, loop, records: dict[str, list[str]],
                      result: ModuleResult) -> None:
-        words = SUBDOMAIN_WORDLIST[: self.wordlist_limit]
+        words = SUBDOMAIN_WORDLIST if self.wordlist_limit is None else SUBDOMAIN_WORDLIST[: self.wordlist_limit]
         sem = asyncio.Semaphore(60)
 
         async def probe(word: str) -> tuple[str, list[str]]:

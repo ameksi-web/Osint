@@ -35,7 +35,7 @@ MODULES: dict[str, Module] = {
 # какие модули запускать для какого типа цели
 PLAN: dict[str, list[str]] = {
     "email": ["email", "domain", "telegram", "username"],
-    "username": ["username", "telegram", "email"],
+    "username": ["username", "telegram"],
     "telegram": ["telegram", "username"],
     "phone": ["phone", "telegram"],
     "domain": ["domain"],
@@ -45,6 +45,26 @@ PLAN: dict[str, list[str]] = {
     "url": ["domain"],
     "unknown": [],
 }
+
+def resolve_module_target(module_name: str, target: str, target_type: str) -> str:
+    """Какую именно строку отдавать модулю.
+
+    Для email-цели проверять «ivan.petrov@example.com» как логин на GitHub бессмысленно —
+    берём локальную часть (это и есть реальный логин пользователя), а для доменного
+    модуля — сам домен. Так поиск по email автоматически тянет за собой логин и домен.
+    """
+    if target_type == "email" and "@" in target:
+        local, _, domain = target.partition("@")
+        if module_name in ("username", "telegram"):
+            return local
+        if module_name == "domain":
+            return domain
+    if target_type == "url" and module_name == "domain":
+        from urllib.parse import urlparse
+        host = urlparse(target).netloc or target
+        return host.split(":")[0]
+    return target
+
 
 DEFAULTS = {
     "deep": False,
@@ -98,14 +118,21 @@ class Engine:
                 module = self._build(name, opts)
                 if module is None:
                     continue
-                await ctx.notify(kind="module_start", module=name, title=module.title)
-                module_result = ModuleResult(module=name, target=target)
+                module_target = resolve_module_target(name, target, target_type)
+                await ctx.notify(kind="module_start", module=name, title=module.title,
+                                 module_target=module_target,
+                                 message=(f"{module.title} → «{module_target}»"
+                                          if module_target != target else module.title))
+                module_result = ModuleResult(module=name, target=module_target)
                 module_started = time.perf_counter()
                 try:
-                    await module.run(ctx, target, module_result)
+                    await module.run(ctx, module_target, module_result)
                 except Exception as exc:  # модуль не должен ломать весь поиск
                     module_result.errors.append(f"Модуль {name} упал: {type(exc).__name__}: {exc}")
                 module_result.duration_ms = int((time.perf_counter() - module_started) * 1000)
+                if module_target != target:
+                    module_result.meta["resolved_target"] = module_target
+                    module_result.meta["original_target"] = target
                 report.merge(module_result)
                 await ctx.notify(kind="module_done", module=name, findings=len(module_result.findings),
                                  checked=module_result.checked, duration_ms=module_result.duration_ms)
@@ -136,7 +163,7 @@ class Engine:
                                   max_sites=None if not opts.get("max_sites") else int(opts["max_sites"]))
         if name == "domain":
             return DomainModule(brute_subdomains=bool(opts.get("subdomains", True)),
-                                wordlist_limit=400 if opts.get("deep") else 150)
+                                wordlist_limit=None if opts.get("deep") else 120)
         if name == "person":
             return PersonModule(probe_limit=40 if opts.get("deep") else 20)
         return MODULES.get(name)
