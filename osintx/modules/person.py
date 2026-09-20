@@ -55,11 +55,76 @@ class PersonModule(Module):
 
         await self._wikidata(ctx, name, result)
         await self._wikipedia(ctx, name, result)
+        await self._code_search(ctx, name, result)
         await self._opensanctions(ctx, name, result)
         await self._guess_api(ctx, name, result)
         await self._probe_usernames(ctx, name, usernames, result)
         await self._email_candidates(ctx, name, emails_guess, result)
         self._links(name, result)
+
+    # ───────────────────── поиск по имени на GitHub/GitLab ─────────────────────
+    async def _code_search(self, ctx: Context, name: str, result: ModuleResult) -> None:
+        """Реальный поиск людей по ФИО: GitHub (in:fullname) и GitLab (search=).
+
+        Даёт живые профили с городом/страной и логином — самое ценное начало
+        для ФИО-цели: имя → логин → все остальные площадки.
+        """
+        gh = await ctx.http.get("https://api.github.com/search/users",
+                                params={"q": f"{name} in:fullname", "per_page": 10},
+                                headers={"Accept": "application/vnd.github+json"}, retries=1)
+        data = gh.json()
+        candidates: list[dict[str, Any]] = []
+        if isinstance(data, dict) and data.get("items"):
+            for item in data["items"][:10]:
+                candidates.append({"source": "github", "login": item.get("login"),
+                                   "url": item.get("html_url"), "type": item.get("type"),
+                                   "score": item.get("score")})
+            self.add_finding(
+                result, source="github-search", category="person", kind="profile", confidence="medium",
+                title=f"GitHub: {len(candidates)} профилей по ФИО «{name}»",
+                url="https://github.com/search?q=" + name.replace(" ", "+") + "&type=users",
+                value=name,
+                data={"candidates": candidates, "total": data.get("total_count", len(candidates)),
+                      "logins": [c["login"] for c in candidates]},
+                evidence=f"api.github.com/search/users?q={name!r}+in:fullname → "
+                         f"total_count={data.get('total_count')}, показано {len(candidates)}",
+                http_code=gh.status_code, tags=["github", "фио"])
+            self.add_status(result, SourceStatus(source="github-search", category="person", status="found",
+                                                 http_code=gh.status_code,
+                                                 detail=f"{len(candidates)} кандидатов"))
+            for candidate in candidates[:5]:
+                add_edge(result, entity_id("person", name), entity_id("username", candidate["login"]),
+                         "name_match_github", 0.5, "профиль GitHub с таким именем (совпадение имени, не доказательство)")
+        elif gh.status_code == 403:
+            self.add_status(result, SourceStatus(source="github-search", category="person", status="blocked",
+                                                 http_code=403,
+                                                 detail="GitHub ограничил частоту поисковых запросов (лимит API без токена)"))
+        else:
+            self.add_status(result, SourceStatus(source="github-search", category="person", status="not_found",
+                                                 http_code=gh.status_code or None,
+                                                 error=gh.error or (gh.snippet(120) if gh.status_code >= 400 else "")))
+
+        gl = await ctx.http.get("https://gitlab.com/api/v4/users", params={"search": name, "per_page": 10},
+                                retries=1)
+        gl_data = gl.json()
+        if isinstance(gl_data, list) and gl_data:
+            people = [{"login": u.get("username"), "name": u.get("name"), "url": u.get("web_url"),
+                       "location": u.get("location"), "bio": (u.get("bio") or "")[:200],
+                       "state": u.get("state")} for u in gl_data[:10]]
+            self.add_finding(
+                result, source="gitlab-search", category="person", kind="profile", confidence="medium",
+                title=f"GitLab: {len(people)} профилей по ФИО «{name}»",
+                url=f"https://gitlab.com/search?search={name}&scope=users", value=name,
+                data={"candidates": people, "logins": [p["login"] for p in people if p["login"]]},
+                evidence=f"gitlab.com/api/v4/users?search={name!r} → {len(people)} пользователей",
+                http_code=gl.status_code, tags=["gitlab", "фио"])
+            self.add_status(result, SourceStatus(source="gitlab-search", category="person", status="found",
+                                                 http_code=gl.status_code, detail=f"{len(people)} кандидатов"))
+        else:
+            self.add_status(result, SourceStatus(source="gitlab-search", category="person",
+                                                 status="not_found" if gl.ok else "error",
+                                                 http_code=gl.status_code or None,
+                                                 error=gl.error or (gl.snippet(120) if gl.status_code >= 400 else "")))
 
     # ───────────────────── Wikidata / Wikipedia ─────────────────────
     async def _wikidata(self, ctx: Context, name: str, result: ModuleResult) -> None:

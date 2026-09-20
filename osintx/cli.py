@@ -350,7 +350,82 @@ def cmd_password(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_sources_import(args: argparse.Namespace) -> int:
+    """osintx sources --import-wmn|--import-sherlock|--import-clear — сотни площадок из датасетов."""
+    import asyncio
+    import json
+
+    from .core import wmn
+    from .core.registry import load_sites
+
+    path = wmn.default_import_path(get_settings().data_dir)
+
+    if args.import_clear:
+        removed = wmn.clear_datasets(path, {"wmn", "sherlock"} if not args.import_clear_datasets
+                                     else set(args.import_clear_datasets.split(",")))
+        print(f"Удалено импортированных площадок: {removed}\nФайл: {path}")
+        print(f"Осталось в реестре username: {len(load_sites('username', include_user=False))} встроенных")
+        return 0
+
+    if args.import_wmn is not None:
+        url = args.import_wmn or wmn.WMN_URL
+        converter, dataset = wmn.render_wmn, "wmn"
+    else:
+        url = args.import_sherlock or wmn.SHERLOCK_URL
+        converter, dataset = wmn.render_sherlock, "sherlock"
+
+    print(f"Источник датасета: {url}")
+    if url.startswith("http"):
+        print("Скачиваю… (нужен доступ к raw.githubusercontent.com; при блокировке — скачайте файл "
+              "вручную и укажите путь: osintx sources --import-wmn путь/к/data.json)")
+        try:
+            text = asyncio.run(wmn.fetch_dataset(url))
+        except Exception as exc:
+            print(f"❌ Не удалось скачать датасет: {type(exc).__name__}: {exc}")
+            print("   Проверьте сеть/DNS или укажите локальный файл. "
+                  "Инструкция: python bot.py --net")
+            return 1
+    else:
+        file_path = Path(url).expanduser()
+        if not file_path.exists():
+            print(f"❌ Файл не найден: {file_path}")
+            return 1
+        text = file_path.read_text(encoding="utf-8")
+
+    try:
+        payload = wmn.parse_payload(text)
+    except (ValueError, json.JSONDecodeError) as exc:
+        print(f"❌ Датасет не разобран: {exc}")
+        return 1
+
+    converted = json.loads(converter(payload, **_converter_kwargs(dataset, args)))["sites"]
+    if not converted:
+        print("❌ В датасете не нашлось подходящих площадок (проверьте формат файла)")
+        return 1
+    result = wmn.merge_username_sites(path, converted)
+    builtin = len(load_sites("username", include_user=False))
+    total = len(load_sites("username"))
+    print(f"✅ Импортировано площадок «{dataset}»: {result['added']} "
+          f"(заменено прежних: {result['replaced']})")
+    print(f"   Встроенный реестр: {builtin} · с импортом: {total}")
+    print(f"   Файл: {path}")
+    print("   Отключить импорт: osintx sources --import-clear")
+    print("   Проверка: osintx search <логин> -m username --max-sites 400")
+    return 0
+
+
+def _converter_kwargs(dataset: str, args) -> dict:
+    if dataset == "wmn":
+        return {"include_nsfw": bool(getattr(args, "include_nsfw", False)),
+                "limit": getattr(args, "import_limit", None)}
+    return {"limit": getattr(args, "import_limit", None)}
+
+
 def cmd_sources(args: argparse.Namespace) -> int:
+    if (getattr(args, "import_wmn", None) is not None
+            or getattr(args, "import_sherlock", None) is not None
+            or getattr(args, "import_clear", False)):
+        return cmd_sources_import(args)
     if args.stats:
         _kv_table("Количество источников по категориям", count_sources())
         return 0
@@ -593,6 +668,14 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--min-confidence", choices=["high", "medium", "low"])
     p.add_argument("--tags")
     p.add_argument("--stats", action="store_true", help="Только количество")
+    p.add_argument("--import-wmn", nargs="?", const="", metavar="ФАЙЛ|URL",
+                   help="Подключить датасет WhatsMyName (≈700 площадок), свой файл или URL")
+    p.add_argument("--import-sherlock", nargs="?", const="", metavar="ФАЙЛ|URL",
+                   help="Подключить датасет Sherlock (~400 площадок)")
+    p.add_argument("--import-clear", action="store_true", help="Удалить импортированные площадки")
+    p.add_argument("--import-clear-datasets", help="Какие датасеты удалить: wmn,sherlock")
+    p.add_argument("--import-limit", type=int, help="Ограничить число импортируемых площадок")
+    p.add_argument("--include-nsfw", action="store_true", help="Включить категорию 18+ (по умолчанию пропускается)")
     p.set_defaults(func=cmd_sources)
 
     p = sub.add_parser("graph", help="Граф связей цели (mermaid/dot)")

@@ -123,6 +123,8 @@ class Settings:
         "numverify": os.environ.get("NUMVERIFY_API_KEY", "").strip(),
         "veriphone": os.environ.get("VERIPHONE_API_KEY", "").strip(),
         "serpapi": os.environ.get("SERPAPI_KEY", "").strip(),
+        "vk_token": (os.environ.get("VK_TOKEN", "").strip() or os.environ.get("VK_ACCESS_TOKEN", "").strip()),
+        "max_token": os.environ.get("MAX_TOKEN", "").strip(),
     })
     searxng_url: str = field(default_factory=lambda: os.environ.get("SEARXNG_URL", "").strip())
 

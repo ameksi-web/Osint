@@ -89,6 +89,8 @@ HELP = f"""<b>OsintX {__version__}</b> — OSINT-поиск по открыты�
 /email · /user · /phone · /tg · /domain · /ip · /name — быстрый поиск нужного типа
 /geo &lt;цель&gt; — где живёт: страна и город по публичным профилям
 /changes &lt;цель&gt; — что менялось: ник, имя, био, город (по прошлым проверкам)
+/vk &lt;ник&gt; — ВКонтакте: профиль, город, посты, сообщества (+ VK_TOKEN для полного доступа)
+/max &lt;ник&gt; — мессенджер MAX: канал/бот по @нику, ссылки max.ru/u/…
 
 <b>Результат</b>
 Кнопки под сводкой: раскрутить найденное дальше (пивот), листать находки (◀ ▶),
@@ -96,6 +98,8 @@ HELP = f"""<b>OsintX {__version__}</b> — OSINT-поиск по открыты�
 
 <b>Telegram</b>
 /id &lt;@user|телефон&gt; — профиль, подписчики, посты, fragment; с MTProto — ID, DC, поиск по сообщениям
+«Где писал»: в поиске по @каналу/логину Telegram бот разбирает посты, считает активность
+и ищет упоминания через t.me/s/&lt;канал&gt;?q=… — конкретные посты со ссылками
 
 <b>Наблюдение</b>
 /watch add &lt;цель&gt; · /watch list · /watch check · /watch rm &lt;цель&gt;
@@ -300,6 +304,38 @@ async def cmd_geo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         return
     await run_search(update, target, modules=["geo", "telegram", "username", "wayback"],
                      deep=False, use_keys=False)
+
+
+async def cmd_vk(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """ВКонтакте: профиль/сообщество, город, посты. Без VK_TOKEN — публичная мобильная версия."""
+    if not await _guard(update):
+        return
+    target = " ".join(context.args).strip().lstrip("@")
+    if not target:
+        await update.message.reply_text(
+            "Использование: /vk <ник или id>\n"
+            "Смотрю профиль ВКонтакте: имя, город/страна, подписчики, публичные записи и связи.\n"
+            "Без VK_TOKEN доступна только мобильная публичная страница (имя и записи); "
+            "сервисный ключ VK_TOKEN даёт город, подписчиков и точные даты.\n"
+            "Пример: /vk durov")
+        return
+    await run_search(update, target, modules=["vk", "geo", "telegram"], deep=False)
+
+
+async def cmd_max(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Мессенджер MAX: канал/бот по @нику и ссылки на профиль max.ru/u/…"""
+    if not await _guard(update):
+        return
+    target = " ".join(context.args).strip().lstrip("@")
+    if not target:
+        await update.message.reply_text(
+            "Использование: /max <ник|ссылка>\n"
+            "Проверяю в мессенджере MAX: канал/бот по @нику, персональную ссылку max.ru/u/<hash>.\n"
+            "Важно: у личных профилей MAX нет публичных @username — человека можно найти "
+            "только по персональной ссылке или по номеру из контактов (честно помечаю это в отчёте).\n"
+            "Пример: /max news")
+        return
+    await run_search(update, target, modules=["max", "telegram"], deep=False)
 
 
 async def cmd_changes(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -638,7 +674,9 @@ async def cmd_sources(update: Update, _: ContextTypes.DEFAULT_TYPE) -> None:
     counts = count_sources()
     await update.message.reply_text(
         f"Источников в реестре:\n• логины: {counts['username']}\n• email: {counts['email']}\n"
-        f"• телефоны: {counts['phone']}\n\nПлюс API-проверки в коде: GitHub, GitLab, Keybase, "
+        f"• телефоны: {counts['phone']}\n\nБольше площадок — импортом публичных датасетов с ПК: "
+        f"osintx sources --import-wmn (≈700 сайтов WhatsMyName) и --import-sherlock (≈400).\n"
+        f"Плюс API-проверки в коде: GitHub, GitLab, Keybase, "
         f"Reddit, Hacker News, StackOverflow, DNS/RDAP/crt.sh, Shodan InternetDB, Tor Onionoo, "
         f"XposedOrNot, Wikidata, OpenSanctions, Blockstream, Blockchair и другие.")
 
@@ -992,6 +1030,7 @@ def build_application(token: str, *, proxy: str | None = None) -> Application:
         CommandHandler("settings", cmd_settings), CommandHandler("modules", cmd_modules),
         CommandHandler("report", cmd_report), CommandHandler("cancel", cmd_cancel),
         CommandHandler("geo", cmd_geo), CommandHandler("changes", cmd_changes),
+        CommandHandler("vk", cmd_vk), CommandHandler("max", cmd_max),
     ]
     for name in FORCED_TYPE:
         commands.append(CommandHandler(name, cmd_typed))

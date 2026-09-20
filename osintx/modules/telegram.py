@@ -19,8 +19,10 @@
 """
 from __future__ import annotations
 
+import hashlib
 import html
 import re
+from typing import Any
 
 from ..core.models import ModuleResult, SourceStatus
 from .base import Context, Module, add_edge, add_entity, entity_id
@@ -36,6 +38,32 @@ TG_POST_DATE = re.compile(r'<time datetime="([^"]+)"')
 TG_SUBSCRIBERS = re.compile(r'([\d\s.,KkMmкК]+)\s*(subscribers|подписчик|участник|members)', re.IGNORECASE)
 
 
+POST_LINK = re.compile(r'href="(https://t\.me/{name}/\d+)"', re.IGNORECASE)
+POST_ID = re.compile(r'data-post="([A-Za-z0-9_]+)/(\d+)"')
+
+
+def _post_links(body: str, username: str) -> list[str]:
+    """Ссылки на конкретные посты канала в порядке появления (свежие сверху)."""
+    pattern = re.compile(rf'href="(https://t\.me/{re.escape(username)}/\d+)"', re.IGNORECASE)
+    links = pattern.findall(body)
+    if not links:
+        links = [f"https://t.me/{channel}/{post}" for channel, post in POST_ID.findall(body)
+                 if channel.lower() == username.lower()]
+    out: list[str] = []
+    for link in links:
+        if link not in out:
+            out.append(link)
+    return out
+
+
+def _oldest_post_id(body: str, username: str) -> str:
+    """ID самого старого поста на странице — для перелистывания (параметр before)."""
+    ids = [int(post) for channel, post in POST_ID.findall(body) if channel.lower() == username.lower()]
+    if not ids:
+        ids = [int(m.group(1)) for m in re.finditer(rf"t\.me/{re.escape(username)}/(\d+)", body, re.IGNORECASE)]
+    return str(min(ids)) if ids else ""
+
+
 class TelegramModule(Module):
     name = "telegram"
     title = "Telegram: профиль, канал/бот, подписчики, fragment, MTProto-поиск"
@@ -48,7 +76,10 @@ class TelegramModule(Module):
 
         if username:
             await self._public_page(ctx, username, result)
-            await self._preview(ctx, username, result)
+            posts = await self._preview(ctx, username, result)
+            if posts:
+                await self._activity(ctx, username, posts, result)
+                await self._search_in_channel(ctx, username, posts, result)
             await self._fragment(ctx, username, result)
         if ctx.settings.tg_api_id and ctx.settings.tg_api_hash:
             await self._mtproto(ctx, target, username, result)
@@ -128,7 +159,12 @@ class TelegramModule(Module):
                                              http_code=200, latency_ms=resp.latency_ms))
 
     # ───────────────────────── публичный превью (t.me/s) ─────────────────────────
-    async def _preview(self, ctx: Context, username: str, result: ModuleResult) -> None:
+    async def _preview(self, ctx: Context, username: str, result: ModuleResult) -> list[dict[str, Any]]:
+        """Публичные посты канала/группы. В глубоком режиме листает страницы (before=).
+
+        Возвращает список постов [{date, text, url, views}] — он нужен, чтобы показать
+        «где писал»: период активности, частоту постов и упоминания нужных значений.
+        """
         url = f"https://t.me/s/{username}"
         resp = await ctx.http.get(url, retries=1)
         if not resp.ok or resp.looks_blocked():
@@ -136,7 +172,7 @@ class TelegramModule(Module):
                                                  status="blocked" if resp.looks_blocked() else "not_found",
                                                  url=url, http_code=resp.status_code or None,
                                                  error=resp.error))
-            return
+            return []
         body = resp.text
         posts_raw = TG_POST.findall(body)
         dates = TG_POST_DATE.findall(body)
@@ -148,8 +184,37 @@ class TelegramModule(Module):
         if not texts:
             self.add_status(result, SourceStatus(source="t.me/s", category="telegram", status="not_found",
                                                  url=url, http_code=resp.status_code,
-                                                 detail="публичного превью нет (приватный профиль или пустой канал)"))
-            return
+                                                 detail="публичного превью нет (обычный пользователь без открытого "
+                                                        "канала, приватный канал или пустая лента)"))
+            return []
+
+        post_links = _post_links(body, username)
+        posts: list[dict[str, Any]] = []
+        for index, text in enumerate(texts):
+            link = post_links[index] if index < len(post_links) else ""
+            posts.append({"text": text, "url": link,
+                          "date": dates[index][:10] if index < len(dates) else ""})
+        pages = 3 if ctx.deep else 1
+        last_id = _oldest_post_id(body, username)
+        for _ in range(pages - 1):
+            if not last_id or ctx.cancelled():
+                break
+            more = await ctx.http.get(f"https://t.me/s/{username}", params={"before": last_id}, retries=1)
+            if not more.ok or more.looks_blocked():
+                break
+            more_texts = [html.unescape(re.sub(r"<[^>]+>", "", re.sub(r"<br\s*/?>", "\n", raw))).strip()[:400]
+                          for raw in TG_POST.findall(more.text)][:12]
+            more_dates = TG_POST_DATE.findall(more.text)
+            more_links = _post_links(more.text, username)
+            if not more_texts:
+                break
+            for index, text in enumerate(more_texts):
+                posts.append({"text": text, "url": more_links[index] if index < len(more_links) else "",
+                              "date": more_dates[index][:10] if index < len(more_dates) else ""})
+            new_last = _oldest_post_id(more.text, username)
+            if new_last == last_id:
+                break
+            last_id = new_last
         subscriber_guess = None
         m = re.search(r'<div class="tgme_channel_info_counter">\s*<span class="counter_value">([^<]*)</span>\s*'
                       r'<span class="counter_type">([^<]*)</span>', body)
@@ -157,9 +222,10 @@ class TelegramModule(Module):
             subscriber_guess = _parse_count(f"{m.group(1)} {m.group(2)}")
         self.add_finding(result, source="t.me/s", category="telegram", kind="posts", confidence="high",
                          title=f"Публичные посты канала @{username}: получено {len(texts)} (последние: "
-                               f"{dates[0][:10] if dates else '—'})",
+                               f"{dates[0][:10] if dates else '—'}) — всего собрано {len(posts)}",
                          url=url, value=username,
                          data={"posts": texts, "dates": dates[:12], "count": len(texts),
+                               "collected": len(posts), "timeline": posts[:60],
                                "subscribers": subscriber_guess,
                                "first_post_date": dates[-1][:10] if dates else None,
                                "last_post_date": dates[0][:10] if dates else None},
@@ -178,6 +244,72 @@ class TelegramModule(Module):
             if 9 <= len(digits) <= 15:
                 add_edge(result, entity_id("telegram", username), entity_id("phone", "+" + digits),
                          "phone_in_posts", 0.5, "номер встречается в публичных постах канала")
+        return posts
+
+    # ───────────────────────── где и когда писал ─────────────────────────
+    async def _activity(self, ctx: Context, username: str, posts: list[dict[str, Any]],
+                        result: ModuleResult) -> None:
+        """Активность автора: период, частота, последний пост — «где и когда писал»."""
+        dated = [p["date"] for p in posts if p.get("date")]
+        if not dated:
+            return
+        dated.sort()
+        first, last = dated[0], dated[-1]
+        days = 0
+        try:
+            import datetime
+
+            days = (datetime.date.fromisoformat(last) - datetime.date.fromisoformat(first)).days
+        except ValueError:
+            pass
+        per_month = round(len(posts) / max(days / 30, 1), 1) if days else None
+        self.add_finding(
+            result, source="t.me:activity", category="telegram", kind="meta", confidence="high",
+            title=(f"Активность @{username}: {len(posts)} постов, с {first} по {last}"
+                   + (f", ~{per_month} постов/мес" if per_month else "")),
+            url=f"https://t.me/{username}", value=username,
+            data={"posts_collected": len(posts), "first_post_date": first, "last_post_date": last,
+                  "days_span": days, "posts_per_month": per_month,
+                  "recent": [{"date": p["date"], "url": p["url"], "text": p["text"][:160]}
+                             for p in posts[:10]]},
+            evidence=f"разбор публичного превью t.me/s/{username} (глубина: {'в deep-режиме' if ctx.deep else 'одна страница'}): "
+                     f"{len(posts)} постов, период {first} … {last}",
+            http_code=200, tags=["telegram", "активность", "где писал"])
+        add_entity(result, "telegram", username, posts=len(posts), last_post=last, first_post=first)
+
+    async def _search_in_channel(self, ctx: Context, username: str, posts: list[dict[str, Any]],
+                                 result: ModuleResult) -> None:
+        """Поиск упоминаний внутри канала: t.me/s/<канал>?q=<запрос>.
+
+        Так «где писал» работает без MTProto: находим конкретные посты, где встречается
+        логин, имя, email или телефон цели, и даём ссылки на них.
+        """
+        queries = [q for q in dict.fromkeys(
+            [username, f"@{username}"] + ([] if not ctx.deep else []) ) if q]
+        joined = " \n".join(p["text"] for p in posts)
+        queries += [email for email in re.findall(r"[\w.+-]+@[\w-]+\.[\w.]{2,}", joined)][:2]
+        for query in queries[:4]:
+            resp = await ctx.http.get(f"https://t.me/s/{username}", params={"q": query}, retries=1)
+            if not resp.ok or resp.looks_blocked():
+                continue
+            hits = _post_links(resp.text, username)
+            texts = [html.unescape(re.sub(r"<[^>]+>", " ",
+                                          re.sub(r"<br\s*/?>", " ", raw))).strip()[:300]
+                     for raw in TG_POST.findall(resp.text)][:8]
+            if not hits and not texts:
+                continue
+            key = hashlib.md5(query.lower().encode("utf-8")).hexdigest()[:10]
+            self.add_finding(
+                result, source=f"t.me:search({query})", category="telegram", kind="messages",
+                confidence="high",
+                title=f"Упоминания «{query}» в постах @{username}: {len(hits) or len(texts)}",
+                url=hits[0] if hits else f"https://t.me/s/{username}?q={query}", value=query,
+                data={"query": query, "channel": username, "hits": hits[:15],
+                      "snippets": texts[:8], "count": len(hits) or len(texts),
+                      "search_url": f"https://t.me/s/{username}?q={query}"},
+                evidence=f"t.me/s/{username}?q={query} → найдено вхождений: {len(hits) or len(texts)}",
+                http_code=resp.status_code, tags=["telegram", "поиск", "где писал", key])
+            add_entity(result, "telegram_search", f"{username}:{query}", hits=len(hits) or len(texts))
 
     # ───────────────────────── fragment.com ─────────────────────────
     async def _fragment(self, ctx: Context, username: str, result: ModuleResult) -> None:

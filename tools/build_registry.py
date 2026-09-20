@@ -88,7 +88,6 @@ add("pinterest", "https://www.pinterest.com/{username}/", control="pinterest", c
 add("youtube", "https://www.youtube.com/@{username}", control="YouTube", confidence="high", tags=["video"])
 add("twitch", "https://www.twitch.tv/{username}", control="twitch", confidence="high", tags=["video"])
 add("kick", "https://kick.com/{username}", control="kick", confidence="medium", tags=["video"])
-add("vimeo", "https://vimeo.com/{username}", control="vimeo", confidence="high", tags=["video"])
 add("dailymotion", "https://www.dailymotion.com/{username}", control="dailymotion", confidence="medium",
     tags=["video"])
 add("rutube", "https://rutube.ru/channel/{username}/", confidence="low", tags=["video", "ru"])
@@ -344,11 +343,145 @@ padd("phone-dorks", "https://www.google.com/search?q=%22{phone_e164}%22", strate
      note="поисковые ссылки по номеру формируются в коде модуля (kind=link)")
 
 
+# --- расширение 1.1: РФ/СНГ и популярные мировые площадки ---
+# РФ и СНГ
+add("boosty", "https://boosty.to/{username}", control="boosty", confidence="medium", tags=["ru", "donate"],
+    note="Boosty: сначала 302 на /{username}/home — учитываем редирект как признак профиля")
+add("donationalerts", "https://www.donationalerts.com/r/{username}", confidence="medium", tags=["ru", "donate"])
+add("careerhabr", "https://career.habr.com/{username}", confidence="medium", tags=["ru", "work"])
+add("my-mir", "https://my.mail.ru/{username}", confidence="low", tags=["ru", "social"])
+add("vc-ru", "https://vc.ru/id{username}", confidence="low", tags=["ru", "blog"],
+    note="vc.ru: адреса вида /idNNN — подходит только для числовых id")
+add("vc-ru-slug", "https://vc.ru/{username}", confidence="low", tags=["ru", "blog"])
+add("dtf", "https://dtf.ru/u/{username}", confidence="low", tags=["ru", "blog"])
+add("tj", "https://tjournal.ru/u/{username}", confidence="low", tags=["ru", "blog"])
+add("drive2", "https://www.drive2.ru/users/{username}/", confidence="medium", tags=["ru", "auto"])
+add("4pda-forum", "https://4pda.to/forum/index.php?act=idx", disabled=True,
+    note="4PDA: профили по числовому id, поиск логина требует формы — источник выключен по умолчанию")
+add("mysku", "https://mysku.club/user/{username}/", confidence="low", tags=["ru", "blog"])
+add("ozon-blogs", "https://www.ozon.ru/user/{username}/", confidence="low", tags=["ru", "shopping"])
+add("sbermegamarket", "https://sbermegamarket.ru/", disabled=True, note="нет публичных профилей")
+add("rutube-users", "https://rutube.ru/user/{username}/", confidence="low", tags=["ru", "video"])
+add("vkteams", "https://vkteams.com/", disabled=True, note="нет веб-профилей пользователей")
+add("fotostrana", "https://fotostrana.ru/user/{username}/", confidence="low", tags=["ru", "social"])
+add("dnevnikru", "https://www.dnevnik.ru/{username}", confidence="low", tags=["ru", "social"])
+add("anekdot-ru", "https://anekdot.ru/author/{username}/", confidence="low", tags=["ru", "blog"])
+add("yaplakal", "https://www.yaplakal.com/user/{username}/", confidence="low", tags=["ru", "blog"])
+add("vxzone", "https://www.vxzone.ru/", disabled=True, note="нет публичных профилей")
+add("shikimori", "https://shikimori.one/{username}", confidence="medium", tags=["ru", "anime"])
+add("kinopoisk-users", "https://www.kinopoisk.ru/user/{username_number}/", disabled=True,
+    note="Кинопоиск: профили по числовому id; подстановка логина невозможна")
+add("spid-8", "https://sporcle.com/", disabled=True, note="не поддерживает логины-профили")
+
+# мировые площадки: видео, музыка, игры, обучение, сообщества
+add("trovo", "https://trovo.live/s/{username}", confidence="medium", tags=["video", "stream"])
+add("odysee", "https://odysee.com/@{username}", confidence="medium", tags=["video"])
+add("rumble", "https://rumble.com/user/{username}", confidence="medium", tags=["video"])
+add("bitchute", "https://www.bitchute.com/channel/{username}/", confidence="low", tags=["video"])
+add("vimeo", "https://vimeo.com/{username}", control="vimeo", confidence="high", tags=["video"])
+add("tiktok-search", "https://www.tiktok.com/@{username}?lang=en", confidence="low", tags=["video"],
+    strategy="message_exclude", not_found_msgs=["Couldn't find this account"])
+add("discogs", "https://www.discogs.com/user/{username}", confidence="medium", tags=["music"])
+add("audiomack", "https://audiomack.com/{username}", confidence="medium", tags=["music"])
+add("bandlab", "https://www.bandlab.com/{username}", confidence="low", tags=["music"])
+add("vocalremover", "https://vocalremover.org/", disabled=True, note="нет профилей")
+add("applemusic-profile", "https://music.apple.com/profile/{username}", confidence="low",
+    tags=["music"], note="Apple Music профили часто приватны")
+add("newgrounds", "https://{username}.newgrounds.com/", confidence="medium", tags=["games", "art"])
+add("itchio", "https://{username}.itch.io/", confidence="medium", tags=["games", "dev"])
+add("gamejolt", "https://gamejolt.com/@{username}", confidence="medium", tags=["games"])
+add("kongregate", "https://www.kongregate.com/accounts/{username}", confidence="medium", tags=["games"])
+add("faceit", "https://www.faceit.com/en/players/{username}", confidence="medium", tags=["games"])
+add("xboxgamertag", "https://xboxgamertag.com/search/{username}", confidence="low", tags=["games"])
+add("psnprofiles", "https://psnprofiles.com/{username}", confidence="medium", tags=["games"])
+add("speedrun", "https://www.speedrun.com/user/{username}", confidence="medium", tags=["games"])
+add("wattpad", "https://www.wattpad.com/user/{username}", confidence="medium", tags=["books"])
+add("archiveofourown", "https://archiveofourown.org/users/{username}", confidence="medium", tags=["books"])
+add("fanfiction", "https://www.fanfiction.net/u/{username}/", confidence="low", tags=["books"])
+add("storygraph", "https://app.thestorygraph.com/profile/{username}", confidence="medium", tags=["books"])
+add("furaffinity", "https://www.furaffinity.net/user/{username}", confidence="low", tags=["art"])
+add("pixiv", "https://www.pixiv.net/en/users/{username}", confidence="low", tags=["art"],
+    note="Pixiv: адреса по числовому id, логин в пути не работает для большинства")
+add("figma", "https://www.figma.com/@{username}", confidence="medium", tags=["dev", "design"])
+add("observable", "https://observablehq.com/@{username}", confidence="medium", tags=["dev"])
+add("sourcehut", "https://sr.ht/~{username}/", confidence="medium", tags=["dev"])
+add("gitea", "https://gitea.com/{username}", confidence="medium", tags=["dev"])
+add("nuget", "https://www.nuget.org/profiles/{username}", confidence="medium", tags=["dev"])
+add("packagist", "https://packagist.org/users/{username}/", confidence="medium", tags=["dev"])
+add("docker-hub", "https://hub.docker.com/u/{username}", confidence="medium", tags=["dev"])
+add("velog", "https://velog.io/@{username}", confidence="medium", tags=["dev", "blog"])
+add("readcv", "https://read.cv/{username}", confidence="low", tags=["work"])
+add("beacons", "https://beacons.ai/{username}", confidence="low", tags=["links"])
+add("carrd", "https://{username}.carrd.co/", confidence="medium", tags=["links"])
+add("f6s", "https://www.f6s.com/{username}", confidence="low", tags=["work"])
+add("gumroad", "https://gumroad.com/{username}", confidence="medium", tags=["shop"])
+add("intigriti", "https://app.intigriti.com/profile/{username}", confidence="medium", tags=["bugbounty"])
+add("news-ycombinator", "https://news.ycombinator.com/user?id={username}", strategy="message_exclude",
+    not_found_msgs=["No such user."], control="pg", confidence="high", tags=["dev", "social"])
+add("habr-companies", "https://habr.com/ru/companies/{username}/", confidence="low", tags=["ru", "work"])
+add("tenchat2", "https://tenchat.ru/{username}/", confidence="low", tags=["ru", "work"])
+add("zhihu", "https://www.zhihu.com/people/{username}", confidence="low", tags=["cn", "social"])
+add("weibo", "https://weibo.com/{username}", confidence="low", tags=["cn", "social"])
+add("csdn", "https://blog.csdn.net/{username}", confidence="low", tags=["cn", "blog"])
+add("threads", "https://www.threads.net/@{username}", strategy="message_exclude",
+    not_found_msgs=["Sorry, this page isn't available"], confidence="low", tags=["social"],
+    note="Threads почти всегда требует вход")
+add("strava", "https://www.strava.com/athletes/{username}", confidence="low", tags=["sport"])
+add("vivino", "https://www.vivino.com/users/{username}", confidence="low", tags=["food"])
+add("dicoding", "https://www.dicoding.com/users/{username}", confidence="low", tags=["dev"])
+add("hackerearth", "https://www.hackerearth.com/@{username}", confidence="medium", tags=["dev"])
+add("topcoder", "https://www.topcoder.com/members/{username}", confidence="medium", tags=["dev"])
+add("atcoder", "https://atcoder.jp/users/{username}", confidence="medium", tags=["dev"])
+add("ctftime", "https://ctftime.org/user/{username}", confidence="low", tags=["dev", "security"])
+add("root-me", "https://www.root-me.org/{username}", confidence="medium", tags=["security"])
+add("hackthebox-profile", "https://app.hackthebox.com/users/{username}", confidence="low", tags=["security"])
+add("pentesterlab", "https://pentesterlab.com/profile/{username}", confidence="low", tags=["security"])
+add("keybase-lookup", "https://keybase.io/_/api/1.0/user/lookup.json?username={username}",
+    strategy="json_path", json_found={"path": "status.code", "op": "equals", "value": 0},
+    confidence="high", tags=["crypto", "social"])
+add("liberapay", "https://liberapay.com/{username}/", confidence="medium", tags=["donate"])
+add("opencollective", "https://opencollective.com/{username}", confidence="medium", tags=["donate"])
+add("sponsus", "https://sponsus.org/u/{username}", confidence="low", tags=["donate"])
+add("mymind", "https://mymind.com/", disabled=True, note="нет публичных профилей")
+add("redbubble", "https://www.redbubble.com/people/{username}/shop", confidence="medium", tags=["shop"])
+add("society6", "https://society6.com/{username}", confidence="medium", tags=["shop"])
+add("teepublic", "https://www.teepublic.com/user/{username}", confidence="medium", tags=["shop"])
+add("shutterstock", "https://www.shutterstock.com/g/{username}", confidence="medium", tags=["shop"])
+add("ghost-blog", "https://{username}.ghost.io/", confidence="low", tags=["blog"])
+add("mirror-xyz", "https://mirror.xyz/{username}", confidence="low", tags=["crypto", "blog"])
+add("rarible", "https://rarible.com/{username}", confidence="low", tags=["crypto"])
+add("bitcointalk", "https://bitcointalk.org/index.php?action=profile;u={username}", disabled=True,
+    note="Bitcointalk: профили по числовому uid")
+add("etherscan", "https://etherscan.io/address/{username}", confidence="low", tags=["crypto"])
+
+
+def dedupe(entries: list[dict]) -> list[dict]:
+    """Схлопнуть записи с одинаковым URL, сохранив самую информативную."""
+    rank = {"high": 3, "medium": 2, "low": 1}
+    best: dict[str, dict] = {}
+    for entry in entries:
+        key = entry["url"]
+        cur = best.get(key)
+        if cur is None:
+            best[key] = dict(entry)
+            continue
+        score = lambda e: (bool(e.get("control_user")), bool(e.get("control_ghost")),
+                           rank.get(e.get("confidence", "low"), 1), len(e))
+        keep, other = (entry, cur) if score(entry) > score(cur) else (cur, entry)
+        merged = dict(keep)
+        merged["tags"] = sorted({*(keep.get("tags") or []), *(other.get("tags") or [])})
+        for field in ("control_user", "control_ghost", "extract_meta", "note", "pattern"):
+            if not merged.get(field) and other.get(field):
+                merged[field] = other[field]
+        best[key] = merged
+    return list(best.values())
+
+
 def main() -> None:
     DATA.mkdir(parents=True, exist_ok=True)
-    for filename, entries, title in (("sites_username.json", U, "username"),
-                                     ("sites_email.json", E, "email"),
-                                     ("sites_phone.json", P, "phone")):
+    for filename, entries, title in (("sites_username.json", dedupe(U), "username"),
+                                     ("sites_email.json", dedupe(E), "email"),
+                                     ("sites_phone.json", dedupe(P), "phone")):
         payload = {
             "title": f"Реестр источников OsintX: {title}",
             "updated": "2026-09-20",

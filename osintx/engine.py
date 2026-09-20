@@ -16,10 +16,12 @@ from .modules.domain import DomainModule
 from .modules.geo import GeoModule
 from .modules.email import EmailModule
 from .modules.ip import IpModule
+from .modules.max import MaxModule
 from .modules.person import PersonModule
 from .modules.phone import PhoneModule
 from .modules.telegram import TelegramModule
 from .modules.username import UsernameModule
+from .modules.vk import VkModule
 from .modules.wayback import WaybackModule
 
 MODULES: dict[str, Module] = {
@@ -32,6 +34,8 @@ MODULES: dict[str, Module] = {
     "person": PersonModule(),
     "crypto": CryptoModule(),
     "geo": GeoModule(),
+    "vk": VkModule(),
+    "max": MaxModule(),
     "wayback": WaybackModule(),
     "breach": None,  # вызывается из email-модуля
 }
@@ -39,13 +43,13 @@ MODULES: dict[str, Module] = {
 # какие модули запускать для какого типа цели.
 # geo — где живёт (страна/город из публичных профилей), wayback — история ников/страницы.
 PLAN: dict[str, list[str]] = {
-    "email": ["email", "domain", "telegram", "username", "geo", "wayback"],
-    "username": ["username", "telegram", "geo", "wayback"],
-    "telegram": ["telegram", "username", "geo", "wayback"],
-    "phone": ["phone", "telegram", "geo", "wayback"],
+    "email": ["email", "domain", "telegram", "username", "geo", "vk", "wayback"],
+    "username": ["username", "telegram", "vk", "max", "geo", "wayback"],
+    "telegram": ["telegram", "username", "vk", "max", "geo", "wayback"],
+    "phone": ["phone", "telegram", "vk", "max", "geo", "wayback"],
     "domain": ["domain", "wayback"],
     "ip": ["ip"],
-    "person": ["person", "geo"],
+    "person": ["person", "telegram", "vk", "max", "geo"],
     "crypto": ["crypto"],
     "url": ["domain", "wayback"],
     "unknown": [],
