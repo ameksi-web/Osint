@@ -29,11 +29,11 @@ fi
 if [ ! -f .env ]; then
   cp .env.example .env
   echo "→ создан .env — сейчас поможем заполнить основные параметры"
-  python -m osintx.cli init || true
+  python bot.py --init || true
 fi
 
 case "${1:-}" in
-  --setup) shift; exec python -m osintx.cli init "$@" ;;
-  --check) shift; exec python -m osintx.cli bot --check "$@" ;;
-  *)       exec python -m osintx.cli bot "$@" ;;
+  --setup) shift; exec python bot.py --init "$@" ;;
+  --check) shift; exec python bot.py --check "$@" ;;
+  *)       exec python bot.py "$@" ;;
 esac

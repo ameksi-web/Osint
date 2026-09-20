@@ -29,17 +29,17 @@ if errorlevel 1 (
 if not exist .env (
   copy /y .env.example .env >nul
   echo - создан .env, запускаю мастер настройки
-  python -m osintx.cli init
+  python bot.py --init
 )
 
 if "%~1"=="--setup" (
-  python -m osintx.cli init %2 %3 %4 %5
+  python bot.py --init %2 %3 %4 %5
   goto :done
 )
 if "%~1"=="--check" (
-  python -m osintx.cli bot --check
+  python bot.py --check
   goto :done
 )
-python -m osintx.cli bot
+python bot.py
 :done
 pause

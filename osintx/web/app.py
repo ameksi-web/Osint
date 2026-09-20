@@ -19,6 +19,7 @@ from fastapi.templating import Jinja2Templates
 
 from .. import __version__
 from ..config import get_settings
+from ..core.history import report_from_row
 from ..core.models import Report
 from ..core.registry import count_sources, load_sites
 from ..core.store import get_store
@@ -285,38 +286,7 @@ def _load_report(search_id: str) -> Report | None:
     data = get_store().get_search(search_id)
     if not data:
         return None
-    return _report_from_row(data)
-
-
-def _report_from_row(data: dict[str, Any]) -> Report:
-    from ..core.models import Finding, ModuleResult, SourceStatus
-
-    summary = {}
-    try:
-        summary = json.loads(data.get("summary_json") or "{}")
-    except json.JSONDecodeError:
-        pass
-    report = Report(target=data["target"], target_type=data["target_type"], search_id=data["id"],
-                    started_at=data.get("started_at") or "", duration_ms=data.get("duration_ms") or 0)
-    report.summary = summary
-    module_names = list((summary.get("modules") or {}).keys()) or ["history"]
-    for name in module_names:
-        mstats = (summary.get("modules") or {}).get(name, {})
-        module = ModuleResult(module=name, target=data["target"], duration_ms=mstats.get("duration_ms", 0))
-        for i in range(mstats.get("checked", 0)):
-            module.statuses.append(SourceStatus(source=f"источник #{i + 1}", category=name, status="found"))
-        report.modules.append(module)
-    for row in data["findings"]:
-        try:
-            payload = json.loads(row["data_json"] or "{}")
-        except json.JSONDecodeError:
-            payload = {}
-        report.findings.append(Finding(
-            source=row["source"], category=row["category"], kind=row["kind"], title=row["title"],
-            url=row["url"] or "", value=row["value"] or "", data=payload,
-            confidence=row["confidence"] or "medium"))
-    report.compute_summary()
-    return report
+    return report_from_row(data)
 
 
 def _html_fragment(report: Report) -> str:

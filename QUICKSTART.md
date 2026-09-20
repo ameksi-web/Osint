@@ -26,6 +26,11 @@ cd Osint
 ./start_bot.sh              # первый запуск: окружение + зависимости + мастер настройки
 ./start_bot.sh --check      # только проверить токен
 ./start_bot.sh --setup      # вернуться к мастеру (.env)
+
+# или напрямую:
+python bot.py --init        # мастер настройки
+python bot.py               # запуск бота
+python bot.py --check       # проверка токена
 ```
 
 ### Вручную (любая система)
@@ -34,8 +39,8 @@ cd Osint
 python3 -m venv .venv
 source .venv/bin/activate          # Windows: .venv\Scripts\activate
 pip install -r requirements.txt    # один раз
-osintx init                        # мастер: токен бота, ключи, прокси → .env
-osintx bot                         # запуск
+python bot.py --init               # мастер: токен бота, ключи, прокси → .env
+python bot.py                      # запуск
 ```
 
 Остановить: `Ctrl+C`.
@@ -51,7 +56,7 @@ osintx bot                         # запуск
 ### Проверка, что всё в порядке
 
 ```bash
-osintx bot --check
+python bot.py --check      # или: osintx bot --check
 ```
 
 * `✅ Токен рабочий. Бот: @...` — можно запускать `osintx bot`.
@@ -114,14 +119,23 @@ osintx doctor                        # какие источники досту�
 ## Что бот умеет после запуска
 
 ```
-/search <цель>      полный поиск (email, логин, @telegram, телефон, домен, IP, ФИО, крипта)
-/deep <цель>        глубокий поиск + варианты написания
-/id <@user|телефон> Telegram-разведка (с MTProto — ID, DC, поиск по сообщениям)
-/password <пароль>  проверка пароля по утечкам (k-anonymity)
-/watch add|list|check|rm <цель>   слежение за целью: сообщает только о НОВЫХ находках
-/graph <цель>       схема связей
-/history /stats /sources          история, статистика, источники
-/dataset-search <значение>        поиск по загруженным внешним базам
+/search <цель>       полный поиск (email, логин, @telegram, телефон, домен, IP, ФИО, крипта)
+/deep <цель>         глубокий поиск + варианты написания
+/email /user /phone /tg /domain /ip /name <значение>   быстрый поиск одного типа
+/id <@user|телефон>  Telegram-разведка (с MTProto — ID, DC, поиск по сообщениям)
+/cancel              остановить текущий поиск
+/watch add|list|check|rm <цель>   наблюдение: сообщает только о НОВЫХ находках
+/settings /modules                настройки поиска и выбор модулей
+/report <id>                      заново открыть отчёт из истории
+/password <пароль>                проверка пароля по утечкам (k-anonymity)
+/graph /history /stats /sources /dataset-search
 ```
 
 Просто отправьте боту цель обычным сообщением — он начнёт поиск.
+
+Кнопки под сводкой: **🔗 раскрутить дальше** (нажать найденную сущность и искать по ней),
+**◀ ▶ листать находки**, **📄 HTML / 🧾 JSON / 📊 CSV**, **🧠 Глубже**, **📈 Граф**, **🌍 Веб-отчёт**.
+
+Ограничения частоты — в `.env`: `TELEGRAM_SEARCH_COOLDOWN` (секунд между поисками),
+`TELEGRAM_MAX_PER_HOUR` (поисков в час), `TELEGRAM_WATCH_INTERVAL` (часов между автопроверками
+наблюдений, 0 — выключить).

@@ -70,6 +70,20 @@ CREATE INDEX IF NOT EXISTS idx_index_value ON index_entries(value);
 CREATE TABLE IF NOT EXISTS cache (
     key TEXT PRIMARY KEY, value TEXT, created_at REAL, ttl REAL
 );
+CREATE TABLE IF NOT EXISTS user_prefs (
+    user_id INTEGER PRIMARY KEY,
+    deep INTEGER DEFAULT 0,
+    variants INTEGER DEFAULT 0,
+    save INTEGER DEFAULT 1,
+    use_keys INTEGER DEFAULT 1,
+    modules TEXT,
+    updated_at TEXT
+);
+CREATE TABLE IF NOT EXISTS search_activity (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER, target TEXT, at REAL
+);
+CREATE INDEX IF NOT EXISTS idx_activity_user ON search_activity(user_id, at);
 CREATE VIRTUAL TABLE IF NOT EXISTS index_fts USING fts5(
     value, extra, dataset, kind, tokenize='unicode61'
 );
@@ -90,11 +104,25 @@ class Store:
         self.conn = sqlite3.connect(str(self.path), check_same_thread=False)
         self.conn.row_factory = sqlite3.Row
         self.conn.executescript(SCHEMA)
+        self._migrate()
         try:
             self.conn.execute("PRAGMA journal_mode=WAL")
         except sqlite3.Error:  # pragma: no cover - read-only fs
             pass
         self.conn.commit()
+
+    def _migrate(self) -> None:
+        """Догоняющие миграции для баз, созданных прошлыми версиями."""
+        with self._lock:
+            columns = {row["name"] for row in self.conn.execute("PRAGMA table_info(watchlist)").fetchall()}
+            for name, ddl in (("chat_id", "ALTER TABLE watchlist ADD COLUMN chat_id INTEGER"),
+                              ("interval_hours", "ALTER TABLE watchlist ADD COLUMN interval_hours REAL")):
+                if name not in columns:
+                    try:
+                        self.conn.execute(ddl)
+                    except sqlite3.Error:  # pragma: no cover
+                        pass
+            self.conn.commit()
 
     def close(self) -> None:
         with self._lock:
@@ -225,17 +253,99 @@ class Store:
         return {f"{r['category']}:{r['site']}": dict(r) for r in rows}
 
     # ───────────────────────── watchlist ─────────────────────────
-    def watch_add(self, target: str, target_type: str, note: str = "") -> int:
+    def watch_add(self, target: str, target_type: str, note: str = "", chat_id: int | None = None,
+                  interval_hours: float | None = None) -> int:
         with self._lock:
             cur = self.conn.execute(
-                "INSERT OR IGNORE INTO watchlist (target,target_type,created_at,note) VALUES (?,?,?,?)",
-                (target, target_type, _iso(), note))
+                "INSERT INTO watchlist (target,target_type,created_at,note,chat_id,interval_hours)"
+                " VALUES (?,?,?,?,?,?) ON CONFLICT(target,target_type) DO UPDATE SET"
+                " note=excluded.note, chat_id=COALESCE(excluded.chat_id, watchlist.chat_id),"
+                " interval_hours=COALESCE(excluded.interval_hours, watchlist.interval_hours)",
+                (target, target_type, _iso(), note, chat_id, interval_hours))
             self.conn.commit()
             return cur.lastrowid or 0
 
-    def watch_list(self) -> list[dict[str, Any]]:
+    def watch_list(self, chat_id: int | None = None) -> list[dict[str, Any]]:
         with self._lock:
-            return [dict(r) for r in self.conn.execute("SELECT * FROM watchlist ORDER BY created_at DESC").fetchall()]
+            if chat_id is None:
+                rows = self.conn.execute("SELECT * FROM watchlist ORDER BY created_at DESC").fetchall()
+            else:
+                rows = self.conn.execute(
+                    "SELECT * FROM watchlist WHERE chat_id=? OR chat_id IS NULL ORDER BY created_at DESC",
+                    (chat_id,)).fetchall()
+        return [dict(r) for r in rows]
+
+    def watch_remove_target(self, target: str) -> None:
+        with self._lock:
+            self.conn.execute("DELETE FROM watchlist WHERE target=?", (target,))
+            self.conn.commit()
+
+    def watch_due(self, now: float | None = None) -> list[dict[str, Any]]:
+        """Цели, которые пора перепроверить (по интервалу из записи)."""
+        import calendar
+        import time as _time
+        now = now or _time.time()
+        out = []
+        for row in self.watch_list():
+            interval = row.get("interval_hours") or 24.0
+            last = row.get("last_check")
+            if not last:
+                out.append(row)
+                continue
+            try:
+                stamp = calendar.timegm(_time.strptime(last, "%Y-%m-%dT%H:%M:%SZ"))
+            except ValueError:
+                out.append(row)
+                continue
+            if now - stamp >= interval * 3600:
+                out.append(row)
+        return out
+
+    # ───────────────────────── предпочтения пользователей ─────────────────────────
+    def get_prefs(self, user_id: int) -> dict[str, Any]:
+        with self._lock:
+            row = self.conn.execute("SELECT * FROM user_prefs WHERE user_id=?", (user_id,)).fetchone()
+        prefs = {"deep": False, "variants": False, "save": True, "use_keys": True, "modules": None}
+        if row:
+            prefs.update({"deep": bool(row["deep"]), "variants": bool(row["variants"]),
+                          "save": bool(row["save"]), "use_keys": bool(row["use_keys"]),
+                          "modules": json.loads(row["modules"]) if row["modules"] else None})
+        return prefs
+
+    def set_prefs(self, user_id: int, **changes: Any) -> dict[str, Any]:
+        prefs = self.get_prefs(user_id)
+        prefs.update({k: v for k, v in changes.items() if k in prefs})
+        with self._lock:
+            self.conn.execute(
+                "INSERT OR REPLACE INTO user_prefs (user_id,deep,variants,save,use_keys,modules,updated_at)"
+                " VALUES (?,?,?,?,?,?,?)",
+                (user_id, int(prefs["deep"]), int(prefs["variants"]), int(prefs["save"]),
+                 int(prefs["use_keys"]),
+                 json.dumps(prefs["modules"], ensure_ascii=False) if prefs["modules"] else None, _iso()))
+            self.conn.commit()
+        return prefs
+
+    # ───────────────────────── активность и квоты ─────────────────────────
+    def log_search(self, user_id: int, target: str) -> None:
+        import time as _time
+        with self._lock:
+            self.conn.execute("INSERT INTO search_activity (user_id,target,at) VALUES (?,?,?)",
+                              (user_id, target, _time.time()))
+            self.conn.commit()
+
+    def recent_searches(self, user_id: int, seconds: float) -> int:
+        import time as _time
+        with self._lock:
+            row = self.conn.execute("SELECT COUNT(*) c FROM search_activity WHERE user_id=? AND at>=?",
+                                    (user_id, _time.time() - seconds)).fetchone()
+        return int(row["c"]) if row else 0
+
+    def top_targets(self, limit: int = 10) -> list[dict[str, Any]]:
+        with self._lock:
+            rows = self.conn.execute(
+                "SELECT user_id, target, COUNT(*) c FROM search_activity GROUP BY target ORDER BY c DESC LIMIT ?",
+                (limit,)).fetchall()
+        return [dict(r) for r in rows]
 
     def watch_update(self, target: str, fingerprint: str) -> None:
         with self._lock:
