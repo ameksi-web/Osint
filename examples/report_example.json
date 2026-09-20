@@ -1,0 +1,4220 @@
+{
+  "search_id": "619d0ee338a945bc",
+  "target": "torvalds@gmail.com",
+  "target_type": "email",
+  "started_at": "2026-09-20T13:22:39Z",
+  "duration_ms": 39697,
+  "summary": {
+    "findings": 15,
+    "sources_checked": 203,
+    "sources_failed": 181,
+    "sources_ok": 22,
+    "coverage": 10.8,
+    "by_category": {
+      "domain": 2,
+      "email": 6,
+      "username": 5,
+      "breach": 1,
+      "telegram": 1
+    },
+    "by_confidence": {
+      "high": 9,
+      "medium": 1,
+      "low": 5
+    },
+    "modules": {
+      "email": {
+        "checked": 20,
+        "found": 2,
+        "failed": 11,
+        "duration_ms": 7416
+      },
+      "domain": {
+        "checked": 10,
+        "found": 2,
+        "failed": 6,
+        "duration_ms": 4811
+      },
+      "telegram": {
+        "checked": 4,
+        "found": 0,
+        "failed": 2,
+        "duration_ms": 3504
+      },
+      "username": {
+        "checked": 169,
+        "found": 3,
+        "failed": 162,
+        "duration_ms": 23923
+      }
+    },
+    "risk_score": 34
+  },
+  "findings": [
+    {
+      "source": "subdomain-brute",
+      "category": "domain",
+      "kind": "subdomains",
+      "title": "Перебор поддоменов по словарю (120 слов): найдено 4 живых",
+      "url": "https://dns.google/query?name=gmail.com&type=A",
+      "value": "gmail.com",
+      "data": {
+        "alive": {
+          "www.gmail.com": [
+            "74.125.135.83",
+            "74.125.135.17",
+            "74.125.135.19",
+            "74.125.135.18"
+          ],
+          "smtp.gmail.com": [
+            "74.125.199.108"
+          ],
+          "pop.gmail.com": [
+            "74.125.20.109",
+            "74.125.20.108"
+          ],
+          "imap.gmail.com": [
+            "74.125.20.109",
+            "74.125.20.108"
+          ]
+        },
+        "count": 4,
+        "wordlist_size": 120
+      },
+      "confidence": "high",
+      "evidence": "реальный DNS-резолв 120 имён, положительный ответ для 4",
+      "http_code": null,
+      "tags": [],
+      "id": "22181f4ff07d",
+      "created_at": "2026-09-20T13:22:49Z"
+    },
+    {
+      "source": "dns",
+      "category": "email",
+      "kind": "dns",
+      "title": "Домен gmail.com: MX найден — почта принимается",
+      "url": "https://dns.google/query?name=gmail.com&type=MX",
+      "value": "gmail.com",
+      "data": {
+        "mx": [
+          "alt1.gmail-smtp-in.l.google.com",
+          "gmail-smtp-in.l.google.com",
+          "alt3.gmail-smtp-in.l.google.com",
+          "alt4.gmail-smtp-in.l.google.com",
+          "alt2.gmail-smtp-in.l.google.com"
+        ],
+        "a": [
+          "192.178.163.19",
+          "192.178.163.17",
+          "192.178.163.83",
+          "192.178.163.18"
+        ],
+        "ns": [
+          "ns1.google.com",
+          "ns4.google.com",
+          "ns3.google.com",
+          "ns2.google.com"
+        ],
+        "spf": "v=spf1 redirect=_spf.google.com",
+        "dmarc": "v=DMARC1; p=none; sp=quarantine; rua=mailto:mailauth-reports@google.com",
+        "dkim_selectors_found": [],
+        "provider": "Google Workspace / Gmail",
+        "root_domain": "gmail.com"
+      },
+      "confidence": "high",
+      "evidence": "DNS-запросы MX/A/NS/TXT/DMARC: record_count=13",
+      "http_code": null,
+      "tags": [],
+      "id": "2561a48e4e51",
+      "created_at": "2026-09-20T13:22:39Z"
+    },
+    {
+      "source": "email-hygiene",
+      "category": "email",
+      "kind": "meta",
+      "title": "Бесплатный публичный почтовый сервис",
+      "url": "",
+      "value": "torvalds@gmail.com",
+      "data": {
+        "free_provider": true,
+        "role_account": false,
+        "masked": "t***s@gmail.com"
+      },
+      "confidence": "high",
+      "evidence": "сверка с локальной базой 80+ публичных и одноразовых почтовых доменов",
+      "http_code": null,
+      "tags": [],
+      "id": "30f3d105b752",
+      "created_at": "2026-09-20T13:22:39Z"
+    },
+    {
+      "source": "gravatar",
+      "category": "email",
+      "kind": "meta",
+      "title": "Gravatar не найден (аватар отсутствует)",
+      "url": "https://www.gravatar.com/avatar/e9c3ee71babc6bd3912b021f1befe6b0?s=200",
+      "value": "torvalds@gmail.com",
+      "data": {
+        "md5": "e9c3ee71babc6bd3912b021f1befe6b0"
+      },
+      "confidence": "high",
+      "evidence": "HTTP 0 для gravatar.com/e9c3ee71babc6bd3912b021f1befe6b0.json и .png — профиля нет",
+      "http_code": null,
+      "tags": [],
+      "id": "579cc5f02d88",
+      "created_at": "2026-09-20T13:22:42Z"
+    },
+    {
+      "source": "syntax",
+      "category": "email",
+      "kind": "meta",
+      "title": "Синтаксис корректен, нормализовано: torvalds@gmail.com",
+      "url": "",
+      "value": "torvalds@gmail.com",
+      "data": {
+        "local": "torvalds",
+        "domain": "gmail.com",
+        "length": 18,
+        "lowercase": false
+      },
+      "confidence": "high",
+      "evidence": "проверка по регулярному выражению + нормализация Unicode/lowercase",
+      "http_code": null,
+      "tags": [],
+      "id": "378d020fc36e",
+      "created_at": "2026-09-20T13:22:39Z"
+    },
+    {
+      "source": "github",
+      "category": "username",
+      "kind": "profile",
+      "title": "github: аккаунт найден",
+      "url": "https://github.com/torvalds",
+      "value": "torvalds",
+      "data": {},
+      "confidence": "high",
+      "evidence": "HTTP 200 ∈ [200]",
+      "http_code": 200,
+      "tags": [
+        "dev"
+      ],
+      "id": "e23e77ad386a",
+      "created_at": "2026-09-20T13:23:04Z"
+    },
+    {
+      "source": "github-api",
+      "category": "username",
+      "kind": "profile",
+      "title": "GitHub: Linus Torvalds (@torvalds), репозиториев: 12, подписчиков: 324359",
+      "url": "https://github.com/torvalds",
+      "value": "torvalds",
+      "data": {
+        "name": "Linus Torvalds",
+        "bio": null,
+        "company": "Linux Foundation",
+        "location": "Portland, OR",
+        "blog": "",
+        "twitter": null,
+        "email_public": null,
+        "created_at": "2011-09-03T15:26:22Z",
+        "public_repos": 12,
+        "followers": 324359,
+        "following": 0,
+        "avatar": "https://avatars.githubusercontent.com/u/1024025?v=4",
+        "hireable": null
+      },
+      "confidence": "high",
+      "evidence": "api.github.com/users/torvalds → login=torvalds, created_at=2011-09-03T15:26:22Z",
+      "http_code": 200,
+      "tags": [],
+      "id": "cda617152203",
+      "created_at": "2026-09-20T13:23:13Z"
+    },
+    {
+      "source": "github-repos",
+      "category": "username",
+      "kind": "meta",
+      "title": "GitHub: 12 последних репозиториев, языки: C, Python, C++, OpenSCAD",
+      "url": "https://github.com/torvalds?tab=repositories",
+      "value": "torvalds",
+      "data": {
+        "repos": [
+          {
+            "name": "linux",
+            "url": "https://github.com/torvalds/linux",
+            "lang": "C",
+            "stars": 249587,
+            "updated": "2026-09-20T13:21:47Z",
+            "fork": false
+          },
+          {
+            "name": "GuitarPedal",
+            "url": "https://github.com/torvalds/GuitarPedal",
+            "lang": "Python",
+            "stars": 2350,
+            "updated": "2026-09-20T10:55:24Z",
+            "fork": false
+          },
+          {
+            "name": "AudioNoise",
+            "url": "https://github.com/torvalds/AudioNoise",
+            "lang": "C",
+            "stars": 4495,
+            "updated": "2026-09-20T01:37:12Z",
+            "fork": false
+          },
+          {
+            "name": "test-tlb",
+            "url": "https://github.com/torvalds/test-tlb",
+            "lang": "C",
+            "stars": 1061,
+            "updated": "2026-09-19T05:52:25Z",
+            "fork": false
+          },
+          {
+            "name": "pesconvert",
+            "url": "https://github.com/torvalds/pesconvert",
+            "lang": "C",
+            "stars": 579,
+            "updated": "2026-09-18T11:27:07Z",
+            "fork": false
+          },
+          {
+            "name": "libgit2",
+            "url": "https://github.com/torvalds/libgit2",
+            "lang": "C",
+            "stars": 390,
+            "updated": "2026-09-18T11:27:05Z",
+            "fork": true
+          },
+          {
+            "name": "subsurface-for-dirk",
+            "url": "https://github.com/torvalds/subsurface-for-dirk",
+            "lang": "C++",
+            "stars": 474,
+            "updated": "2026-09-18T11:27:04Z",
+            "fork": true
+          },
+          {
+            "name": "libdc-for-dirk",
+            "url": "https://github.com/torvalds/libdc-for-dirk",
+            "lang": "C",
+            "stars": 407,
+            "updated": "2026-09-18T11:27:03Z",
+            "fork": true
+          },
+          {
+            "name": "1590A",
+            "url": "https://github.com/torvalds/1590A",
+            "lang": "OpenSCAD",
+            "stars": 574,
+            "updated": "2026-09-18T11:27:02Z",
+            "fork": false
+          },
+          {
+            "name": "HunspellColorize",
+            "url": "https://github.com/torvalds/HunspellColorize",
+            "lang": "C",
+            "stars": 380,
+            "updated": "2026-09-18T11:27:01Z",
+            "fork": false
+          },
+          {
+            "name": "ScrollWheel",
+            "url": "https://github.com/torvalds/ScrollWheel",
+            "lang": "C",
+            "stars": 376,
+            "updated": "2026-09-18T11:27:00Z",
+            "fork": false
+          },
+          {
+            "name": "uemacs",
+            "url": "https://github.com/torvalds/uemacs",
+            "lang": "C",
+            "stars": 2141,
+            "updated": "2026-09-18T11:26:59Z",
+            "fork": false
+          }
+        ],
+        "languages": {
+          "C": 9,
+          "Python": 1,
+          "C++": 1,
+          "OpenSCAD": 1
+        },
+        "emails_in_commits": []
+      },
+      "confidence": "high",
+      "evidence": "api.github.com/users/torvalds/repos → 12 репозиториев",
+      "http_code": 200,
+      "tags": [],
+      "id": "e5737b8c3238",
+      "created_at": "2026-09-20T13:23:13Z"
+    },
+    {
+      "source": "normalize",
+      "category": "username",
+      "kind": "meta",
+      "title": "Цель нормализована: «torvalds» (длина 8, только буквы)",
+      "url": "",
+      "value": "torvalds",
+      "data": {
+        "variants": [
+          "torvalds",
+          "torvalds1",
+          "torvalds01",
+          "torvalds7",
+          "torvalds77",
+          "torvalds99",
+          "torvalds007",
+          "torvalds_official",
+          "torvaldsofficial",
+          "torvaldsreal",
+          "t0rvalds",
+          "torv4lds"
+        ]
+      },
+      "confidence": "high",
+      "evidence": "нормализация регистра/символов + генерация вариантов написания",
+      "http_code": null,
+      "tags": [],
+      "id": "d501e2b21169",
+      "created_at": "2026-09-20T13:22:55Z"
+    },
+    {
+      "source": "mail-provider",
+      "category": "email",
+      "kind": "meta",
+      "title": "Почта обслуживается: Google Workspace / Gmail",
+      "url": "",
+      "value": "Google Workspace / Gmail",
+      "data": {
+        "mx": [
+          "alt1.gmail-smtp-in.l.google.com",
+          "gmail-smtp-in.l.google.com",
+          "alt3.gmail-smtp-in.l.google.com",
+          "alt4.gmail-smtp-in.l.google.com",
+          "alt2.gmail-smtp-in.l.google.com"
+        ]
+      },
+      "confidence": "medium",
+      "evidence": "MX-записи домена: alt1.gmail-smtp-in.l.google.com, gmail-smtp-in.l.google.com, alt3.gmail-smtp-in.l.google.com",
+      "http_code": null,
+      "tags": [],
+      "id": "0718deaf4ef3",
+      "created_at": "2026-09-20T13:22:39Z"
+    },
+    {
+      "source": "breach-links",
+      "category": "breach",
+      "kind": "link",
+      "title": "Прямые ссылки на сервисы проверки утечек",
+      "url": "",
+      "value": "torvalds@gmail.com",
+      "data": {
+        "breaches": [],
+        "count": 0,
+        "links": [
+          {
+            "name": "Have I Been Pwned",
+            "url": "https://haveibeenpwned.com/account/torvalds@gmail.com"
+          },
+          {
+            "name": "DeHashed",
+            "url": "https://dehashed.com/search?query=torvalds@gmail.com"
+          },
+          {
+            "name": "LeakCheck",
+            "url": "https://leakcheck.io/"
+          },
+          {
+            "name": "Leak-Lookup",
+            "url": "https://leak-lookup.com/"
+          },
+          {
+            "name": "Hudson Rock",
+            "url": "https://cavalier.hudsonrock.com/api/json/v2/osint-tools/search-by-email?email=torvalds@gmail.com"
+          },
+          {
+            "name": "Intelligence X",
+            "url": "https://intelx.io/?s=torvalds@gmail.com"
+          },
+          {
+            "name": "Snusbase",
+            "url": "https://snusbase.com/"
+          },
+          {
+            "name": "BreachDirectory",
+            "url": "https://breachdirectory.org/"
+          }
+        ],
+        "note": "прямые ссылки на профильные сервисы проверки утечек; часть требует регистрации"
+      },
+      "confidence": "low",
+      "evidence": "breach-links: получено 0 названий утечек; HTTP 200",
+      "http_code": 200,
+      "tags": [],
+      "id": "cb2f2e278d3f",
+      "created_at": "2026-09-20T13:22:47Z"
+    },
+    {
+      "source": "dorks",
+      "category": "domain",
+      "kind": "link",
+      "title": "Поисковые операторы (dorks) по домену gmail.com",
+      "url": "https://www.google.com/search?q=site%3Agmail.com",
+      "value": "gmail.com",
+      "data": {
+        "links": [
+          "https://www.google.com/search?q=site%3Agmail.com",
+          "https://www.google.com/search?q=site%3Agmail.com+filetype%3Apdf",
+          "https://www.google.com/search?q=site%3Agmail.com+filetype%3Axls+OR+filetype%3Axlsx",
+          "https://www.google.com/search?q=site%3Agmail.com+%22%D0%BF%D0%B0%D1%80%D0%BE%D0%BB%D1%8C%22+OR+%22%D0%BB%D0%BE%D0%B3%D0%B8%D0%BD%22",
+          "https://www.google.com/search?q=%22%40gmail.com%22+-site%3Agmail.com",
+          "https://search.marcia.cc/search?q=site:gmail.com",
+          "https://web.archive.org/web/*/gmail.com/*",
+          "https://github.com/search?q=%22%40gmail.com%22&type=code",
+          "https://www.shodan.io/search?query=hostname%3Agmail.com",
+          "https://www.bing.com/search?q=ip%3Agmail.com"
+        ]
+      },
+      "confidence": "low",
+      "evidence": "готовые ссылки с поисковыми операторами — для ручного анализа",
+      "http_code": null,
+      "tags": [],
+      "id": "dc366e18cecd",
+      "created_at": "2026-09-20T13:22:52Z"
+    },
+    {
+      "source": "dorks",
+      "category": "email",
+      "kind": "link",
+      "title": "Поисковые ссылки по адресу (14) — открыть и проверить вручную",
+      "url": "https://www.google.com/search?q=%22torvalds%40gmail.com%22",
+      "value": "torvalds@gmail.com",
+      "data": {
+        "links": [
+          "https://www.google.com/search?q=%22torvalds%40gmail.com%22",
+          "https://yandex.ru/search/?text=%22torvalds%40gmail.com%22",
+          "https://www.bing.com/search?q=%22torvalds%40gmail.com%22",
+          "https://duckduckgo.com/?q=%22torvalds%40gmail.com%22",
+          "https://search.marcia.cc/search?q=%22torvalds%40gmail.com%22",
+          "https://www.google.com/search?q=%22torvalds%40gmail.com%22&tbm=isch",
+          "https://www.google.com/search?q=site:pastebin.com+%22torvalds%40gmail.com%22",
+          "https://www.google.com/search?q=site:github.com+%22torvalds%40gmail.com%22",
+          "https://www.google.com/search?q=filetype:pdf+%22torvalds%40gmail.com%22",
+          "https://www.google.com/search?q=%22torvalds@gmail.com%22+password",
+          "https://www.google.com/search?q=%22torvalds@gmail.com%22+site:pastebin.com",
+          "https://github.com/search?q=torvalds@gmail.com&type=code",
+          "https://searchcode.com/?q=torvalds@gmail.com",
+          "https://www.google.com/search?q=%22torvalds@gmail.com%22+-site:gmail.com"
+        ]
+      },
+      "confidence": "low",
+      "evidence": "ссылки на поисковые системы с точным совпадением адреса; автоматических утверждений нет — это точки входа для проверки",
+      "http_code": null,
+      "tags": [],
+      "id": "7198d623a187",
+      "created_at": "2026-09-20T13:22:47Z"
+    },
+    {
+      "source": "tg-dorks",
+      "category": "telegram",
+      "kind": "link",
+      "title": "Аналитика и поиск по Telegram (tgstat/telemetr/lyzem) — ссылки для проверки",
+      "url": "https://www.google.com/search?q=site%3At.me+%22torvalds%22",
+      "value": "torvalds",
+      "data": {
+        "links": [
+          "https://www.google.com/search?q=site%3At.me+%22torvalds%22",
+          "https://www.google.com/search?q=%22t.me%2Ftorvalds%22",
+          "https://tgstat.ru/search?q=torvalds",
+          "https://telemetr.io/search?q=torvalds",
+          "https://tlgrm.ru/search?q=torvalds",
+          "https://lyzem.com/search?q=torvalds",
+          "https://xtea.io/ts_en.html#gsc.tab=0&gsc.q=torvalds"
+        ]
+      },
+      "confidence": "low",
+      "evidence": "внешние каталоги и поисковики Telegram-контента; автоматических выводов нет",
+      "http_code": null,
+      "tags": [],
+      "id": "015e6ff61cb2",
+      "created_at": "2026-09-20T13:22:55Z"
+    },
+    {
+      "source": "dorks",
+      "category": "username",
+      "kind": "link",
+      "title": "Поисковые ссылки по логину",
+      "url": "https://www.google.com/search?q=%22torvalds%22",
+      "value": "torvalds",
+      "data": {
+        "links": [
+          "https://www.google.com/search?q=%22torvalds%22",
+          "https://github.com/search?q=torvalds&type=users",
+          "https://t.me/torvalds",
+          "https://www.bing.com/search?q=%22torvalds%22+profile"
+        ]
+      },
+      "confidence": "low",
+      "evidence": "ссылки для ручной проверки (не автоматическое утверждение)",
+      "http_code": null,
+      "tags": [],
+      "id": "f0ad6537e5cf",
+      "created_at": "2026-09-20T13:23:19Z"
+    }
+  ],
+  "entities": [
+    {
+      "type": "email",
+      "value": "torvalds@gmail.com",
+      "meta": {}
+    },
+    {
+      "type": "domain",
+      "value": "gmail.com",
+      "meta": {
+        "provider": "Google Workspace / Gmail",
+        "mx": [
+          "alt1.gmail-smtp-in.l.google.com",
+          "gmail-smtp-in.l.google.com",
+          "alt3.gmail-smtp-in.l.google.com",
+          "alt4.gmail-smtp-in.l.google.com",
+          "alt2.gmail-smtp-in.l.google.com"
+        ],
+        "spf": true,
+        "dmarc": true
+      }
+    },
+    {
+      "type": "username",
+      "value": "torvalds",
+      "meta": {
+        "sites_total": 93
+      }
+    },
+    {
+      "type": "github",
+      "value": "torvalds",
+      "meta": {
+        "repos": 12,
+        "languages": [
+          "C",
+          "Python",
+          "C++",
+          "OpenSCAD"
+        ]
+      }
+    },
+    {
+      "type": "email",
+      "value": "gmail.com",
+      "meta": {}
+    },
+    {
+      "type": "email",
+      "value": "Google Workspace / Gmail",
+      "meta": {}
+    },
+    {
+      "type": "telegram",
+      "value": "torvalds",
+      "meta": {}
+    }
+  ],
+  "edges": [
+    {
+      "src": "email:torvalds@gmail.com",
+      "dst": "username:torvalds",
+      "relation": "email_local_part_variant",
+      "weight": 0.5,
+      "evidence": "пользователь обычно берёт логин из локальной части email"
+    },
+    {
+      "src": "email:torvalds@gmail.com",
+      "dst": "username:torvalds1",
+      "relation": "email_local_part_variant",
+      "weight": 0.5,
+      "evidence": "пользователь обычно берёт логин из локальной части email"
+    },
+    {
+      "src": "email:torvalds@gmail.com",
+      "dst": "username:torvalds01",
+      "relation": "email_local_part_variant",
+      "weight": 0.5,
+      "evidence": "пользователь обычно берёт логин из локальной части email"
+    },
+    {
+      "src": "email:torvalds@gmail.com",
+      "dst": "username:torvalds7",
+      "relation": "email_local_part_variant",
+      "weight": 0.5,
+      "evidence": "пользователь обычно берёт логин из локальной части email"
+    },
+    {
+      "src": "email:torvalds@gmail.com",
+      "dst": "username:torvalds77",
+      "relation": "email_local_part_variant",
+      "weight": 0.5,
+      "evidence": "пользователь обычно берёт логин из локальной части email"
+    },
+    {
+      "src": "email:torvalds@gmail.com",
+      "dst": "username:torvalds99",
+      "relation": "email_local_part_variant",
+      "weight": 0.5,
+      "evidence": "пользователь обычно берёт логин из локальной части email"
+    },
+    {
+      "src": "email:torvalds@gmail.com",
+      "dst": "username:torvalds007",
+      "relation": "email_local_part_variant",
+      "weight": 0.5,
+      "evidence": "пользователь обычно берёт логин из локальной части email"
+    },
+    {
+      "src": "email:torvalds@gmail.com",
+      "dst": "username:torvalds_official",
+      "relation": "email_local_part_variant",
+      "weight": 0.5,
+      "evidence": "пользователь обычно берёт логин из локальной части email"
+    },
+    {
+      "src": "email:torvalds@gmail.com",
+      "dst": "username:torvaldsofficial",
+      "relation": "email_local_part_variant",
+      "weight": 0.5,
+      "evidence": "пользователь обычно берёт логин из локальной части email"
+    },
+    {
+      "src": "email:torvalds@gmail.com",
+      "dst": "username:torvaldsreal",
+      "relation": "email_local_part_variant",
+      "weight": 0.5,
+      "evidence": "пользователь обычно берёт логин из локальной части email"
+    },
+    {
+      "src": "email:torvalds@gmail.com",
+      "dst": "username:t0rvalds",
+      "relation": "email_local_part_variant",
+      "weight": 0.5,
+      "evidence": "пользователь обычно берёт логин из локальной части email"
+    },
+    {
+      "src": "email:torvalds@gmail.com",
+      "dst": "username:torv4lds",
+      "relation": "email_local_part_variant",
+      "weight": 0.5,
+      "evidence": "пользователь обычно берёт логин из локальной части email"
+    },
+    {
+      "src": "domain:gmail.com",
+      "dst": "ip:192.178.163.83",
+      "relation": "resolves_to",
+      "weight": 1.0,
+      "evidence": "A/AAAA запись DNS"
+    },
+    {
+      "src": "domain:gmail.com",
+      "dst": "ip:192.178.163.19",
+      "relation": "resolves_to",
+      "weight": 1.0,
+      "evidence": "A/AAAA запись DNS"
+    },
+    {
+      "src": "domain:gmail.com",
+      "dst": "ip:192.178.163.17",
+      "relation": "resolves_to",
+      "weight": 1.0,
+      "evidence": "A/AAAA запись DNS"
+    },
+    {
+      "src": "domain:gmail.com",
+      "dst": "ip:192.178.163.18",
+      "relation": "resolves_to",
+      "weight": 1.0,
+      "evidence": "A/AAAA запись DNS"
+    },
+    {
+      "src": "domain:gmail.com",
+      "dst": "ip:2607:f8b0:400e:c17::12",
+      "relation": "resolves_to",
+      "weight": 1.0,
+      "evidence": "A/AAAA запись DNS"
+    },
+    {
+      "src": "domain:gmail.com",
+      "dst": "ip:2607:f8b0:400e:c17::53",
+      "relation": "resolves_to",
+      "weight": 1.0,
+      "evidence": "A/AAAA запись DNS"
+    },
+    {
+      "src": "domain:gmail.com",
+      "dst": "ip:2607:f8b0:400e:c17::13",
+      "relation": "resolves_to",
+      "weight": 1.0,
+      "evidence": "A/AAAA запись DNS"
+    },
+    {
+      "src": "domain:gmail.com",
+      "dst": "ip:2607:f8b0:400e:c17::11",
+      "relation": "resolves_to",
+      "weight": 1.0,
+      "evidence": "A/AAAA запись DNS"
+    },
+    {
+      "src": "domain:gmail.com",
+      "dst": "domain:alt3.gmail-smtp-in.l.google.com",
+      "relation": "mx_record",
+      "weight": 1.0,
+      "evidence": "MX-запись домена"
+    },
+    {
+      "src": "domain:gmail.com",
+      "dst": "domain:alt2.gmail-smtp-in.l.google.com",
+      "relation": "mx_record",
+      "weight": 1.0,
+      "evidence": "MX-запись домена"
+    },
+    {
+      "src": "domain:gmail.com",
+      "dst": "domain:gmail-smtp-in.l.google.com",
+      "relation": "mx_record",
+      "weight": 1.0,
+      "evidence": "MX-запись домена"
+    },
+    {
+      "src": "domain:gmail.com",
+      "dst": "domain:alt4.gmail-smtp-in.l.google.com",
+      "relation": "mx_record",
+      "weight": 1.0,
+      "evidence": "MX-запись домена"
+    },
+    {
+      "src": "domain:gmail.com",
+      "dst": "domain:alt1.gmail-smtp-in.l.google.com",
+      "relation": "mx_record",
+      "weight": 1.0,
+      "evidence": "MX-запись домена"
+    },
+    {
+      "src": "domain:www.gmail.com",
+      "dst": "ip:74.125.135.83",
+      "relation": "resolves_to",
+      "weight": 1.0,
+      "evidence": "перебор поддоменов + DNS-резолв"
+    },
+    {
+      "src": "domain:www.gmail.com",
+      "dst": "ip:74.125.135.17",
+      "relation": "resolves_to",
+      "weight": 1.0,
+      "evidence": "перебор поддоменов + DNS-резолв"
+    },
+    {
+      "src": "domain:www.gmail.com",
+      "dst": "ip:74.125.135.19",
+      "relation": "resolves_to",
+      "weight": 1.0,
+      "evidence": "перебор поддоменов + DNS-резолв"
+    },
+    {
+      "src": "domain:www.gmail.com",
+      "dst": "ip:74.125.135.18",
+      "relation": "resolves_to",
+      "weight": 1.0,
+      "evidence": "перебор поддоменов + DNS-резолв"
+    },
+    {
+      "src": "domain:gmail.com",
+      "dst": "domain:www.gmail.com",
+      "relation": "subdomain",
+      "weight": 0.9,
+      "evidence": "поддомен из словаря, DNS отвечает"
+    },
+    {
+      "src": "domain:smtp.gmail.com",
+      "dst": "ip:74.125.199.108",
+      "relation": "resolves_to",
+      "weight": 1.0,
+      "evidence": "перебор поддоменов + DNS-резолв"
+    },
+    {
+      "src": "domain:gmail.com",
+      "dst": "domain:smtp.gmail.com",
+      "relation": "subdomain",
+      "weight": 0.9,
+      "evidence": "поддомен из словаря, DNS отвечает"
+    },
+    {
+      "src": "domain:pop.gmail.com",
+      "dst": "ip:74.125.20.109",
+      "relation": "resolves_to",
+      "weight": 1.0,
+      "evidence": "перебор поддоменов + DNS-резолв"
+    },
+    {
+      "src": "domain:pop.gmail.com",
+      "dst": "ip:74.125.20.108",
+      "relation": "resolves_to",
+      "weight": 1.0,
+      "evidence": "перебор поддоменов + DNS-резолв"
+    },
+    {
+      "src": "domain:gmail.com",
+      "dst": "domain:pop.gmail.com",
+      "relation": "subdomain",
+      "weight": 0.9,
+      "evidence": "поддомен из словаря, DNS отвечает"
+    },
+    {
+      "src": "domain:imap.gmail.com",
+      "dst": "ip:74.125.20.109",
+      "relation": "resolves_to",
+      "weight": 1.0,
+      "evidence": "перебор поддоменов + DNS-резолв"
+    },
+    {
+      "src": "domain:imap.gmail.com",
+      "dst": "ip:74.125.20.108",
+      "relation": "resolves_to",
+      "weight": 1.0,
+      "evidence": "перебор поддоменов + DNS-резолв"
+    },
+    {
+      "src": "domain:gmail.com",
+      "dst": "domain:imap.gmail.com",
+      "relation": "subdomain",
+      "weight": 0.9,
+      "evidence": "поддомен из словаря, DNS отвечает"
+    },
+    {
+      "src": "username:torvalds",
+      "dst": "site:github",
+      "relation": "has_account",
+      "weight": 1.0,
+      "evidence": "HTTP 200 ∈ [200]"
+    }
+  ],
+  "modules": [
+    {
+      "module": "email",
+      "target": "torvalds@gmail.com",
+      "checked": 20,
+      "found": 2,
+      "failed": 11,
+      "duration_ms": 7416,
+      "errors": [],
+      "meta": {
+        "entities": [
+          {
+            "type": "email",
+            "value": "torvalds@gmail.com",
+            "meta": {}
+          },
+          {
+            "type": "domain",
+            "value": "gmail.com",
+            "meta": {
+              "provider": "Google Workspace / Gmail",
+              "mx": [
+                "alt1.gmail-smtp-in.l.google.com",
+                "gmail-smtp-in.l.google.com",
+                "alt3.gmail-smtp-in.l.google.com",
+                "alt4.gmail-smtp-in.l.google.com",
+                "alt2.gmail-smtp-in.l.google.com"
+              ],
+              "spf": true,
+              "dmarc": true
+            }
+          }
+        ],
+        "edges": [
+          {
+            "src": "email:torvalds@gmail.com",
+            "dst": "username:torvalds",
+            "relation": "email_local_part_variant",
+            "weight": 0.5,
+            "evidence": "пользователь обычно берёт логин из локальной части email"
+          },
+          {
+            "src": "email:torvalds@gmail.com",
+            "dst": "username:torvalds1",
+            "relation": "email_local_part_variant",
+            "weight": 0.5,
+            "evidence": "пользователь обычно берёт логин из локальной части email"
+          },
+          {
+            "src": "email:torvalds@gmail.com",
+            "dst": "username:torvalds01",
+            "relation": "email_local_part_variant",
+            "weight": 0.5,
+            "evidence": "пользователь обычно берёт логин из локальной части email"
+          },
+          {
+            "src": "email:torvalds@gmail.com",
+            "dst": "username:torvalds7",
+            "relation": "email_local_part_variant",
+            "weight": 0.5,
+            "evidence": "пользователь обычно берёт логин из локальной части email"
+          },
+          {
+            "src": "email:torvalds@gmail.com",
+            "dst": "username:torvalds77",
+            "relation": "email_local_part_variant",
+            "weight": 0.5,
+            "evidence": "пользователь обычно берёт логин из локальной части email"
+          },
+          {
+            "src": "email:torvalds@gmail.com",
+            "dst": "username:torvalds99",
+            "relation": "email_local_part_variant",
+            "weight": 0.5,
+            "evidence": "пользователь обычно берёт логин из локальной части email"
+          },
+          {
+            "src": "email:torvalds@gmail.com",
+            "dst": "username:torvalds007",
+            "relation": "email_local_part_variant",
+            "weight": 0.5,
+            "evidence": "пользователь обычно берёт логин из локальной части email"
+          },
+          {
+            "src": "email:torvalds@gmail.com",
+            "dst": "username:torvalds_official",
+            "relation": "email_local_part_variant",
+            "weight": 0.5,
+            "evidence": "пользователь обычно берёт логин из локальной части email"
+          },
+          {
+            "src": "email:torvalds@gmail.com",
+            "dst": "username:torvaldsofficial",
+            "relation": "email_local_part_variant",
+            "weight": 0.5,
+            "evidence": "пользователь обычно берёт логин из локальной части email"
+          },
+          {
+            "src": "email:torvalds@gmail.com",
+            "dst": "username:torvaldsreal",
+            "relation": "email_local_part_variant",
+            "weight": 0.5,
+            "evidence": "пользователь обычно берёт логин из локальной части email"
+          },
+          {
+            "src": "email:torvalds@gmail.com",
+            "dst": "username:t0rvalds",
+            "relation": "email_local_part_variant",
+            "weight": 0.5,
+            "evidence": "пользователь обычно берёт логин из локальной части email"
+          },
+          {
+            "src": "email:torvalds@gmail.com",
+            "dst": "username:torv4lds",
+            "relation": "email_local_part_variant",
+            "weight": 0.5,
+            "evidence": "пользователь обычно берёт логин из локальной части email"
+          }
+        ]
+      },
+      "statuses": [
+        {
+          "source": "dns:mx",
+          "category": "email",
+          "status": "found",
+          "url": "",
+          "http_code": null,
+          "latency_ms": null,
+          "error": "",
+          "detail": "MX=['alt1.gmail-smtp-in.l.google.com', 'gmail-smtp-in.l.google.com', 'alt3.gmail-smtp-in.l.google.com'], провайдер=Google Workspace / Gmail",
+          "cached": false
+        },
+        {
+          "source": "disposable-check",
+          "category": "email",
+          "status": "not_found",
+          "url": "",
+          "http_code": null,
+          "latency_ms": null,
+          "error": "",
+          "detail": "disposable=False, free=True",
+          "cached": false
+        },
+        {
+          "source": "gravatar",
+          "category": "email",
+          "status": "not_found",
+          "url": "https://gravatar.com/e9c3ee71babc6bd3912b021f1befe6b0.json",
+          "http_code": null,
+          "latency_ms": null,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "",
+          "cached": false
+        },
+        {
+          "source": "discord-email",
+          "category": "email",
+          "status": "error",
+          "url": "https://discord.com/api/v9/auth/register",
+          "http_code": null,
+          "latency_ms": 13,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "mozilla",
+          "category": "email",
+          "status": "error",
+          "url": "https://api.accounts.firefox.com/v1/account/status",
+          "http_code": null,
+          "latency_ms": 3190,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "microsoft",
+          "category": "email",
+          "status": "error",
+          "url": "https://login.microsoftonline.com/common/GetCredentialType",
+          "http_code": null,
+          "latency_ms": 3226,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "gravatar-email",
+          "category": "email",
+          "status": "error",
+          "url": "https://gravatar.com/e9c3ee71babc6bd3912b021f1befe6b0.json",
+          "http_code": null,
+          "latency_ms": 3286,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "instagram-email",
+          "category": "email",
+          "status": "error",
+          "url": "https://www.instagram.com/accounts/account_recovery_send_ajax/",
+          "http_code": null,
+          "latency_ms": 3357,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "wordpress-email",
+          "category": "email",
+          "status": "error",
+          "url": "https://public-api.wordpress.com/rest/v1.1/users/email/exists",
+          "http_code": null,
+          "latency_ms": 3357,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "twitter-email",
+          "category": "email",
+          "status": "error",
+          "url": "https://api.twitter.com/i/users/email_available.json",
+          "http_code": null,
+          "latency_ms": 3368,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "duolingo-email",
+          "category": "email",
+          "status": "error",
+          "url": "https://www.duolingo.com/2017-06-30/users",
+          "http_code": null,
+          "latency_ms": 3382,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "protonmail",
+          "category": "email",
+          "status": "error",
+          "url": "https://api.protonmail.ch/pks/lookup",
+          "http_code": null,
+          "latency_ms": 3460,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "pinterest-email",
+          "category": "email",
+          "status": "error",
+          "url": "https://www.pinterest.com/resource/EmailExistsResource/get/",
+          "http_code": null,
+          "latency_ms": 3570,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "xposedornot",
+          "category": "breach",
+          "status": "error",
+          "url": "https://api.xposedornot.com/v1/check-email/torvalds@gmail.com",
+          "http_code": null,
+          "latency_ms": null,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "",
+          "cached": false
+        },
+        {
+          "source": "hibp",
+          "category": "breach",
+          "status": "unsupported",
+          "url": "",
+          "http_code": null,
+          "latency_ms": null,
+          "error": "",
+          "detail": "нужен HIBP_API_KEY (haveibeenpwned.com/API/Key)",
+          "cached": false
+        },
+        {
+          "source": "leakcheck",
+          "category": "breach",
+          "status": "unsupported",
+          "url": "",
+          "http_code": null,
+          "latency_ms": null,
+          "error": "",
+          "detail": "нужен LEAKCHECK_API_KEY (leakcheck.io)",
+          "cached": false
+        },
+        {
+          "source": "dehashed",
+          "category": "breach",
+          "status": "unsupported",
+          "url": "",
+          "http_code": null,
+          "latency_ms": null,
+          "error": "",
+          "detail": "нужны DEHASHED_API_KEY и DEHASHED_EMAIL",
+          "cached": false
+        },
+        {
+          "source": "intelx",
+          "category": "breach",
+          "status": "unsupported",
+          "url": "",
+          "http_code": null,
+          "latency_ms": null,
+          "error": "",
+          "detail": "нужен INTELX_API_KEY (intelx.io) — поиск по дампам/pastes",
+          "cached": false
+        },
+        {
+          "source": "local-datasets",
+          "category": "breach",
+          "status": "not_found",
+          "url": "",
+          "http_code": null,
+          "latency_ms": null,
+          "error": "",
+          "detail": "в загруженных локальных базах совпадений нет (загрузить: osintx dataset-import файл.csv)",
+          "cached": false
+        },
+        {
+          "source": "breach-links",
+          "category": "breach",
+          "status": "found",
+          "url": "",
+          "http_code": null,
+          "latency_ms": null,
+          "error": "",
+          "detail": "8 ссылок",
+          "cached": false
+        }
+      ],
+      "findings": [
+        {
+          "source": "syntax",
+          "category": "email",
+          "kind": "meta",
+          "title": "Синтаксис корректен, нормализовано: torvalds@gmail.com",
+          "url": "",
+          "value": "torvalds@gmail.com",
+          "data": {
+            "local": "torvalds",
+            "domain": "gmail.com",
+            "length": 18,
+            "lowercase": false
+          },
+          "confidence": "high",
+          "evidence": "проверка по регулярному выражению + нормализация Unicode/lowercase",
+          "http_code": null,
+          "tags": [],
+          "id": "378d020fc36e",
+          "created_at": "2026-09-20T13:22:39Z"
+        },
+        {
+          "source": "dns",
+          "category": "email",
+          "kind": "dns",
+          "title": "Домен gmail.com: MX найден — почта принимается",
+          "url": "https://dns.google/query?name=gmail.com&type=MX",
+          "value": "gmail.com",
+          "data": {
+            "mx": [
+              "alt1.gmail-smtp-in.l.google.com",
+              "gmail-smtp-in.l.google.com",
+              "alt3.gmail-smtp-in.l.google.com",
+              "alt4.gmail-smtp-in.l.google.com",
+              "alt2.gmail-smtp-in.l.google.com"
+            ],
+            "a": [
+              "192.178.163.19",
+              "192.178.163.17",
+              "192.178.163.83",
+              "192.178.163.18"
+            ],
+            "ns": [
+              "ns1.google.com",
+              "ns4.google.com",
+              "ns3.google.com",
+              "ns2.google.com"
+            ],
+            "spf": "v=spf1 redirect=_spf.google.com",
+            "dmarc": "v=DMARC1; p=none; sp=quarantine; rua=mailto:mailauth-reports@google.com",
+            "dkim_selectors_found": [],
+            "provider": "Google Workspace / Gmail",
+            "root_domain": "gmail.com"
+          },
+          "confidence": "high",
+          "evidence": "DNS-запросы MX/A/NS/TXT/DMARC: record_count=13",
+          "http_code": null,
+          "tags": [],
+          "id": "2561a48e4e51",
+          "created_at": "2026-09-20T13:22:39Z"
+        },
+        {
+          "source": "mail-provider",
+          "category": "email",
+          "kind": "meta",
+          "title": "Почта обслуживается: Google Workspace / Gmail",
+          "url": "",
+          "value": "Google Workspace / Gmail",
+          "data": {
+            "mx": [
+              "alt1.gmail-smtp-in.l.google.com",
+              "gmail-smtp-in.l.google.com",
+              "alt3.gmail-smtp-in.l.google.com",
+              "alt4.gmail-smtp-in.l.google.com",
+              "alt2.gmail-smtp-in.l.google.com"
+            ]
+          },
+          "confidence": "medium",
+          "evidence": "MX-записи домена: alt1.gmail-smtp-in.l.google.com, gmail-smtp-in.l.google.com, alt3.gmail-smtp-in.l.google.com",
+          "http_code": null,
+          "tags": [],
+          "id": "0718deaf4ef3",
+          "created_at": "2026-09-20T13:22:39Z"
+        },
+        {
+          "source": "email-hygiene",
+          "category": "email",
+          "kind": "meta",
+          "title": "Бесплатный публичный почтовый сервис",
+          "url": "",
+          "value": "torvalds@gmail.com",
+          "data": {
+            "free_provider": true,
+            "role_account": false,
+            "masked": "t***s@gmail.com"
+          },
+          "confidence": "high",
+          "evidence": "сверка с локальной базой 80+ публичных и одноразовых почтовых доменов",
+          "http_code": null,
+          "tags": [],
+          "id": "30f3d105b752",
+          "created_at": "2026-09-20T13:22:39Z"
+        },
+        {
+          "source": "gravatar",
+          "category": "email",
+          "kind": "meta",
+          "title": "Gravatar не найден (аватар отсутствует)",
+          "url": "https://www.gravatar.com/avatar/e9c3ee71babc6bd3912b021f1befe6b0?s=200",
+          "value": "torvalds@gmail.com",
+          "data": {
+            "md5": "e9c3ee71babc6bd3912b021f1befe6b0"
+          },
+          "confidence": "high",
+          "evidence": "HTTP 0 для gravatar.com/e9c3ee71babc6bd3912b021f1befe6b0.json и .png — профиля нет",
+          "http_code": null,
+          "tags": [],
+          "id": "579cc5f02d88",
+          "created_at": "2026-09-20T13:22:42Z"
+        },
+        {
+          "source": "breach-links",
+          "category": "breach",
+          "kind": "link",
+          "title": "Прямые ссылки на сервисы проверки утечек",
+          "url": "",
+          "value": "torvalds@gmail.com",
+          "data": {
+            "breaches": [],
+            "count": 0,
+            "links": [
+              {
+                "name": "Have I Been Pwned",
+                "url": "https://haveibeenpwned.com/account/torvalds@gmail.com"
+              },
+              {
+                "name": "DeHashed",
+                "url": "https://dehashed.com/search?query=torvalds@gmail.com"
+              },
+              {
+                "name": "LeakCheck",
+                "url": "https://leakcheck.io/"
+              },
+              {
+                "name": "Leak-Lookup",
+                "url": "https://leak-lookup.com/"
+              },
+              {
+                "name": "Hudson Rock",
+                "url": "https://cavalier.hudsonrock.com/api/json/v2/osint-tools/search-by-email?email=torvalds@gmail.com"
+              },
+              {
+                "name": "Intelligence X",
+                "url": "https://intelx.io/?s=torvalds@gmail.com"
+              },
+              {
+                "name": "Snusbase",
+                "url": "https://snusbase.com/"
+              },
+              {
+                "name": "BreachDirectory",
+                "url": "https://breachdirectory.org/"
+              }
+            ],
+            "note": "прямые ссылки на профильные сервисы проверки утечек; часть требует регистрации"
+          },
+          "confidence": "low",
+          "evidence": "breach-links: получено 0 названий утечек; HTTP 200",
+          "http_code": 200,
+          "tags": [],
+          "id": "cb2f2e278d3f",
+          "created_at": "2026-09-20T13:22:47Z"
+        },
+        {
+          "source": "dorks",
+          "category": "email",
+          "kind": "link",
+          "title": "Поисковые ссылки по адресу (14) — открыть и проверить вручную",
+          "url": "https://www.google.com/search?q=%22torvalds%40gmail.com%22",
+          "value": "torvalds@gmail.com",
+          "data": {
+            "links": [
+              "https://www.google.com/search?q=%22torvalds%40gmail.com%22",
+              "https://yandex.ru/search/?text=%22torvalds%40gmail.com%22",
+              "https://www.bing.com/search?q=%22torvalds%40gmail.com%22",
+              "https://duckduckgo.com/?q=%22torvalds%40gmail.com%22",
+              "https://search.marcia.cc/search?q=%22torvalds%40gmail.com%22",
+              "https://www.google.com/search?q=%22torvalds%40gmail.com%22&tbm=isch",
+              "https://www.google.com/search?q=site:pastebin.com+%22torvalds%40gmail.com%22",
+              "https://www.google.com/search?q=site:github.com+%22torvalds%40gmail.com%22",
+              "https://www.google.com/search?q=filetype:pdf+%22torvalds%40gmail.com%22",
+              "https://www.google.com/search?q=%22torvalds@gmail.com%22+password",
+              "https://www.google.com/search?q=%22torvalds@gmail.com%22+site:pastebin.com",
+              "https://github.com/search?q=torvalds@gmail.com&type=code",
+              "https://searchcode.com/?q=torvalds@gmail.com",
+              "https://www.google.com/search?q=%22torvalds@gmail.com%22+-site:gmail.com"
+            ]
+          },
+          "confidence": "low",
+          "evidence": "ссылки на поисковые системы с точным совпадением адреса; автоматических утверждений нет — это точки входа для проверки",
+          "http_code": null,
+          "tags": [],
+          "id": "7198d623a187",
+          "created_at": "2026-09-20T13:22:47Z"
+        }
+      ]
+    },
+    {
+      "module": "domain",
+      "target": "gmail.com",
+      "checked": 10,
+      "found": 2,
+      "failed": 6,
+      "duration_ms": 4811,
+      "errors": [],
+      "meta": {
+        "entities": [
+          {
+            "type": "domain",
+            "value": "gmail.com",
+            "meta": {}
+          }
+        ],
+        "edges": [
+          {
+            "src": "domain:gmail.com",
+            "dst": "ip:192.178.163.83",
+            "relation": "resolves_to",
+            "weight": 1.0,
+            "evidence": "A/AAAA запись DNS"
+          },
+          {
+            "src": "domain:gmail.com",
+            "dst": "ip:192.178.163.19",
+            "relation": "resolves_to",
+            "weight": 1.0,
+            "evidence": "A/AAAA запись DNS"
+          },
+          {
+            "src": "domain:gmail.com",
+            "dst": "ip:192.178.163.17",
+            "relation": "resolves_to",
+            "weight": 1.0,
+            "evidence": "A/AAAA запись DNS"
+          },
+          {
+            "src": "domain:gmail.com",
+            "dst": "ip:192.178.163.18",
+            "relation": "resolves_to",
+            "weight": 1.0,
+            "evidence": "A/AAAA запись DNS"
+          },
+          {
+            "src": "domain:gmail.com",
+            "dst": "ip:2607:f8b0:400e:c17::12",
+            "relation": "resolves_to",
+            "weight": 1.0,
+            "evidence": "A/AAAA запись DNS"
+          },
+          {
+            "src": "domain:gmail.com",
+            "dst": "ip:2607:f8b0:400e:c17::53",
+            "relation": "resolves_to",
+            "weight": 1.0,
+            "evidence": "A/AAAA запись DNS"
+          },
+          {
+            "src": "domain:gmail.com",
+            "dst": "ip:2607:f8b0:400e:c17::13",
+            "relation": "resolves_to",
+            "weight": 1.0,
+            "evidence": "A/AAAA запись DNS"
+          },
+          {
+            "src": "domain:gmail.com",
+            "dst": "ip:2607:f8b0:400e:c17::11",
+            "relation": "resolves_to",
+            "weight": 1.0,
+            "evidence": "A/AAAA запись DNS"
+          },
+          {
+            "src": "domain:gmail.com",
+            "dst": "domain:alt3.gmail-smtp-in.l.google.com",
+            "relation": "mx_record",
+            "weight": 1.0,
+            "evidence": "MX-запись домена"
+          },
+          {
+            "src": "domain:gmail.com",
+            "dst": "domain:alt2.gmail-smtp-in.l.google.com",
+            "relation": "mx_record",
+            "weight": 1.0,
+            "evidence": "MX-запись домена"
+          },
+          {
+            "src": "domain:gmail.com",
+            "dst": "domain:gmail-smtp-in.l.google.com",
+            "relation": "mx_record",
+            "weight": 1.0,
+            "evidence": "MX-запись домена"
+          },
+          {
+            "src": "domain:gmail.com",
+            "dst": "domain:alt4.gmail-smtp-in.l.google.com",
+            "relation": "mx_record",
+            "weight": 1.0,
+            "evidence": "MX-запись домена"
+          },
+          {
+            "src": "domain:gmail.com",
+            "dst": "domain:alt1.gmail-smtp-in.l.google.com",
+            "relation": "mx_record",
+            "weight": 1.0,
+            "evidence": "MX-запись домена"
+          },
+          {
+            "src": "domain:www.gmail.com",
+            "dst": "ip:74.125.135.83",
+            "relation": "resolves_to",
+            "weight": 1.0,
+            "evidence": "перебор поддоменов + DNS-резолв"
+          },
+          {
+            "src": "domain:www.gmail.com",
+            "dst": "ip:74.125.135.17",
+            "relation": "resolves_to",
+            "weight": 1.0,
+            "evidence": "перебор поддоменов + DNS-резолв"
+          },
+          {
+            "src": "domain:www.gmail.com",
+            "dst": "ip:74.125.135.19",
+            "relation": "resolves_to",
+            "weight": 1.0,
+            "evidence": "перебор поддоменов + DNS-резолв"
+          },
+          {
+            "src": "domain:www.gmail.com",
+            "dst": "ip:74.125.135.18",
+            "relation": "resolves_to",
+            "weight": 1.0,
+            "evidence": "перебор поддоменов + DNS-резолв"
+          },
+          {
+            "src": "domain:gmail.com",
+            "dst": "domain:www.gmail.com",
+            "relation": "subdomain",
+            "weight": 0.9,
+            "evidence": "поддомен из словаря, DNS отвечает"
+          },
+          {
+            "src": "domain:smtp.gmail.com",
+            "dst": "ip:74.125.199.108",
+            "relation": "resolves_to",
+            "weight": 1.0,
+            "evidence": "перебор поддоменов + DNS-резолв"
+          },
+          {
+            "src": "domain:gmail.com",
+            "dst": "domain:smtp.gmail.com",
+            "relation": "subdomain",
+            "weight": 0.9,
+            "evidence": "поддомен из словаря, DNS отвечает"
+          },
+          {
+            "src": "domain:pop.gmail.com",
+            "dst": "ip:74.125.20.109",
+            "relation": "resolves_to",
+            "weight": 1.0,
+            "evidence": "перебор поддоменов + DNS-резолв"
+          },
+          {
+            "src": "domain:pop.gmail.com",
+            "dst": "ip:74.125.20.108",
+            "relation": "resolves_to",
+            "weight": 1.0,
+            "evidence": "перебор поддоменов + DNS-резолв"
+          },
+          {
+            "src": "domain:gmail.com",
+            "dst": "domain:pop.gmail.com",
+            "relation": "subdomain",
+            "weight": 0.9,
+            "evidence": "поддомен из словаря, DNS отвечает"
+          },
+          {
+            "src": "domain:imap.gmail.com",
+            "dst": "ip:74.125.20.109",
+            "relation": "resolves_to",
+            "weight": 1.0,
+            "evidence": "перебор поддоменов + DNS-резолв"
+          },
+          {
+            "src": "domain:imap.gmail.com",
+            "dst": "ip:74.125.20.108",
+            "relation": "resolves_to",
+            "weight": 1.0,
+            "evidence": "перебор поддоменов + DNS-резолв"
+          },
+          {
+            "src": "domain:gmail.com",
+            "dst": "domain:imap.gmail.com",
+            "relation": "subdomain",
+            "weight": 0.9,
+            "evidence": "поддомен из словаря, DNS отвечает"
+          }
+        ],
+        "resolved_target": "gmail.com",
+        "original_target": "torvalds@gmail.com"
+      },
+      "statuses": [
+        {
+          "source": "dns",
+          "category": "domain",
+          "status": "found",
+          "url": "",
+          "http_code": null,
+          "latency_ms": null,
+          "error": "",
+          "detail": "A=['192.178.163.83', '192.178.163.19'], MX=['alt3.gmail-smtp-in.l.google.com', 'alt2.gmail-smtp-in.l.google.com']",
+          "cached": false
+        },
+        {
+          "source": "wayback",
+          "category": "domain",
+          "status": "not_found",
+          "url": "https://archive.org/wayback/available",
+          "http_code": null,
+          "latency_ms": null,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "",
+          "cached": false
+        },
+        {
+          "source": "crt.sh",
+          "category": "domain",
+          "status": "error",
+          "url": "https://crt.sh/",
+          "http_code": null,
+          "latency_ms": null,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "",
+          "cached": false
+        },
+        {
+          "source": "urlscan.io",
+          "category": "domain",
+          "status": "not_found",
+          "url": "",
+          "http_code": null,
+          "latency_ms": null,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "",
+          "cached": false
+        },
+        {
+          "source": "hackertarget",
+          "category": "domain",
+          "status": "error",
+          "url": "https://api.hackertarget.com/hostsearch/",
+          "http_code": null,
+          "latency_ms": null,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "",
+          "cached": false
+        },
+        {
+          "source": "rdap",
+          "category": "domain",
+          "status": "error",
+          "url": "https://rdap.org/domain/gmail.com",
+          "http_code": null,
+          "latency_ms": null,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "",
+          "cached": false
+        },
+        {
+          "source": "http",
+          "category": "domain",
+          "status": "error",
+          "url": "https://gmail.com",
+          "http_code": null,
+          "latency_ms": null,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "",
+          "cached": false
+        },
+        {
+          "source": "subdomain-brute",
+          "category": "domain",
+          "status": "found",
+          "url": "",
+          "http_code": null,
+          "latency_ms": null,
+          "error": "",
+          "detail": "4/120 имён резолвятся",
+          "cached": false
+        },
+        {
+          "source": "reverse-ip",
+          "category": "domain",
+          "status": "error",
+          "url": "https://api.hackertarget.com/reverseiplookup/",
+          "http_code": null,
+          "latency_ms": null,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "",
+          "cached": false
+        },
+        {
+          "source": "reverse-ip",
+          "category": "domain",
+          "status": "error",
+          "url": "https://api.hackertarget.com/reverseiplookup/",
+          "http_code": null,
+          "latency_ms": null,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "",
+          "cached": false
+        }
+      ],
+      "findings": [
+        {
+          "source": "dns",
+          "category": "domain",
+          "kind": "dns",
+          "title": "DNS gmail.com: A=4, MX=5, NS=4, TXT=4, SPF есть, DMARC есть",
+          "url": "https://dns.google/query?name=gmail.com&type=ANY",
+          "value": "gmail.com",
+          "data": {
+            "A": [
+              "192.178.163.83",
+              "192.178.163.19",
+              "192.178.163.17",
+              "192.178.163.18"
+            ],
+            "AAAA": [
+              "2607:f8b0:400e:c17::12",
+              "2607:f8b0:400e:c17::53",
+              "2607:f8b0:400e:c17::13",
+              "2607:f8b0:400e:c17::11"
+            ],
+            "MX": [
+              "alt3.gmail-smtp-in.l.google.com",
+              "alt2.gmail-smtp-in.l.google.com",
+              "gmail-smtp-in.l.google.com",
+              "alt4.gmail-smtp-in.l.google.com",
+              "alt1.gmail-smtp-in.l.google.com"
+            ],
+            "NS": [
+              "ns1.google.com",
+              "ns4.google.com",
+              "ns2.google.com",
+              "ns3.google.com"
+            ],
+            "TXT": [
+              "yahoo-verification-key=+eZwIPSgRxkAUzDtqT8Qhk+j4A1JF6V/wtGoyGTkELY=",
+              "yahoo-verification-key=dKYwfVbaxatmcXiXy6LDAxMRirqpOq5tj98iJv9qWVk=",
+              "globalsign-smime-dv=CDYX+XFHUw2wml6/Gb8+59BsH31KzUr6c1l2BPvqKX8=",
+              "v=spf1 redirect=_spf.google.com"
+            ],
+            "SOA": [
+              "ns1.google.com. dns-admin.google.com. 984350071 900 900 1800 60"
+            ],
+            "CAA": [
+              "0 issue \"pki.goog\""
+            ],
+            "CNAME": [],
+            "spf": "v=spf1 redirect=_spf.google.com",
+            "dmarc": "v=DMARC1; p=none; sp=quarantine; rua=mailto:mailauth-reports@google.com",
+            "dkim_google": [],
+            "dnssec": {
+              "checked": false,
+              "reason": "TypeError: Resolver.resolve() got an unexpected keyword argument 'want_dnssec'"
+            },
+            "axfr": {
+              "attempted": true,
+              "possible": false,
+              "nameserver": "ns1.google.com",
+              "error": "ValueError: "
+            },
+            "email_security": {
+              "spf": true,
+              "dmarc": true,
+              "dmarc_policy": "none",
+              "dkim": false
+            },
+            "zone_transfer_possible": false
+          },
+          "confidence": "high",
+          "evidence": "DNS-запросы: 23 записей; SPF=да, DMARC=none",
+          "http_code": null,
+          "tags": [],
+          "id": "17ddd4c3e245",
+          "created_at": "2026-09-20T13:22:47Z"
+        },
+        {
+          "source": "subdomain-brute",
+          "category": "domain",
+          "kind": "subdomains",
+          "title": "Перебор поддоменов по словарю (120 слов): найдено 4 живых",
+          "url": "https://dns.google/query?name=gmail.com&type=A",
+          "value": "gmail.com",
+          "data": {
+            "alive": {
+              "www.gmail.com": [
+                "74.125.135.83",
+                "74.125.135.17",
+                "74.125.135.19",
+                "74.125.135.18"
+              ],
+              "smtp.gmail.com": [
+                "74.125.199.108"
+              ],
+              "pop.gmail.com": [
+                "74.125.20.109",
+                "74.125.20.108"
+              ],
+              "imap.gmail.com": [
+                "74.125.20.109",
+                "74.125.20.108"
+              ]
+            },
+            "count": 4,
+            "wordlist_size": 120
+          },
+          "confidence": "high",
+          "evidence": "реальный DNS-резолв 120 имён, положительный ответ для 4",
+          "http_code": null,
+          "tags": [],
+          "id": "22181f4ff07d",
+          "created_at": "2026-09-20T13:22:49Z"
+        },
+        {
+          "source": "dorks",
+          "category": "domain",
+          "kind": "link",
+          "title": "Поисковые операторы (dorks) по домену gmail.com",
+          "url": "https://www.google.com/search?q=site%3Agmail.com",
+          "value": "gmail.com",
+          "data": {
+            "links": [
+              "https://www.google.com/search?q=site%3Agmail.com",
+              "https://www.google.com/search?q=site%3Agmail.com+filetype%3Apdf",
+              "https://www.google.com/search?q=site%3Agmail.com+filetype%3Axls+OR+filetype%3Axlsx",
+              "https://www.google.com/search?q=site%3Agmail.com+%22%D0%BF%D0%B0%D1%80%D0%BE%D0%BB%D1%8C%22+OR+%22%D0%BB%D0%BE%D0%B3%D0%B8%D0%BD%22",
+              "https://www.google.com/search?q=%22%40gmail.com%22+-site%3Agmail.com",
+              "https://search.marcia.cc/search?q=site:gmail.com",
+              "https://web.archive.org/web/*/gmail.com/*",
+              "https://github.com/search?q=%22%40gmail.com%22&type=code",
+              "https://www.shodan.io/search?query=hostname%3Agmail.com",
+              "https://www.bing.com/search?q=ip%3Agmail.com"
+            ]
+          },
+          "confidence": "low",
+          "evidence": "готовые ссылки с поисковыми операторами — для ручного анализа",
+          "http_code": null,
+          "tags": [],
+          "id": "dc366e18cecd",
+          "created_at": "2026-09-20T13:22:52Z"
+        }
+      ]
+    },
+    {
+      "module": "telegram",
+      "target": "torvalds",
+      "checked": 4,
+      "found": 0,
+      "failed": 2,
+      "duration_ms": 3504,
+      "errors": [],
+      "meta": {
+        "resolved_target": "torvalds",
+        "original_target": "torvalds@gmail.com"
+      },
+      "statuses": [
+        {
+          "source": "t.me",
+          "category": "telegram",
+          "status": "error",
+          "url": "https://t.me/torvalds",
+          "http_code": null,
+          "latency_ms": null,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "",
+          "cached": false
+        },
+        {
+          "source": "t.me/s",
+          "category": "telegram",
+          "status": "not_found",
+          "url": "https://t.me/s/torvalds",
+          "http_code": null,
+          "latency_ms": null,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "",
+          "cached": false
+        },
+        {
+          "source": "fragment.com",
+          "category": "telegram",
+          "status": "error",
+          "url": "https://fragment.com/username/torvalds",
+          "http_code": null,
+          "latency_ms": null,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "",
+          "cached": false
+        },
+        {
+          "source": "mtproto",
+          "category": "telegram",
+          "status": "unsupported",
+          "url": "",
+          "http_code": null,
+          "latency_ms": null,
+          "error": "",
+          "detail": "MTProto не настроен: нет TG_API_ID/TG_API_HASH. Без него недоступны числовой ID, DC, глобальный поиск по сообщениям и разрешение номера в аккаунт. Заполни TG_API_ID/TG_API_HASH в .env (my.telegram.org) — модуль включится автоматически.",
+          "cached": false
+        }
+      ],
+      "findings": [
+        {
+          "source": "tg-dorks",
+          "category": "telegram",
+          "kind": "link",
+          "title": "Аналитика и поиск по Telegram (tgstat/telemetr/lyzem) — ссылки для проверки",
+          "url": "https://www.google.com/search?q=site%3At.me+%22torvalds%22",
+          "value": "torvalds",
+          "data": {
+            "links": [
+              "https://www.google.com/search?q=site%3At.me+%22torvalds%22",
+              "https://www.google.com/search?q=%22t.me%2Ftorvalds%22",
+              "https://tgstat.ru/search?q=torvalds",
+              "https://telemetr.io/search?q=torvalds",
+              "https://tlgrm.ru/search?q=torvalds",
+              "https://lyzem.com/search?q=torvalds",
+              "https://xtea.io/ts_en.html#gsc.tab=0&gsc.q=torvalds"
+            ]
+          },
+          "confidence": "low",
+          "evidence": "внешние каталоги и поисковики Telegram-контента; автоматических выводов нет",
+          "http_code": null,
+          "tags": [],
+          "id": "015e6ff61cb2",
+          "created_at": "2026-09-20T13:22:55Z"
+        }
+      ]
+    },
+    {
+      "module": "username",
+      "target": "torvalds",
+      "checked": 169,
+      "found": 3,
+      "failed": 162,
+      "duration_ms": 23923,
+      "errors": [
+        "Не прошли калибровку (результаты помечены low): anilist, artstation, bandcamp, behance, bitbucket, bluesky, bugcrowd, chesscom, codeberg, codeforces, codepen, codewars, cratesio, dailymotion, devto, disqus, dockerhub, dribbble, duolingo, ebay, etsy, exercism, foursquare, freecodecamp, genius, gist, gitlab, glitch, habr, hackerone, hackerrank, hashnode, huggingface, imgur, instagram, kaggle, keybase, kick, lastfm, launchpad, leetcode, letterboxd, lichess, linktree, mastodon.social, namemc, npm, opensea, osu, patreon, pinterest, producthunt, qiita, reddit, replit, roblox, rubygems, soundcloud, sourceforge, spotify, telegram, trakt, tumblr, twitch, unsplash, vimeo, vk, youtube, zenn"
+      ],
+      "meta": {
+        "entities": [
+          {
+            "type": "username",
+            "value": "torvalds",
+            "meta": {
+              "sites_total": 93
+            }
+          },
+          {
+            "type": "github",
+            "value": "torvalds",
+            "meta": {
+              "repos": 12,
+              "languages": [
+                "C",
+                "Python",
+                "C++",
+                "OpenSCAD"
+              ]
+            }
+          }
+        ],
+        "unreliable_sources": [
+          "anilist",
+          "artstation",
+          "bandcamp",
+          "behance",
+          "bitbucket",
+          "bluesky",
+          "bugcrowd",
+          "chesscom",
+          "codeberg",
+          "codeforces",
+          "codepen",
+          "codewars",
+          "cratesio",
+          "dailymotion",
+          "devto",
+          "disqus",
+          "dockerhub",
+          "dribbble",
+          "duolingo",
+          "ebay",
+          "etsy",
+          "exercism",
+          "foursquare",
+          "freecodecamp",
+          "genius",
+          "gist",
+          "gitlab",
+          "glitch",
+          "habr",
+          "hackerone",
+          "hackerrank",
+          "hashnode",
+          "huggingface",
+          "imgur",
+          "instagram",
+          "kaggle",
+          "keybase",
+          "kick",
+          "lastfm",
+          "launchpad",
+          "leetcode",
+          "letterboxd",
+          "lichess",
+          "linktree",
+          "mastodon.social",
+          "namemc",
+          "npm",
+          "opensea",
+          "osu",
+          "patreon",
+          "pinterest",
+          "producthunt",
+          "qiita",
+          "reddit",
+          "replit",
+          "roblox",
+          "rubygems",
+          "soundcloud",
+          "sourceforge",
+          "spotify",
+          "telegram",
+          "trakt",
+          "tumblr",
+          "twitch",
+          "unsplash",
+          "vimeo",
+          "vk",
+          "youtube",
+          "zenn"
+        ],
+        "edges": [
+          {
+            "src": "username:torvalds",
+            "dst": "site:github",
+            "relation": "has_account",
+            "weight": 1.0,
+            "evidence": "HTTP 200 ∈ [200]"
+          }
+        ],
+        "resolved_target": "torvalds",
+        "original_target": "torvalds@gmail.com"
+      },
+      "statuses": [
+        {
+          "source": "calibrate:anilist",
+          "category": "username",
+          "status": "error",
+          "url": "",
+          "http_code": null,
+          "latency_ms": null,
+          "error": "",
+          "detail": "контрольный логин «AniList» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии",
+          "cached": false
+        },
+        {
+          "source": "calibrate:artstation",
+          "category": "username",
+          "status": "error",
+          "url": "",
+          "http_code": null,
+          "latency_ms": null,
+          "error": "",
+          "detail": "контрольный логин «artstation» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии",
+          "cached": false
+        },
+        {
+          "source": "calibrate:bandcamp",
+          "category": "username",
+          "status": "error",
+          "url": "",
+          "http_code": null,
+          "latency_ms": null,
+          "error": "",
+          "detail": "контрольный логин «bandcamp» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии",
+          "cached": false
+        },
+        {
+          "source": "calibrate:behance",
+          "category": "username",
+          "status": "error",
+          "url": "",
+          "http_code": null,
+          "latency_ms": null,
+          "error": "",
+          "detail": "контрольный логин «behance» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии",
+          "cached": false
+        },
+        {
+          "source": "calibrate:bitbucket",
+          "category": "username",
+          "status": "error",
+          "url": "",
+          "http_code": null,
+          "latency_ms": null,
+          "error": "",
+          "detail": "контрольный логин «atlassian» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии",
+          "cached": false
+        },
+        {
+          "source": "calibrate:bluesky",
+          "category": "username",
+          "status": "error",
+          "url": "",
+          "http_code": null,
+          "latency_ms": null,
+          "error": "",
+          "detail": "контрольный логин «bsky.app» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии",
+          "cached": false
+        },
+        {
+          "source": "calibrate:bugcrowd",
+          "category": "username",
+          "status": "error",
+          "url": "",
+          "http_code": null,
+          "latency_ms": null,
+          "error": "",
+          "detail": "контрольный логин «bugcrowd» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии",
+          "cached": false
+        },
+        {
+          "source": "calibrate:chesscom",
+          "category": "username",
+          "status": "error",
+          "url": "",
+          "http_code": null,
+          "latency_ms": null,
+          "error": "",
+          "detail": "контрольный логин «hikaru» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии",
+          "cached": false
+        },
+        {
+          "source": "calibrate:codeberg",
+          "category": "username",
+          "status": "error",
+          "url": "",
+          "http_code": null,
+          "latency_ms": null,
+          "error": "",
+          "detail": "контрольный логин «Codeberg» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии",
+          "cached": false
+        },
+        {
+          "source": "calibrate:codeforces",
+          "category": "username",
+          "status": "error",
+          "url": "",
+          "http_code": null,
+          "latency_ms": null,
+          "error": "",
+          "detail": "контрольный логин «tourist» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии",
+          "cached": false
+        },
+        {
+          "source": "calibrate:codepen",
+          "category": "username",
+          "status": "error",
+          "url": "",
+          "http_code": null,
+          "latency_ms": null,
+          "error": "",
+          "detail": "контрольный логин «codepen» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии",
+          "cached": false
+        },
+        {
+          "source": "calibrate:codewars",
+          "category": "username",
+          "status": "error",
+          "url": "",
+          "http_code": null,
+          "latency_ms": null,
+          "error": "",
+          "detail": "контрольный логин «codewars» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии",
+          "cached": false
+        },
+        {
+          "source": "calibrate:cratesio",
+          "category": "username",
+          "status": "error",
+          "url": "",
+          "http_code": null,
+          "latency_ms": null,
+          "error": "",
+          "detail": "контрольный логин «alexcrichton» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии",
+          "cached": false
+        },
+        {
+          "source": "calibrate:dailymotion",
+          "category": "username",
+          "status": "error",
+          "url": "",
+          "http_code": null,
+          "latency_ms": null,
+          "error": "",
+          "detail": "контрольный логин «dailymotion» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии",
+          "cached": false
+        },
+        {
+          "source": "calibrate:devto",
+          "category": "username",
+          "status": "error",
+          "url": "",
+          "http_code": null,
+          "latency_ms": null,
+          "error": "",
+          "detail": "контрольный логин «ben» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии",
+          "cached": false
+        },
+        {
+          "source": "calibrate:disqus",
+          "category": "username",
+          "status": "error",
+          "url": "",
+          "http_code": null,
+          "latency_ms": null,
+          "error": "",
+          "detail": "контрольный логин «disqus» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии",
+          "cached": false
+        },
+        {
+          "source": "calibrate:dockerhub",
+          "category": "username",
+          "status": "error",
+          "url": "",
+          "http_code": null,
+          "latency_ms": null,
+          "error": "",
+          "detail": "контрольный логин «library» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии",
+          "cached": false
+        },
+        {
+          "source": "calibrate:dribbble",
+          "category": "username",
+          "status": "error",
+          "url": "",
+          "http_code": null,
+          "latency_ms": null,
+          "error": "",
+          "detail": "контрольный логин «dribbble» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии",
+          "cached": false
+        },
+        {
+          "source": "calibrate:duolingo",
+          "category": "username",
+          "status": "error",
+          "url": "",
+          "http_code": null,
+          "latency_ms": null,
+          "error": "",
+          "detail": "контрольный логин «duolingo» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии",
+          "cached": false
+        },
+        {
+          "source": "calibrate:ebay",
+          "category": "username",
+          "status": "error",
+          "url": "",
+          "http_code": null,
+          "latency_ms": null,
+          "error": "",
+          "detail": "контрольный логин «ebay» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии",
+          "cached": false
+        },
+        {
+          "source": "calibrate:etsy",
+          "category": "username",
+          "status": "error",
+          "url": "",
+          "http_code": null,
+          "latency_ms": null,
+          "error": "",
+          "detail": "контрольный логин «etsy» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии",
+          "cached": false
+        },
+        {
+          "source": "calibrate:exercism",
+          "category": "username",
+          "status": "error",
+          "url": "",
+          "http_code": null,
+          "latency_ms": null,
+          "error": "",
+          "detail": "контрольный логин «exercism» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии",
+          "cached": false
+        },
+        {
+          "source": "calibrate:foursquare",
+          "category": "username",
+          "status": "error",
+          "url": "",
+          "http_code": null,
+          "latency_ms": null,
+          "error": "",
+          "detail": "контрольный логин «foursquare» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии",
+          "cached": false
+        },
+        {
+          "source": "calibrate:freecodecamp",
+          "category": "username",
+          "status": "error",
+          "url": "",
+          "http_code": null,
+          "latency_ms": null,
+          "error": "",
+          "detail": "контрольный логин «quincy» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии",
+          "cached": false
+        },
+        {
+          "source": "calibrate:genius",
+          "category": "username",
+          "status": "error",
+          "url": "",
+          "http_code": null,
+          "latency_ms": null,
+          "error": "",
+          "detail": "контрольный логин «genius» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии",
+          "cached": false
+        },
+        {
+          "source": "calibrate:gist",
+          "category": "username",
+          "status": "error",
+          "url": "",
+          "http_code": null,
+          "latency_ms": null,
+          "error": "",
+          "detail": "контрольный логин «torvalds» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии",
+          "cached": false
+        },
+        {
+          "source": "calibrate:github",
+          "category": "username",
+          "status": "found",
+          "url": "",
+          "http_code": null,
+          "latency_ms": null,
+          "error": "",
+          "detail": "калибровка пройдена: существующий найден, призрак отклонён",
+          "cached": false
+        },
+        {
+          "source": "calibrate:gitlab",
+          "category": "username",
+          "status": "error",
+          "url": "",
+          "http_code": null,
+          "latency_ms": null,
+          "error": "",
+          "detail": "контрольный логин «gitlab» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии",
+          "cached": false
+        },
+        {
+          "source": "calibrate:glitch",
+          "category": "username",
+          "status": "error",
+          "url": "",
+          "http_code": null,
+          "latency_ms": null,
+          "error": "",
+          "detail": "контрольный логин «glitch» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии",
+          "cached": false
+        },
+        {
+          "source": "calibrate:habr",
+          "category": "username",
+          "status": "error",
+          "url": "",
+          "http_code": null,
+          "latency_ms": null,
+          "error": "",
+          "detail": "контрольный логин «habr» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии",
+          "cached": false
+        },
+        {
+          "source": "calibrate:hackerone",
+          "category": "username",
+          "status": "error",
+          "url": "",
+          "http_code": null,
+          "latency_ms": null,
+          "error": "",
+          "detail": "контрольный логин «hackerone» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии",
+          "cached": false
+        },
+        {
+          "source": "calibrate:hackerrank",
+          "category": "username",
+          "status": "error",
+          "url": "",
+          "http_code": null,
+          "latency_ms": null,
+          "error": "",
+          "detail": "контрольный логин «hackerrank» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии",
+          "cached": false
+        },
+        {
+          "source": "calibrate:hashnode",
+          "category": "username",
+          "status": "error",
+          "url": "",
+          "http_code": null,
+          "latency_ms": null,
+          "error": "",
+          "detail": "контрольный логин «hashnode» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии",
+          "cached": false
+        },
+        {
+          "source": "calibrate:huggingface",
+          "category": "username",
+          "status": "error",
+          "url": "",
+          "http_code": null,
+          "latency_ms": null,
+          "error": "",
+          "detail": "контрольный логин «huggingface» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии",
+          "cached": false
+        },
+        {
+          "source": "calibrate:imgur",
+          "category": "username",
+          "status": "error",
+          "url": "",
+          "http_code": null,
+          "latency_ms": null,
+          "error": "",
+          "detail": "контрольный логин «imgur» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии",
+          "cached": false
+        },
+        {
+          "source": "calibrate:instagram",
+          "category": "username",
+          "status": "error",
+          "url": "",
+          "http_code": null,
+          "latency_ms": null,
+          "error": "",
+          "detail": "контрольный логин «instagram» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии",
+          "cached": false
+        },
+        {
+          "source": "calibrate:kaggle",
+          "category": "username",
+          "status": "error",
+          "url": "",
+          "http_code": null,
+          "latency_ms": null,
+          "error": "",
+          "detail": "контрольный логин «kaggle» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии",
+          "cached": false
+        },
+        {
+          "source": "calibrate:keybase",
+          "category": "username",
+          "status": "error",
+          "url": "",
+          "http_code": null,
+          "latency_ms": null,
+          "error": "",
+          "detail": "контрольный логин «chris» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии",
+          "cached": false
+        },
+        {
+          "source": "calibrate:kick",
+          "category": "username",
+          "status": "error",
+          "url": "",
+          "http_code": null,
+          "latency_ms": null,
+          "error": "",
+          "detail": "контрольный логин «kick» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии",
+          "cached": false
+        },
+        {
+          "source": "calibrate:lastfm",
+          "category": "username",
+          "status": "error",
+          "url": "",
+          "http_code": null,
+          "latency_ms": null,
+          "error": "",
+          "detail": "контрольный логин «RJ» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии",
+          "cached": false
+        },
+        {
+          "source": "calibrate:launchpad",
+          "category": "username",
+          "status": "error",
+          "url": "",
+          "http_code": null,
+          "latency_ms": null,
+          "error": "",
+          "detail": "контрольный логин «ubuntu» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии",
+          "cached": false
+        },
+        {
+          "source": "calibrate:leetcode",
+          "category": "username",
+          "status": "error",
+          "url": "",
+          "http_code": null,
+          "latency_ms": null,
+          "error": "",
+          "detail": "контрольный логин «leetcode» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии",
+          "cached": false
+        },
+        {
+          "source": "calibrate:letterboxd",
+          "category": "username",
+          "status": "error",
+          "url": "",
+          "http_code": null,
+          "latency_ms": null,
+          "error": "",
+          "detail": "контрольный логин «letterboxd» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии",
+          "cached": false
+        },
+        {
+          "source": "calibrate:lichess",
+          "category": "username",
+          "status": "error",
+          "url": "",
+          "http_code": null,
+          "latency_ms": null,
+          "error": "",
+          "detail": "контрольный логин «lichess» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии",
+          "cached": false
+        },
+        {
+          "source": "calibrate:linktree",
+          "category": "username",
+          "status": "error",
+          "url": "",
+          "http_code": null,
+          "latency_ms": null,
+          "error": "",
+          "detail": "контрольный логин «linktree» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии",
+          "cached": false
+        },
+        {
+          "source": "calibrate:mastodon.social",
+          "category": "username",
+          "status": "error",
+          "url": "",
+          "http_code": null,
+          "latency_ms": null,
+          "error": "",
+          "detail": "контрольный логин «mastodon» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии",
+          "cached": false
+        },
+        {
+          "source": "calibrate:namemc",
+          "category": "username",
+          "status": "error",
+          "url": "",
+          "http_code": null,
+          "latency_ms": null,
+          "error": "",
+          "detail": "контрольный логин «Notch» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии",
+          "cached": false
+        },
+        {
+          "source": "calibrate:npm",
+          "category": "username",
+          "status": "error",
+          "url": "",
+          "http_code": null,
+          "latency_ms": null,
+          "error": "",
+          "detail": "контрольный логин «npm» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии",
+          "cached": false
+        },
+        {
+          "source": "calibrate:opensea",
+          "category": "username",
+          "status": "error",
+          "url": "",
+          "http_code": null,
+          "latency_ms": null,
+          "error": "",
+          "detail": "контрольный логин «opensea» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии",
+          "cached": false
+        },
+        {
+          "source": "calibrate:osu",
+          "category": "username",
+          "status": "error",
+          "url": "",
+          "http_code": null,
+          "latency_ms": null,
+          "error": "",
+          "detail": "контрольный логин «peppy» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии",
+          "cached": false
+        },
+        {
+          "source": "calibrate:patreon",
+          "category": "username",
+          "status": "error",
+          "url": "",
+          "http_code": null,
+          "latency_ms": null,
+          "error": "",
+          "detail": "контрольный логин «patreon» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии",
+          "cached": false
+        },
+        {
+          "source": "calibrate:pinterest",
+          "category": "username",
+          "status": "error",
+          "url": "",
+          "http_code": null,
+          "latency_ms": null,
+          "error": "",
+          "detail": "контрольный логин «pinterest» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии",
+          "cached": false
+        },
+        {
+          "source": "calibrate:producthunt",
+          "category": "username",
+          "status": "error",
+          "url": "",
+          "http_code": null,
+          "latency_ms": null,
+          "error": "",
+          "detail": "контрольный логин «producthunt» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии",
+          "cached": false
+        },
+        {
+          "source": "calibrate:qiita",
+          "category": "username",
+          "status": "error",
+          "url": "",
+          "http_code": null,
+          "latency_ms": null,
+          "error": "",
+          "detail": "контрольный логин «qiita» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии",
+          "cached": false
+        },
+        {
+          "source": "calibrate:reddit",
+          "category": "username",
+          "status": "error",
+          "url": "",
+          "http_code": null,
+          "latency_ms": null,
+          "error": "",
+          "detail": "контрольный логин «reddit» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии",
+          "cached": false
+        },
+        {
+          "source": "calibrate:replit",
+          "category": "username",
+          "status": "error",
+          "url": "",
+          "http_code": null,
+          "latency_ms": null,
+          "error": "",
+          "detail": "контрольный логин «replit» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии",
+          "cached": false
+        },
+        {
+          "source": "calibrate:roblox",
+          "category": "username",
+          "status": "error",
+          "url": "",
+          "http_code": null,
+          "latency_ms": null,
+          "error": "",
+          "detail": "контрольный логин «Roblox» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии",
+          "cached": false
+        },
+        {
+          "source": "calibrate:rubygems",
+          "category": "username",
+          "status": "error",
+          "url": "",
+          "http_code": null,
+          "latency_ms": null,
+          "error": "",
+          "detail": "контрольный логин «dhh» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии",
+          "cached": false
+        },
+        {
+          "source": "calibrate:soundcloud",
+          "category": "username",
+          "status": "error",
+          "url": "",
+          "http_code": null,
+          "latency_ms": null,
+          "error": "",
+          "detail": "контрольный логин «soundcloud» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии",
+          "cached": false
+        },
+        {
+          "source": "calibrate:sourceforge",
+          "category": "username",
+          "status": "error",
+          "url": "",
+          "http_code": null,
+          "latency_ms": null,
+          "error": "",
+          "detail": "контрольный логин «sourceforge» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии",
+          "cached": false
+        },
+        {
+          "source": "calibrate:spotify",
+          "category": "username",
+          "status": "error",
+          "url": "",
+          "http_code": null,
+          "latency_ms": null,
+          "error": "",
+          "detail": "контрольный логин «spotify» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии",
+          "cached": false
+        },
+        {
+          "source": "calibrate:telegram",
+          "category": "username",
+          "status": "error",
+          "url": "",
+          "http_code": null,
+          "latency_ms": null,
+          "error": "",
+          "detail": "контрольный логин «durov» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии",
+          "cached": false
+        },
+        {
+          "source": "calibrate:trakt",
+          "category": "username",
+          "status": "error",
+          "url": "",
+          "http_code": null,
+          "latency_ms": null,
+          "error": "",
+          "detail": "контрольный логин «trakt» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии",
+          "cached": false
+        },
+        {
+          "source": "calibrate:tumblr",
+          "category": "username",
+          "status": "error",
+          "url": "",
+          "http_code": null,
+          "latency_ms": null,
+          "error": "",
+          "detail": "контрольный логин «staff» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии",
+          "cached": false
+        },
+        {
+          "source": "calibrate:twitch",
+          "category": "username",
+          "status": "error",
+          "url": "",
+          "http_code": null,
+          "latency_ms": null,
+          "error": "",
+          "detail": "контрольный логин «twitch» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии",
+          "cached": false
+        },
+        {
+          "source": "calibrate:unsplash",
+          "category": "username",
+          "status": "error",
+          "url": "",
+          "http_code": null,
+          "latency_ms": null,
+          "error": "",
+          "detail": "контрольный логин «unsplash» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии",
+          "cached": false
+        },
+        {
+          "source": "calibrate:vimeo",
+          "category": "username",
+          "status": "error",
+          "url": "",
+          "http_code": null,
+          "latency_ms": null,
+          "error": "",
+          "detail": "контрольный логин «vimeo» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии",
+          "cached": false
+        },
+        {
+          "source": "calibrate:vk",
+          "category": "username",
+          "status": "error",
+          "url": "",
+          "http_code": null,
+          "latency_ms": null,
+          "error": "",
+          "detail": "контрольный логин «vk» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии",
+          "cached": false
+        },
+        {
+          "source": "calibrate:youtube",
+          "category": "username",
+          "status": "error",
+          "url": "",
+          "http_code": null,
+          "latency_ms": null,
+          "error": "",
+          "detail": "контрольный логин «YouTube» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии",
+          "cached": false
+        },
+        {
+          "source": "calibrate:zenn",
+          "category": "username",
+          "status": "error",
+          "url": "",
+          "http_code": null,
+          "latency_ms": null,
+          "error": "",
+          "detail": "контрольный логин «zenn» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии",
+          "cached": false
+        },
+        {
+          "source": "9gag",
+          "category": "username",
+          "status": "error",
+          "url": "https://9gag.com/u/torvalds",
+          "http_code": null,
+          "latency_ms": 3150,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "bugcrowd",
+          "category": "username",
+          "status": "error",
+          "url": "https://bugcrowd.com/torvalds",
+          "http_code": null,
+          "latency_ms": 3162,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "behance",
+          "category": "username",
+          "status": "error",
+          "url": "https://www.behance.net/torvalds",
+          "http_code": null,
+          "latency_ms": 3172,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "codeberg",
+          "category": "username",
+          "status": "error",
+          "url": "https://codeberg.org/torvalds",
+          "http_code": null,
+          "latency_ms": 3181,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "bluesky",
+          "category": "username",
+          "status": "error",
+          "url": "https://public.api.bsky.app/xrpc/app.bsky.actor.getProfile",
+          "http_code": null,
+          "latency_ms": 3192,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "calendly",
+          "category": "username",
+          "status": "error",
+          "url": "https://calendly.com/torvalds",
+          "http_code": null,
+          "latency_ms": 3195,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "anilist",
+          "category": "username",
+          "status": "error",
+          "url": "https://anilist.co/user/torvalds/",
+          "http_code": null,
+          "latency_ms": 3273,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "deviantart",
+          "category": "username",
+          "status": "error",
+          "url": "https://www.deviantart.com/torvalds",
+          "http_code": null,
+          "latency_ms": 3271,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "bitbucket",
+          "category": "username",
+          "status": "error",
+          "url": "https://bitbucket.org/torvalds/",
+          "http_code": null,
+          "latency_ms": 3310,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "dockerhub",
+          "category": "username",
+          "status": "error",
+          "url": "https://hub.docker.com/v2/users/torvalds/",
+          "http_code": null,
+          "latency_ms": 3308,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "codesandbox",
+          "category": "username",
+          "status": "error",
+          "url": "https://codesandbox.io/u/torvalds",
+          "http_code": null,
+          "latency_ms": 3334,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "devto",
+          "category": "username",
+          "status": "error",
+          "url": "https://dev.to/api/users/by_username",
+          "http_code": null,
+          "latency_ms": 3340,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "cratesio",
+          "category": "username",
+          "status": "error",
+          "url": "https://crates.io/api/v1/users/torvalds",
+          "http_code": null,
+          "latency_ms": 3361,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "codewars",
+          "category": "username",
+          "status": "error",
+          "url": "https://www.codewars.com/users/torvalds",
+          "http_code": null,
+          "latency_ms": 3363,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "dailymotion",
+          "category": "username",
+          "status": "error",
+          "url": "https://www.dailymotion.com/torvalds",
+          "http_code": null,
+          "latency_ms": 3375,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "codepen",
+          "category": "username",
+          "status": "error",
+          "url": "https://codepen.io/torvalds",
+          "http_code": null,
+          "latency_ms": 3393,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "chesscom",
+          "category": "username",
+          "status": "error",
+          "url": "https://www.chess.com/member/torvalds",
+          "http_code": null,
+          "latency_ms": 3411,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "blogspot",
+          "category": "username",
+          "status": "error",
+          "url": "https://torvalds.blogspot.com/",
+          "http_code": null,
+          "latency_ms": 3418,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "codeforces",
+          "category": "username",
+          "status": "error",
+          "url": "https://codeforces.com/profile/torvalds",
+          "http_code": null,
+          "latency_ms": 3422,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "artstation",
+          "category": "username",
+          "status": "error",
+          "url": "https://www.artstation.com/torvalds",
+          "http_code": null,
+          "latency_ms": 3439,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "aboutme",
+          "category": "username",
+          "status": "error",
+          "url": "https://about.me/torvalds",
+          "http_code": null,
+          "latency_ms": 3447,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "500px",
+          "category": "username",
+          "status": "error",
+          "url": "https://500px.com/p/torvalds",
+          "http_code": null,
+          "latency_ms": 3486,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "bandcamp",
+          "category": "username",
+          "status": "error",
+          "url": "https://bandcamp.com/torvalds",
+          "http_code": null,
+          "latency_ms": 3522,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "buymeacoffee",
+          "category": "username",
+          "status": "error",
+          "url": "https://www.buymeacoffee.com/torvalds",
+          "http_code": null,
+          "latency_ms": 3548,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "disqus",
+          "category": "username",
+          "status": "error",
+          "url": "https://disqus.com/by/torvalds/",
+          "http_code": null,
+          "latency_ms": 3617,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "github",
+          "category": "username",
+          "status": "found",
+          "url": "https://github.com/torvalds",
+          "http_code": 200,
+          "latency_ms": 1320,
+          "error": "",
+          "detail": "HTTP 200 ∈ [200]",
+          "cached": false
+        },
+        {
+          "source": "exercism",
+          "category": "username",
+          "status": "error",
+          "url": "https://exercism.org/profiles/torvalds",
+          "http_code": null,
+          "latency_ms": 3270,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "genius",
+          "category": "username",
+          "status": "error",
+          "url": "https://genius.com/torvalds",
+          "http_code": null,
+          "latency_ms": 3171,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "dribbble",
+          "category": "username",
+          "status": "error",
+          "url": "https://dribbble.com/torvalds",
+          "http_code": null,
+          "latency_ms": 3355,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "duolingo",
+          "category": "username",
+          "status": "error",
+          "url": "https://www.duolingo.com/profile/torvalds",
+          "http_code": null,
+          "latency_ms": 3352,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "etsy",
+          "category": "username",
+          "status": "error",
+          "url": "https://www.etsy.com/shop/torvalds",
+          "http_code": null,
+          "latency_ms": 3335,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "ebay",
+          "category": "username",
+          "status": "error",
+          "url": "https://www.ebay.com/usr/torvalds",
+          "http_code": null,
+          "latency_ms": 3355,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "gitlab",
+          "category": "username",
+          "status": "error",
+          "url": "https://gitlab.com/torvalds",
+          "http_code": null,
+          "latency_ms": 3194,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "freecodecamp",
+          "category": "username",
+          "status": "error",
+          "url": "https://www.freecodecamp.org/torvalds",
+          "http_code": null,
+          "latency_ms": 3319,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "glitch",
+          "category": "username",
+          "status": "error",
+          "url": "https://glitch.com/@torvalds",
+          "http_code": null,
+          "latency_ms": 3238,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "hackerone",
+          "category": "username",
+          "status": "error",
+          "url": "https://hackerone.com/torvalds",
+          "http_code": null,
+          "latency_ms": 3218,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "gravatar",
+          "category": "username",
+          "status": "error",
+          "url": "https://gravatar.com/torvalds.json",
+          "http_code": null,
+          "latency_ms": 3262,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "instagram",
+          "category": "username",
+          "status": "error",
+          "url": "https://www.instagram.com/torvalds/",
+          "http_code": null,
+          "latency_ms": 3225,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "flickr",
+          "category": "username",
+          "status": "error",
+          "url": "https://www.flickr.com/people/torvalds",
+          "http_code": null,
+          "latency_ms": 3509,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "gist",
+          "category": "username",
+          "status": "error",
+          "url": "https://gist.github.com/torvalds",
+          "http_code": null,
+          "latency_ms": 3399,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "habr",
+          "category": "username",
+          "status": "error",
+          "url": "https://habr.com/ru/users/torvalds/",
+          "http_code": null,
+          "latency_ms": 3343,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "npm",
+          "category": "username",
+          "status": "not_found",
+          "url": "https://registry.npmjs.org/-/user/org.couchdb.user:torvalds",
+          "http_code": 401,
+          "latency_ms": 69,
+          "error": "",
+          "detail": "name = null (op=exists)",
+          "cached": false
+        },
+        {
+          "source": "hashnode",
+          "category": "username",
+          "status": "error",
+          "url": "https://hashnode.com/@torvalds",
+          "http_code": null,
+          "latency_ms": 3328,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "hackerrank",
+          "category": "username",
+          "status": "error",
+          "url": "https://www.hackerrank.com/torvalds",
+          "http_code": null,
+          "latency_ms": 3429,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "foursquare",
+          "category": "username",
+          "status": "error",
+          "url": "https://foursquare.com/torvalds",
+          "http_code": null,
+          "latency_ms": 3581,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "huggingface",
+          "category": "username",
+          "status": "error",
+          "url": "https://huggingface.co/torvalds",
+          "http_code": null,
+          "latency_ms": 3440,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "jsfiddle",
+          "category": "username",
+          "status": "error",
+          "url": "https://jsfiddle.net/user/torvalds/",
+          "http_code": null,
+          "latency_ms": 3464,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "imgur",
+          "category": "username",
+          "status": "error",
+          "url": "https://imgur.com/user/torvalds",
+          "http_code": null,
+          "latency_ms": 3530,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "kick",
+          "category": "username",
+          "status": "error",
+          "url": "https://kick.com/torvalds",
+          "http_code": null,
+          "latency_ms": 3348,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "kaggle",
+          "category": "username",
+          "status": "error",
+          "url": "https://www.kaggle.com/torvalds",
+          "http_code": null,
+          "latency_ms": 3540,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "keybase",
+          "category": "username",
+          "status": "error",
+          "url": "https://keybase.io/torvalds",
+          "http_code": null,
+          "latency_ms": 3541,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "kofi",
+          "category": "username",
+          "status": "error",
+          "url": "https://ko-fi.com/torvalds",
+          "http_code": null,
+          "latency_ms": 3340,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "lichess",
+          "category": "username",
+          "status": "error",
+          "url": "https://lichess.org/@torvalds",
+          "http_code": null,
+          "latency_ms": 3245,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "namemc",
+          "category": "username",
+          "status": "error",
+          "url": "https://namemc.com/profile/torvalds",
+          "http_code": null,
+          "latency_ms": 3143,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "launchpad",
+          "category": "username",
+          "status": "error",
+          "url": "https://launchpad.net/~torvalds",
+          "http_code": null,
+          "latency_ms": 3310,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "pikabu",
+          "category": "username",
+          "status": "error",
+          "url": "https://pikabu.ru/@torvalds",
+          "http_code": null,
+          "latency_ms": 3107,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "leetcode",
+          "category": "username",
+          "status": "error",
+          "url": "https://leetcode.com/torvalds/",
+          "http_code": null,
+          "latency_ms": 3349,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "opensea",
+          "category": "username",
+          "status": "error",
+          "url": "https://opensea.io/torvalds",
+          "http_code": null,
+          "latency_ms": 3167,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "letterboxd",
+          "category": "username",
+          "status": "error",
+          "url": "https://letterboxd.com/torvalds/",
+          "http_code": null,
+          "latency_ms": 3399,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "livejournal",
+          "category": "username",
+          "status": "error",
+          "url": "https://torvalds.livejournal.com/",
+          "http_code": null,
+          "latency_ms": 3376,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "myanimelist",
+          "category": "username",
+          "status": "error",
+          "url": "https://myanimelist.net/profile/torvalds",
+          "http_code": null,
+          "latency_ms": 3352,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "patreon",
+          "category": "username",
+          "status": "error",
+          "url": "https://www.patreon.com/torvalds",
+          "http_code": null,
+          "latency_ms": 3250,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "lastfm",
+          "category": "username",
+          "status": "error",
+          "url": "https://www.last.fm/user/torvalds",
+          "http_code": null,
+          "latency_ms": 3523,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "linktree",
+          "category": "username",
+          "status": "error",
+          "url": "https://linktr.ee/torvalds",
+          "http_code": null,
+          "latency_ms": 3475,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "osu",
+          "category": "username",
+          "status": "error",
+          "url": "https://osu.ppy.sh/users/torvalds",
+          "http_code": null,
+          "latency_ms": 3319,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "roblox",
+          "category": "username",
+          "status": "error",
+          "url": "https://users.roblox.com/v1/usernames/users",
+          "http_code": null,
+          "latency_ms": 3067,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "mixcloud",
+          "category": "username",
+          "status": "error",
+          "url": "https://www.mixcloud.com/torvalds/",
+          "http_code": null,
+          "latency_ms": 3435,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "producthunt",
+          "category": "username",
+          "status": "error",
+          "url": "https://www.producthunt.com/@torvalds",
+          "http_code": null,
+          "latency_ms": 3217,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "mastodon.social",
+          "category": "username",
+          "status": "error",
+          "url": "https://mastodon.social/@torvalds",
+          "http_code": null,
+          "latency_ms": 3526,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "pinterest",
+          "category": "username",
+          "status": "error",
+          "url": "https://www.pinterest.com/torvalds/",
+          "http_code": null,
+          "latency_ms": 3396,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "reddit",
+          "category": "username",
+          "status": "error",
+          "url": "https://www.reddit.com/user/torvalds/about.json",
+          "http_code": null,
+          "latency_ms": 3290,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "rubygems",
+          "category": "username",
+          "status": "error",
+          "url": "https://rubygems.org/profiles/torvalds",
+          "http_code": null,
+          "latency_ms": 3234,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "qiita",
+          "category": "username",
+          "status": "error",
+          "url": "https://qiita.com/torvalds",
+          "http_code": null,
+          "latency_ms": 3366,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "sourceforge",
+          "category": "username",
+          "status": "error",
+          "url": "https://sourceforge.net/u/torvalds/profile",
+          "http_code": null,
+          "latency_ms": 3248,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "replit",
+          "category": "username",
+          "status": "error",
+          "url": "https://replit.com/@torvalds",
+          "http_code": null,
+          "latency_ms": 3423,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "soundcloud",
+          "category": "username",
+          "status": "error",
+          "url": "https://soundcloud.com/torvalds",
+          "http_code": null,
+          "latency_ms": 3414,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "spotify",
+          "category": "username",
+          "status": "error",
+          "url": "https://open.spotify.com/user/torvalds",
+          "http_code": null,
+          "latency_ms": 3509,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "tryhackme",
+          "category": "username",
+          "status": "error",
+          "url": "https://tryhackme.com/p/torvalds",
+          "http_code": null,
+          "latency_ms": 3179,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "vimeo",
+          "category": "username",
+          "status": "error",
+          "url": "https://vimeo.com/torvalds",
+          "http_code": null,
+          "latency_ms": 3141,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "telegram",
+          "category": "username",
+          "status": "error",
+          "url": "https://t.me/torvalds",
+          "http_code": null,
+          "latency_ms": 3359,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "youtube",
+          "category": "username",
+          "status": "error",
+          "url": "https://www.youtube.com/@torvalds",
+          "http_code": null,
+          "latency_ms": 3125,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "tumblr",
+          "category": "username",
+          "status": "error",
+          "url": "https://torvalds.tumblr.com/",
+          "http_code": null,
+          "latency_ms": 3299,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "trakt",
+          "category": "username",
+          "status": "error",
+          "url": "https://trakt.tv/users/torvalds",
+          "http_code": null,
+          "latency_ms": 3330,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "steam",
+          "category": "username",
+          "status": "error",
+          "url": "https://steamcommunity.com/id/torvalds",
+          "http_code": null,
+          "latency_ms": 3416,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "vcru",
+          "category": "username",
+          "status": "error",
+          "url": "https://vc.ru/u/torvalds",
+          "http_code": null,
+          "latency_ms": 3210,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "vercel",
+          "category": "username",
+          "status": "error",
+          "url": "https://vercel.com/torvalds",
+          "http_code": null,
+          "latency_ms": 3203,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "unsplash",
+          "category": "username",
+          "status": "error",
+          "url": "https://unsplash.com/@torvalds",
+          "http_code": null,
+          "latency_ms": 3342,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "substack",
+          "category": "username",
+          "status": "error",
+          "url": "https://torvalds.substack.com/",
+          "http_code": null,
+          "latency_ms": 3486,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "untappd",
+          "category": "username",
+          "status": "error",
+          "url": "https://untappd.com/user/torvalds",
+          "http_code": null,
+          "latency_ms": 3336,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "vk",
+          "category": "username",
+          "status": "error",
+          "url": "https://vk.com/torvalds",
+          "http_code": null,
+          "latency_ms": 3275,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "wordpress",
+          "category": "username",
+          "status": "error",
+          "url": "https://torvalds.wordpress.com/",
+          "http_code": null,
+          "latency_ms": 3274,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "twitch",
+          "category": "username",
+          "status": "error",
+          "url": "https://www.twitch.tv/torvalds",
+          "http_code": null,
+          "latency_ms": 3466,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "zenn",
+          "category": "username",
+          "status": "error",
+          "url": "https://zenn.dev/torvalds",
+          "http_code": null,
+          "latency_ms": 3476,
+          "error": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "detail": "ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)",
+          "cached": false
+        },
+        {
+          "source": "github-api",
+          "category": "username",
+          "status": "found",
+          "url": "https://api.github.com/users/torvalds",
+          "http_code": 200,
+          "latency_ms": 275,
+          "error": "",
+          "detail": "",
+          "cached": false
+        },
+        {
+          "source": "gitlab-api",
+          "category": "username",
+          "status": "error",
+          "url": "",
+          "http_code": 0,
+          "latency_ms": null,
+          "error": "",
+          "detail": "",
+          "cached": false
+        },
+        {
+          "source": "keybase",
+          "category": "username",
+          "status": "not_found",
+          "url": "https://keybase.io/_/api/1.0/user/lookup.json",
+          "http_code": 0,
+          "latency_ms": null,
+          "error": "",
+          "detail": "",
+          "cached": false
+        },
+        {
+          "source": "reddit-api",
+          "category": "username",
+          "status": "error",
+          "url": "",
+          "http_code": 0,
+          "latency_ms": null,
+          "error": "",
+          "detail": "",
+          "cached": false
+        },
+        {
+          "source": "hackernews",
+          "category": "username",
+          "status": "not_found",
+          "url": "https://hacker-news.firebaseio.com/v0/user/torvalds.json",
+          "http_code": 0,
+          "latency_ms": null,
+          "error": "",
+          "detail": "",
+          "cached": false
+        },
+        {
+          "source": "stackoverflow",
+          "category": "username",
+          "status": "not_found",
+          "url": "",
+          "http_code": 0,
+          "latency_ms": null,
+          "error": "",
+          "detail": "точных совпадений нет (в выдаче 0)",
+          "cached": false
+        }
+      ],
+      "findings": [
+        {
+          "source": "normalize",
+          "category": "username",
+          "kind": "meta",
+          "title": "Цель нормализована: «torvalds» (длина 8, только буквы)",
+          "url": "",
+          "value": "torvalds",
+          "data": {
+            "variants": [
+              "torvalds",
+              "torvalds1",
+              "torvalds01",
+              "torvalds7",
+              "torvalds77",
+              "torvalds99",
+              "torvalds007",
+              "torvalds_official",
+              "torvaldsofficial",
+              "torvaldsreal",
+              "t0rvalds",
+              "torv4lds"
+            ]
+          },
+          "confidence": "high",
+          "evidence": "нормализация регистра/символов + генерация вариантов написания",
+          "http_code": null,
+          "tags": [],
+          "id": "d501e2b21169",
+          "created_at": "2026-09-20T13:22:55Z"
+        },
+        {
+          "source": "github",
+          "category": "username",
+          "kind": "profile",
+          "title": "github: аккаунт найден",
+          "url": "https://github.com/torvalds",
+          "value": "torvalds",
+          "data": {},
+          "confidence": "high",
+          "evidence": "HTTP 200 ∈ [200]",
+          "http_code": 200,
+          "tags": [
+            "dev"
+          ],
+          "id": "e23e77ad386a",
+          "created_at": "2026-09-20T13:23:04Z"
+        },
+        {
+          "source": "github-api",
+          "category": "username",
+          "kind": "profile",
+          "title": "GitHub: Linus Torvalds (@torvalds), репозиториев: 12, подписчиков: 324359",
+          "url": "https://github.com/torvalds",
+          "value": "torvalds",
+          "data": {
+            "name": "Linus Torvalds",
+            "bio": null,
+            "company": "Linux Foundation",
+            "location": "Portland, OR",
+            "blog": "",
+            "twitter": null,
+            "email_public": null,
+            "created_at": "2011-09-03T15:26:22Z",
+            "public_repos": 12,
+            "followers": 324359,
+            "following": 0,
+            "avatar": "https://avatars.githubusercontent.com/u/1024025?v=4",
+            "hireable": null
+          },
+          "confidence": "high",
+          "evidence": "api.github.com/users/torvalds → login=torvalds, created_at=2011-09-03T15:26:22Z",
+          "http_code": 200,
+          "tags": [],
+          "id": "cda617152203",
+          "created_at": "2026-09-20T13:23:13Z"
+        },
+        {
+          "source": "github-repos",
+          "category": "username",
+          "kind": "meta",
+          "title": "GitHub: 12 последних репозиториев, языки: C, Python, C++, OpenSCAD",
+          "url": "https://github.com/torvalds?tab=repositories",
+          "value": "torvalds",
+          "data": {
+            "repos": [
+              {
+                "name": "linux",
+                "url": "https://github.com/torvalds/linux",
+                "lang": "C",
+                "stars": 249587,
+                "updated": "2026-09-20T13:21:47Z",
+                "fork": false
+              },
+              {
+                "name": "GuitarPedal",
+                "url": "https://github.com/torvalds/GuitarPedal",
+                "lang": "Python",
+                "stars": 2350,
+                "updated": "2026-09-20T10:55:24Z",
+                "fork": false
+              },
+              {
+                "name": "AudioNoise",
+                "url": "https://github.com/torvalds/AudioNoise",
+                "lang": "C",
+                "stars": 4495,
+                "updated": "2026-09-20T01:37:12Z",
+                "fork": false
+              },
+              {
+                "name": "test-tlb",
+                "url": "https://github.com/torvalds/test-tlb",
+                "lang": "C",
+                "stars": 1061,
+                "updated": "2026-09-19T05:52:25Z",
+                "fork": false
+              },
+              {
+                "name": "pesconvert",
+                "url": "https://github.com/torvalds/pesconvert",
+                "lang": "C",
+                "stars": 579,
+                "updated": "2026-09-18T11:27:07Z",
+                "fork": false
+              },
+              {
+                "name": "libgit2",
+                "url": "https://github.com/torvalds/libgit2",
+                "lang": "C",
+                "stars": 390,
+                "updated": "2026-09-18T11:27:05Z",
+                "fork": true
+              },
+              {
+                "name": "subsurface-for-dirk",
+                "url": "https://github.com/torvalds/subsurface-for-dirk",
+                "lang": "C++",
+                "stars": 474,
+                "updated": "2026-09-18T11:27:04Z",
+                "fork": true
+              },
+              {
+                "name": "libdc-for-dirk",
+                "url": "https://github.com/torvalds/libdc-for-dirk",
+                "lang": "C",
+                "stars": 407,
+                "updated": "2026-09-18T11:27:03Z",
+                "fork": true
+              },
+              {
+                "name": "1590A",
+                "url": "https://github.com/torvalds/1590A",
+                "lang": "OpenSCAD",
+                "stars": 574,
+                "updated": "2026-09-18T11:27:02Z",
+                "fork": false
+              },
+              {
+                "name": "HunspellColorize",
+                "url": "https://github.com/torvalds/HunspellColorize",
+                "lang": "C",
+                "stars": 380,
+                "updated": "2026-09-18T11:27:01Z",
+                "fork": false
+              },
+              {
+                "name": "ScrollWheel",
+                "url": "https://github.com/torvalds/ScrollWheel",
+                "lang": "C",
+                "stars": 376,
+                "updated": "2026-09-18T11:27:00Z",
+                "fork": false
+              },
+              {
+                "name": "uemacs",
+                "url": "https://github.com/torvalds/uemacs",
+                "lang": "C",
+                "stars": 2141,
+                "updated": "2026-09-18T11:26:59Z",
+                "fork": false
+              }
+            ],
+            "languages": {
+              "C": 9,
+              "Python": 1,
+              "C++": 1,
+              "OpenSCAD": 1
+            },
+            "emails_in_commits": []
+          },
+          "confidence": "high",
+          "evidence": "api.github.com/users/torvalds/repos → 12 репозиториев",
+          "http_code": 200,
+          "tags": [],
+          "id": "e5737b8c3238",
+          "created_at": "2026-09-20T13:23:13Z"
+        },
+        {
+          "source": "dorks",
+          "category": "username",
+          "kind": "link",
+          "title": "Поисковые ссылки по логину",
+          "url": "https://www.google.com/search?q=%22torvalds%22",
+          "value": "torvalds",
+          "data": {
+            "links": [
+              "https://www.google.com/search?q=%22torvalds%22",
+              "https://github.com/search?q=torvalds&type=users",
+              "https://t.me/torvalds",
+              "https://www.bing.com/search?q=%22torvalds%22+profile"
+            ]
+          },
+          "confidence": "low",
+          "evidence": "ссылки для ручной проверки (не автоматическое утверждение)",
+          "http_code": null,
+          "tags": [],
+          "id": "f0ad6537e5cf",
+          "created_at": "2026-09-20T13:23:19Z"
+        }
+      ]
+    }
+  ],
+  "warnings": [],
+  "meta": {
+    "options": {
+      "deep": false,
+      "use_keys": true,
+      "modules": null,
+      "no_save": true,
+      "variant_probe": false,
+      "smtp": false,
+      "subdomains": true,
+      "timeout": null,
+      "target_type": null,
+      "max_sites": null,
+      "no_calibrate": false
+    },
+    "version": "1.0.0",
+    "started_human": "2026-09-20 13:22:39 UTC",
+    "http_stats": {
+      "requests": 757,
+      "ok": 8,
+      "errors": 257,
+      "blocked": 0,
+      "bytes": 769831,
+      "hosts": 113
+    }
+  },
+  "tool": "OsintX"
+}

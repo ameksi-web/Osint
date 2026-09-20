@@ -139,20 +139,25 @@ def cmd_search(args: argparse.Namespace) -> int:
                if RICH else f"Тип цели: {detect_target_type(target)}")
     report = asyncio.run(run())
 
-    if args.quiet:
-        print(report.to_json())
-        return 0
-
-    _print(to_text(report, verbose=args.verbose))
+    # файлы отчётов пишем всегда — даже в quiet-режиме (удобно для скриптов)
+    written: list[Path] = []
     if args.out:
         fmt = args.format or Path(args.out).suffix.lstrip(".") or "json"
-        path = save_report(report, args.out, fmt=fmt)
-        _print(f"\n[green]Отчёт сохранён:[/green] {path}" if RICH else f"\nОтчёт сохранён: {path}")
+        written.append(save_report(report, args.out, fmt=fmt if fmt in FORMATS else None))
     for extra_fmt in (args.json_out, args.html_out, args.md_out, args.csv_out):
         if extra_fmt:
             fmt = Path(extra_fmt).suffix.lstrip(".") or Path(extra_fmt).name.split(".")[-1]
-            path = save_report(report, extra_fmt, fmt=fmt if fmt in FORMATS else None)
-            _print(f"Сохранено: {path}")
+            written.append(save_report(report, extra_fmt, fmt=fmt if fmt in FORMATS else None))
+
+    if args.quiet:
+        print(report.to_json())
+        for path in written:
+            _print(f"Сохранено: {path}") if not RICH else None
+        return 0
+
+    _print(to_text(report, verbose=args.verbose))
+    for path in written:
+        _print(f"\n[green]Отчёт сохранён:[/green] {path}" if RICH else f"\nОтчёт сохранён: {path}")
     return 0
 
 
