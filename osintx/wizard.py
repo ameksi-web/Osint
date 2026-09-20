@@ -15,7 +15,6 @@ from __future__ import annotations
 
 import asyncio
 import os
-from pathlib import Path
 
 from .config import PROJECT_ROOT, clean_env_value
 
