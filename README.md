@@ -12,6 +12,18 @@
 | ⌨️ **CLI** | `osintx search <цель>` | Полноценный терминальный поиск с прогрессом и отчётами в 8 форматах |
 | 🤖 **Telegram-бот** | `osintx bot` | Поиск прямо в Telegram: `/search`, `/deep`, `/id`, файлы отчётов кнопками |
 
+**Быстрый старт бота:**
+
+```bash
+./start_bot.sh          # Linux/macOS: окружение + зависимости + мастер настройки + запуск
+start_bot.bat           # Windows — то же самое
+
+# или вручную:
+pip install -r requirements.txt && osintx init && osintx bot
+```
+
+Подробная инструкция и разбор типичных проблем — в [QUICKSTART.md](QUICKSTART.md).
+
 ---
 
 ## ⚖️ Главный принцип: честность результата
@@ -173,7 +185,13 @@ osintx sources --stats
 Напишите [@BotFather](https://t.me/BotFather) → `/newbot` → имя и юзернейм бота.
 Токен выглядит так: `123456789:AAH...`.
 
-### 2. Впишите настройки в `.env`
+### 2. Настройте одной командой
+
+```bash
+osintx init      # мастер: спросит токен, проверит его через getMe, сохранит в .env
+```
+
+Или впишите вручную в `.env`:
 
 ```ini
 TELEGRAM_BOT_TOKEN=123456789:AAH...
@@ -188,6 +206,10 @@ WEB_PUBLIC_URL=https://ваш-домен   # необязательно: кно�
 osintx bot --check      # реальная проверка токена через getMe + отчёт о настройках
 osintx bot              # запуск (Ctrl+C — остановить)
 ```
+
+Либо скриптами из корня проекта: `./start_bot.sh` (Linux/macOS) и `start_bot.bat` (Windows) —
+они сами создают окружение, ставят зависимости, при отсутствии `.env` запускают мастер и
+стартуют бота.
 
 Если `--check` пишет «Не удалось связаться с api.telegram.org» — сеть блокирует Telegram
 (частая ситуация в корпоративных сетях и песочницах): запускайте бота на своей машине/VPS
@@ -336,6 +358,7 @@ osintx/
 ├── report.py         # отчёты: txt/json/csv/md/html/mermaid/dot
 ├── config.py         # .env + настройки (+ системные CA-сертификаты)
 ├── tg_auth.py        # авторизация MTProto
+├── wizard.py         # мастер настройки (osintx init)
 ├── core/
 │   ├── http.py       # async HTTP: ретраи, лимиты на хост, распознавание блокировок
 │   ├── models.py     # Finding / SourceStatus / Entity / Edge / Report
@@ -358,6 +381,8 @@ osintx/
 ├── bot/              # Telegram-бот (python-telegram-bot v21)
 └── data/             # реестры источников, список одноразовых доменов
 tools/build_registry.py
+start_bot.sh / start_bot.bat    # запуск бота одной командой
+deploy/             # systemd-юниты, Dockerfile, docker-compose
 tests/                # 29 тестов: типы целей, стратегии, калибровка, отчёты, БД, движок
 examples/             # пример готового HTML-отчёта
 ```

@@ -381,6 +381,11 @@ def cmd_doctor(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_init(args: argparse.Namespace) -> int:
+    from .wizard import run_wizard
+    return run_wizard(args)
+
+
 def cmd_serve(args: argparse.Namespace) -> int:
     import uvicorn
     settings = get_settings()
@@ -525,6 +530,12 @@ def build_parser() -> argparse.ArgumentParser:
 
     p = sub.add_parser("doctor", help="Проверить окружение и доступность источников")
     p.set_defaults(func=cmd_doctor)
+
+    p = sub.add_parser("init", aliases=["setup", "wizard"],
+                       help="Мастер настройки: токен бота, ключи API, прокси → .env")
+    p.add_argument("--token", help="Токен Telegram-бота (без вопросов)")
+    p.add_argument("--no-input", action="store_true", help="Ничего не спрашивать (для скриптов)")
+    p.set_defaults(func=cmd_init)
 
     p = sub.add_parser("serve", help="Запустить веб-интерфейс")
     p.add_argument("--host")

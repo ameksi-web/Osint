@@ -8,6 +8,26 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
 
+def clean_env_value(raw: str) -> str:
+    """Разбирает значение из .env: кавычки и inline-комментарии.
+
+    ``OSINTX_TIMEOUT=15   # таймаут`` → ``"15"``
+    ``PROXY="socks5://user:pa#ss@host:1080"`` → значение целиком (решётка внутри кавычек)
+    ``TOKEN=abc#def`` → ``"abc#def"`` (решётка без пробела перед ней — часть значения)
+    """
+    value = raw.strip()
+    if not value or value.startswith("#"):
+        return ""   # строка-подсказка из шаблона .env (например: "OSINTX_PROXY=   # http://...")
+    if value[0] in "\"'":
+        quote = value[0]
+        end = value.find(quote, 1)
+        return value[1:end] if end != -1 else value[1:]
+    for index, char in enumerate(value):
+        if char == "#" and index > 0 and value[index - 1].isspace():
+            return value[:index].strip()
+    return value
+
+
 def _load_dotenv(path: Path) -> None:
     """Минимальный парсер .env (без внешних зависимостей)."""
     if not path.exists():
@@ -16,8 +36,8 @@ def _load_dotenv(path: Path) -> None:
         line = raw.strip()
         if not line or line.startswith("#") or "=" not in line:
             continue
-        key, _, value = line.partition("=")
-        key, value = key.strip(), value.strip().strip('"').strip("'")
+        key, _, raw_value = line.partition("=")
+        key, value = key.strip(), clean_env_value(raw_value)
         if key and key not in os.environ:
             os.environ[key] = value
 
@@ -44,6 +64,15 @@ def _default_ca_bundle() -> str:
     return ""
 
 
+def _resolve_data_dir() -> Path:
+    """Каталог данных: абсолютный путь — как есть, относительный — от корня проекта."""
+    raw = os.environ.get("OSINTX_DATA_DIR", "").strip()
+    if not raw:
+        return PROJECT_ROOT / ".osintx-data"
+    path = Path(raw).expanduser()
+    return path if path.is_absolute() else (PROJECT_ROOT / path)
+
+
 def _bool(name: str, default: bool = False) -> bool:
     return os.environ.get(name, str(default)).strip().lower() in {"1", "true", "yes", "on"}
 
@@ -51,8 +80,7 @@ def _bool(name: str, default: bool = False) -> bool:
 @dataclass
 class Settings:
     # общее
-    data_dir: Path = field(default_factory=lambda: Path(
-        os.environ.get("OSINTX_DATA_DIR") or (PROJECT_ROOT / ".osintx-data")))
+    data_dir: Path = field(default_factory=lambda: _resolve_data_dir())
     timeout: float = field(default_factory=lambda: float(os.environ.get("OSINTX_TIMEOUT", 15)))
     concurrency: int = field(default_factory=lambda: int(os.environ.get("OSINTX_CONCURRENCY", 40)))
     proxy: str = field(default_factory=lambda: os.environ.get("OSINTX_PROXY", "").strip())
