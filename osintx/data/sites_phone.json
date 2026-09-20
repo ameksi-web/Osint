@@ -1,0 +1,48 @@
+{
+ "title": "Реестр источников OsintX: phone",
+ "updated": "2026-09-20",
+ "sites": [
+  {
+   "name": "phone-dorks",
+   "url": "https://www.google.com/search?q=%22{phone_e164}%22",
+   "strategy": "unsupported",
+   "confidence": "low",
+   "kind": "link",
+   "tags": [
+    "dork"
+   ],
+   "note": "поисковые ссылки по номеру формируются в коде модуля (kind=link)",
+   "disabled": true
+  },
+  {
+   "name": "telegram-phone",
+   "url": "https://t.me/+{phone_digits}",
+   "strategy": "message_include",
+   "confidence": "low",
+   "kind": "account",
+   "tags": [
+    "messenger"
+   ],
+   "found_msgs": [
+    "tgme_page_title",
+    "tgme_page_photo"
+   ],
+   "note": "Публичная страница t.me/+номер: если номер привязан к Telegram-аккаунту, показывается карточка профиля. Иначе Telegram показывает заглушку."
+  },
+  {
+   "name": "whatsapp-wa",
+   "url": "https://wa.me/{phone_digits}",
+   "strategy": "message_exclude",
+   "confidence": "low",
+   "kind": "account",
+   "tags": [
+    "messenger"
+   ],
+   "not_found_msgs": [
+    "this link is invalid",
+    "phone number shared via url is invalid"
+   ],
+   "note": "wa.me отдаёт страницу-переадресацию; отсутствие явной ошибки — слабый признак (низкое доверие)"
+  }
+ ]
+}

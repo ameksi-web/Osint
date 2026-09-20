@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OsintX — отчёт по torvalds</title>
+<style>
+:root{--bg:#0e1016;--card:#161a24;--muted:#8b93a7;--fg:#e8ebf2;--acc:#4f8cff;--line:#242a3a}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+a{color:var(--acc);text-decoration:none}a:hover{text-decoration:underline}
+.wrap{max-width:1100px;margin:0 auto;padding:0 18px 60px}
+header{padding:20px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,#151a26,#0e1016)}
+h1{margin:0;font-size:20px}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}
+.toolbar a{background:#202634;border:1px solid var(--line);border-radius:8px;padding:7px 12px;font-size:13.5px;color:#cfd6e6}
+.toolbar a:hover{border-color:var(--acc)}
+.stat{display:inline-block;background:#1c212e;border:1px solid var(--line);border-radius:9px;padding:8px 12px;margin:4px 6px 0 0;font-size:13px}
+.muted{color:var(--muted)}
+h2{font-size:17px;border-left:3px solid var(--acc);padding-left:10px;margin:26px 0 12px}
+h3{font-size:15px;color:#cfd6e6;margin:18px 0 8px}
+.finding{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--acc);border-radius:10px;padding:12px 14px;margin:10px 0}
+.finding.high{border-left-color:#3ecf8e}.finding.medium{border-left-color:#ffb84d}.finding.low{border-left-color:#5a6478}
+.finding .t{font-weight:600;margin-bottom:5px}
+.ev{margin-top:7px;padding:8px 10px;background:#0a0d13;border-radius:7px;font:12.5px/1.45 ui-monospace,Menlo,Consolas,monospace;color:#a9b3c9;white-space:pre-wrap;word-break:break-word}
+table{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:8px;background:var(--card);border-radius:10px;overflow:hidden}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--muted);font-weight:600;background:#141824}
+code{background:#0a0d13;padding:1px 5px;border-radius:5px}
+details{background:var(--card);border:1px solid var(--line);border-radius:9px;padding:9px 12px;margin:7px 0}
+summary{cursor:pointer;color:#c8d0e0}
+pre{background:#0a0d13;border:1px solid var(--line);border-radius:10px;padding:12px;overflow:auto;font:12.5px/1.45 ui-monospace,Menlo,Consolas,monospace}
+.warn{background:#2a1f14;border:1px solid #543a1b;color:#ffcf8f;padding:10px 12px;border-radius:9px;margin:8px 0}
+</style>
+</head>
+<body>
+<header><div class="wrap" style="padding:0">
+  <h1>🔎 OsintX — отчёт по цели <code>torvalds</code></h1>
+  <div class="muted">Тип: username · ID: 82c1084335c64f76 · 2026-09-20T13:15:45Z ·
+    24.1 с · v1.0.0</div>
+  <div>
+    <span class="stat"><b>5</b> находок</span>
+    <span class="stat"><b>169</b> источников</span>
+    <span class="stat"><b>162</b> недоступно</span>
+    <span class="stat"><b>4.1%</b> покрытие</span>
+    <span class="stat"><b>14/100</b> экспозиция</span>
+  </div>
+  <div class="toolbar">
+    <a href="/">← Новый поиск</a>
+    <a href="/report/82c1084335c64f76/download?fmt=json">JSON</a>
+    <a href="/report/82c1084335c64f76/download?fmt=html">HTML</a>
+    <a href="/report/82c1084335c64f76/download?fmt=md">Markdown</a>
+    <a href="/report/82c1084335c64f76/download?fmt=csv">CSV</a>
+    <a href="/report/82c1084335c64f76/download?fmt=txt">Текст</a>
+    <a href="/report/82c1084335c64f76/download?fmt=mermaid">Граф (mermaid)</a>
+  </div>
+</div></header>
+
+<div class="wrap">
+
+<header><div class="wrap" style="padding:0">
+<h1>OsintX — отчёт по цели <code>torvalds</code></h1>
+<div>Тип цели: <b>username</b> · ID: <code>82c1084335c64f76</code> · 2026-09-20T13:15:45Z · длительность 24.08 с</div>
+<div class="stats">
+  <div class="stat"><b>5</b><span>находок</span></div>
+  <div class="stat"><b>169</b><span>источников проверено</span></div>
+  <div class="stat"><b>162</b><span>недоступно</span></div>
+  <div class="stat"><b>4.1%</b><span>покрытие</span></div>
+  <div class="stat"><b>14/100</b><span>экспозиция</span></div>
+</div></div></header>
+<div class="wrap">
+
+<h2>Находки (5)</h2>
+<h3>username — 5</h3>
+<div class="finding high"><div class="t">github: аккаунт найден</div><div class="m"><span class="badge">github</span><span class="badge">достоверность: high</span><span class="badge">HTTP 200</span> <a href="https://github.com/torvalds" target="_blank" rel="noopener">https://github.com/torvalds</a></div><div class="ev">Доказательство: HTTP 200 ∈ [200]</div></div>
+<div class="finding high"><div class="t">GitHub: Linus Torvalds (@torvalds), репозиториев: 12, подписчиков: 324356</div><div class="m"><span class="badge">github-api</span><span class="badge">достоверность: high</span><span class="badge">HTTP 200</span> <a href="https://github.com/torvalds" target="_blank" rel="noopener">https://github.com/torvalds</a></div><div class="ev">Доказательство: api.github.com/users/torvalds → login=torvalds, created_at=2011-09-03T15:26:22Z</div><details><summary>структурированные данные</summary><div class="ev">{
+ &quot;name&quot;: &quot;Linus Torvalds&quot;,
+ &quot;bio&quot;: null,
+ &quot;company&quot;: &quot;Linux Foundation&quot;,
+ &quot;location&quot;: &quot;Portland, OR&quot;,
+ &quot;blog&quot;: &quot;&quot;,
+ &quot;twitter&quot;: null,
+ &quot;email_public&quot;: null,
+ &quot;created_at&quot;: &quot;2011-09-03T15:26:22Z&quot;,
+ &quot;public_repos&quot;: 12,
+ &quot;followers&quot;: 324356,
+ &quot;following&quot;: 0,
+ &quot;avatar&quot;: &quot;https://avatars.githubusercontent.com/u/1024025?v=4&quot;,
+ &quot;hireable&quot;: null
+}</div></details></div>
+<div class="finding high"><div class="t">GitHub: 12 последних репозиториев, языки: C, Python, C++, OpenSCAD</div><div class="m"><span class="badge">github-repos</span><span class="badge">достоверность: high</span><span class="badge">HTTP 200</span> <a href="https://github.com/torvalds?tab=repositories" target="_blank" rel="noopener">https://github.com/torvalds?tab=repositories</a></div><div class="ev">Доказательство: api.github.com/users/torvalds/repos → 12 репозиториев</div><details><summary>структурированные данные</summary><div class="ev">{
+ &quot;repos&quot;: [
+  {
+   &quot;name&quot;: &quot;linux&quot;,
+   &quot;url&quot;: &quot;https://github.com/torvalds/linux&quot;,
+   &quot;lang&quot;: &quot;C&quot;,
+   &quot;stars&quot;: 249586,
+   &quot;updated&quot;: &quot;2026-09-20T13:06:42Z&quot;,
+   &quot;fork&quot;: false
+  },
+  {
+   &quot;name&quot;: &quot;GuitarPedal&quot;,
+   &quot;url&quot;: &quot;https://github.com/torvalds/GuitarPedal&quot;,
+   &quot;lang&quot;: &quot;Python&quot;,
+   &quot;stars&quot;: 2350,
+   &quot;updated&quot;: &quot;2026-09-20T10:55:24Z&quot;,
+   &quot;fork&quot;: false
+  },
+  {
+   &quot;name&quot;: &quot;AudioNoise&quot;,
+   &quot;url&quot;: &quot;https://github.com/torvalds/AudioNoise&quot;,
+   &quot;lang&quot;: &quot;C&quot;,
+   &quot;stars&quot;: 4495,
+   &quot;updated&quot;: &quot;2026-09-20T01:37:12Z&quot;,
+   &quot;fork&quot;: false
+  },
+  {
+   &quot;name&quot;: &quot;test-tlb&quot;,
+   &quot;url&quot;: &quot;https://github.com/torvalds/test-tlb&quot;,
+   &quot;lang&quot;: &quot;C&quot;,
+   &quot;stars&quot;: 1061,
+   &quot;updated&quot;: &quot;2026-09-19T05:52:25Z&quot;,
+   &quot;fork&quot;: false
+  },
+  {
+   &quot;name&quot;: &quot;pesconvert&quot;,
+   &quot;url&quot;: &quot;https://github.com/torvalds/pesconvert&quot;,
+   &quot;lang&quot;: &quot;C&quot;,
+   &quot;stars&quot;: 579,
+   &quot;updated&quot;: &quot;2026-09-18T11:27:07Z&quot;,
+   &quot;fork&quot;: false
+  },
+  {
+   &quot;name&quot;: &quot;libgit2&quot;,
+   &quot;url&quot;: &quot;https://github.com/torvalds/libgit2&quot;,
+   &quot;lang&quot;: &quot;C&quot;,
+   &quot;stars&quot;: 390,
+   &quot;updated&quot;: &quot;2026-09-18T11:27:05Z&quot;,
+   &quot;fork&quot;: true
+  },
+  {
+   &quot;name&quot;: &quot;subsurface-for-dirk&quot;,
+   &quot;url&quot;: &quot;https://github.com/torvalds/subsurface-for-dirk&quot;,
+   &quot;lang&quot;: &quot;C++&quot;,
+   &quot;stars&quot;: 474,
+   &quot;updated&quot;: &quot;2026-09-18T11:27:04Z&quot;,
+   &quot;fork&quot;: true
+  },
+  {
+   &quot;name&quot;: &quot;libdc-for-dirk&quot;,
+   &quot;url&quot;: &quot;https://github.com/torvalds/libdc-for-dirk&quot;,
+   &quot;lang&quot;: &quot;C&quot;,
+   &quot;stars&quot;: 407,
+   &quot;updated&quot;: &quot;2026-09-18T11:27:03Z&quot;,
+   &quot;fork&quot;: true
+  },
+  {
+   &quot;name&quot;: &quot;1590A&quot;,
+   &quot;url&quot;: &quot;https://github.com/torvalds/1590A&quot;,
+   &quot;lang&quot;: &quot;OpenSCAD&quot;,
+   &quot;stars&quot;: 574,
+   &quot;updated&quot;: &quot;2026-09-18T11:27:02Z&quot;,
+   &quot;fork&quot;: false
+  },
+  {
+   &quot;name&quot;: &quot;HunspellColorize&quot;,
+   &quot;url&quot;: &quot;https://github.com/torvalds/HunspellColorize&quot;,
+   &quot;lang&quot;: &quot;C&quot;,
+   &quot;stars&quot;: 380,
+   &quot;updated&quot;: &quot;2026-09-18T11:27:01Z&quot;,
+   &quot;fork&quot;: false
+  },
+  {
+   &quot;name&quot;: &quot;ScrollWheel&quot;,
+   &quot;url&quot;: &quot;https://github.com/torvalds/ScrollWheel&quot;,
+   &quot;lang&quot;: &quot;C&quot;,
+   &quot;stars&quot;: 376,
+   &quot;updated&quot;: &quot;2026-09-18T11:27:00Z&quot;,
+   &quot;fork&quot;: false
+  },
+  {
+   &quot;name&quot;: &quot;uemacs&quot;,
+   &quot;url&quot;: &quot;https://github.com/torvalds/uemacs&quot;,
+   &quot;lang&quot;: &quot;C&quot;,
+   &quot;stars&quot;: 2141,
+   &quot;updated&quot;: &quot;2026-09-18T11:26:59Z&quot;,
+   &quot;fork&quot;: false
+  }
+ ],
+ &quot;languages&quot;: {
+  &quot;C&quot;: 9,
+  &quot;Python&quot;: 1,
+  &quot;C++&quot;: 1,
+  &quot;OpenSCAD&quot;: 1
+ },
+ &quot;emails_in_commits&quot;: []
+}</div></details></div>
+<div class="finding high"><div class="t">Цель нормализована: «torvalds» (длина 8, только буквы)</div><div class="m"><span class="badge">normalize</span><span class="badge">достоверность: high</span> </div><div class="ev">Доказательство: нормализация регистра/символов + генерация вариантов написания</div><details><summary>структурированные данные</summary><div class="ev">{
+ &quot;variants&quot;: [
+  &quot;torvalds&quot;,
+  &quot;torvalds1&quot;,
+  &quot;torvalds01&quot;,
+  &quot;torvalds7&quot;,
+  &quot;torvalds77&quot;,
+  &quot;torvalds99&quot;,
+  &quot;torvalds007&quot;,
+  &quot;torvalds_official&quot;,
+  &quot;torvaldsofficial&quot;,
+  &quot;torvaldsreal&quot;,
+  &quot;t0rvalds&quot;,
+  &quot;torv4lds&quot;
+ ]
+}</div></details></div>
+<div class="finding low"><div class="t">Поисковые ссылки по логину</div><div class="m"><span class="badge">dorks</span><span class="badge">достоверность: low</span> <a href="https://www.google.com/search?q=%22torvalds%22" target="_blank" rel="noopener">https://www.google.com/search?q=%22torvalds%22</a></div><div class="ev">Доказательство: ссылки для ручной проверки (не автоматическое утверждение)</div><details><summary>структурированные данные</summary><div class="ev">{
+ &quot;links&quot;: [
+  &quot;https://www.google.com/search?q=%22torvalds%22&quot;,
+  &quot;https://github.com/search?q=torvalds&amp;type=users&quot;,
+  &quot;https://t.me/torvalds&quot;,
+  &quot;https://www.bing.com/search?q=%22torvalds%22+profile&quot;
+ ]
+}</div></details></div>
+<h2>Сущности и связи</h2>
+<table><tr><th>Тип</th><th>Значение</th><th>Детали</th></tr><tr><td>username</td><td><code>torvalds</code></td><td>{&quot;sites_total&quot;: 93}</td></tr><tr><td>github</td><td><code>torvalds</code></td><td>{&quot;repos&quot;: 12, &quot;languages&quot;: [&quot;C&quot;, &quot;Python&quot;, &quot;C++&quot;, &quot;OpenSCAD&quot;]}</td></tr></table><h3>Связи (1)</h3><table><tr><th>Откуда</th><th>Связь</th><th>Куда</th><th>Вес</th><th>Подтверждение</th></tr><tr><td><code>username:torvalds</code></td><td>has_account</td><td><code>site:github</code></td><td>1.0</td><td>HTTP 200 ∈ [200]</td></tr></table>
+<h2>Покрытие источников</h2>
+<details><summary><b>username</b> — проверено 169, найдено 3, недоступно 162, время 24.04 с</summary><table><tr><th>Источник</th><th>Статус</th><th>HTTP</th><th>Детали</th></tr><tr><td>⚠️ calibrate:anilist</td><td>error</td><td></td><td>контрольный логин «AniList» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии</td></tr><tr><td>⚠️ calibrate:artstation</td><td>error</td><td></td><td>контрольный логин «artstation» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии</td></tr><tr><td>⚠️ calibrate:bandcamp</td><td>error</td><td></td><td>контрольный логин «bandcamp» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии</td></tr><tr><td>⚠️ calibrate:behance</td><td>error</td><td></td><td>контрольный логин «behance» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии</td></tr><tr><td>⚠️ calibrate:bitbucket</td><td>error</td><td></td><td>контрольный логин «atlassian» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии</td></tr><tr><td>⚠️ calibrate:bluesky</td><td>error</td><td></td><td>контрольный логин «bsky.app» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии</td></tr><tr><td>⚠️ calibrate:bugcrowd</td><td>error</td><td></td><td>контрольный логин «bugcrowd» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии</td></tr><tr><td>⚠️ calibrate:chesscom</td><td>error</td><td></td><td>контрольный логин «hikaru» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии</td></tr><tr><td>⚠️ calibrate:codeberg</td><td>error</td><td></td><td>контрольный логин «Codeberg» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии</td></tr><tr><td>⚠️ calibrate:codeforces</td><td>error</td><td></td><td>контрольный логин «tourist» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии</td></tr><tr><td>⚠️ calibrate:codepen</td><td>error</td><td></td><td>контрольный логин «codepen» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии</td></tr><tr><td>⚠️ calibrate:codewars</td><td>error</td><td></td><td>контрольный логин «codewars» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии</td></tr><tr><td>⚠️ calibrate:cratesio</td><td>error</td><td></td><td>контрольный логин «alexcrichton» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии</td></tr><tr><td>⚠️ calibrate:dailymotion</td><td>error</td><td></td><td>контрольный логин «dailymotion» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии</td></tr><tr><td>⚠️ calibrate:devto</td><td>error</td><td></td><td>контрольный логин «ben» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии</td></tr><tr><td>⚠️ calibrate:disqus</td><td>error</td><td></td><td>контрольный логин «disqus» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии</td></tr><tr><td>⚠️ calibrate:dockerhub</td><td>error</td><td></td><td>контрольный логин «library» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии</td></tr><tr><td>⚠️ calibrate:dribbble</td><td>error</td><td></td><td>контрольный логин «dribbble» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии</td></tr><tr><td>⚠️ calibrate:duolingo</td><td>error</td><td></td><td>контрольный логин «duolingo» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии</td></tr><tr><td>⚠️ calibrate:ebay</td><td>error</td><td></td><td>контрольный логин «ebay» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии</td></tr><tr><td>⚠️ calibrate:etsy</td><td>error</td><td></td><td>контрольный логин «etsy» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии</td></tr><tr><td>⚠️ calibrate:exercism</td><td>error</td><td></td><td>контрольный логин «exercism» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии</td></tr><tr><td>⚠️ calibrate:foursquare</td><td>error</td><td></td><td>контрольный логин «foursquare» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии</td></tr><tr><td>⚠️ calibrate:freecodecamp</td><td>error</td><td></td><td>контрольный логин «quincy» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии</td></tr><tr><td>⚠️ calibrate:genius</td><td>error</td><td></td><td>контрольный логин «genius» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии</td></tr><tr><td>⚠️ calibrate:gist</td><td>error</td><td></td><td>контрольный логин «torvalds» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии</td></tr><tr><td>✅ calibrate:github</td><td>found</td><td></td><td>калибровка пройдена: существующий найден, призрак отклонён</td></tr><tr><td>⚠️ calibrate:gitlab</td><td>error</td><td></td><td>контрольный логин «gitlab» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии</td></tr><tr><td>⚠️ calibrate:glitch</td><td>error</td><td></td><td>контрольный логин «glitch» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии</td></tr><tr><td>⚠️ calibrate:habr</td><td>error</td><td></td><td>контрольный логин «habr» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии</td></tr><tr><td>⚠️ calibrate:hackerone</td><td>error</td><td></td><td>контрольный логин «hackerone» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии</td></tr><tr><td>⚠️ calibrate:hackerrank</td><td>error</td><td></td><td>контрольный логин «hackerrank» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии</td></tr><tr><td>⚠️ calibrate:hashnode</td><td>error</td><td></td><td>контрольный логин «hashnode» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии</td></tr><tr><td>⚠️ calibrate:huggingface</td><td>error</td><td></td><td>контрольный логин «huggingface» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии</td></tr><tr><td>⚠️ calibrate:imgur</td><td>error</td><td></td><td>контрольный логин «imgur» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии</td></tr><tr><td>⚠️ calibrate:instagram</td><td>error</td><td></td><td>контрольный логин «instagram» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии</td></tr><tr><td>⚠️ calibrate:kaggle</td><td>error</td><td></td><td>контрольный логин «kaggle» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии</td></tr><tr><td>⚠️ calibrate:keybase</td><td>error</td><td></td><td>контрольный логин «chris» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии</td></tr><tr><td>⚠️ calibrate:kick</td><td>error</td><td></td><td>контрольный логин «kick» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии</td></tr><tr><td>⚠️ calibrate:lastfm</td><td>error</td><td></td><td>контрольный логин «RJ» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии</td></tr><tr><td>⚠️ calibrate:launchpad</td><td>error</td><td></td><td>контрольный логин «ubuntu» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии</td></tr><tr><td>⚠️ calibrate:leetcode</td><td>error</td><td></td><td>контрольный логин «leetcode» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии</td></tr><tr><td>⚠️ calibrate:letterboxd</td><td>error</td><td></td><td>контрольный логин «letterboxd» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии</td></tr><tr><td>⚠️ calibrate:lichess</td><td>error</td><td></td><td>контрольный логин «lichess» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии</td></tr><tr><td>⚠️ calibrate:linktree</td><td>error</td><td></td><td>контрольный логин «linktree» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии</td></tr><tr><td>⚠️ calibrate:mastodon.social</td><td>error</td><td></td><td>контрольный логин «mastodon» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии</td></tr><tr><td>⚠️ calibrate:namemc</td><td>error</td><td></td><td>контрольный логин «Notch» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии</td></tr><tr><td>⚠️ calibrate:npm</td><td>error</td><td></td><td>контрольный логин «npm» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии</td></tr><tr><td>⚠️ calibrate:opensea</td><td>error</td><td></td><td>контрольный логин «opensea» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии</td></tr><tr><td>⚠️ calibrate:osu</td><td>error</td><td></td><td>контрольный логин «peppy» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии</td></tr><tr><td>⚠️ calibrate:patreon</td><td>error</td><td></td><td>контрольный логин «patreon» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии</td></tr><tr><td>⚠️ calibrate:pinterest</td><td>error</td><td></td><td>контрольный логин «pinterest» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии</td></tr><tr><td>⚠️ calibrate:producthunt</td><td>error</td><td></td><td>контрольный логин «producthunt» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии</td></tr><tr><td>⚠️ calibrate:qiita</td><td>error</td><td></td><td>контрольный логин «qiita» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии</td></tr><tr><td>⚠️ calibrate:reddit</td><td>error</td><td></td><td>контрольный логин «reddit» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии</td></tr><tr><td>⚠️ calibrate:replit</td><td>error</td><td></td><td>контрольный логин «replit» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии</td></tr><tr><td>⚠️ calibrate:roblox</td><td>error</td><td></td><td>контрольный логин «Roblox» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии</td></tr><tr><td>⚠️ calibrate:rubygems</td><td>error</td><td></td><td>контрольный логин «dhh» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии</td></tr><tr><td>⚠️ calibrate:soundcloud</td><td>error</td><td></td><td>контрольный логин «soundcloud» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии</td></tr><tr><td>⚠️ calibrate:sourceforge</td><td>error</td><td></td><td>контрольный логин «sourceforge» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии</td></tr><tr><td>⚠️ calibrate:spotify</td><td>error</td><td></td><td>контрольный логин «spotify» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии</td></tr><tr><td>⚠️ calibrate:telegram</td><td>error</td><td></td><td>контрольный логин «durov» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии</td></tr><tr><td>⚠️ calibrate:trakt</td><td>error</td><td></td><td>контрольный логин «trakt» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии</td></tr><tr><td>⚠️ calibrate:tumblr</td><td>error</td><td></td><td>контрольный логин «staff» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии</td></tr><tr><td>⚠️ calibrate:twitch</td><td>error</td><td></td><td>контрольный логин «twitch» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии</td></tr><tr><td>⚠️ calibrate:unsplash</td><td>error</td><td></td><td>контрольный логин «unsplash» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии</td></tr><tr><td>⚠️ calibrate:vimeo</td><td>error</td><td></td><td>контрольный логин «vimeo» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии</td></tr><tr><td>⚠️ calibrate:vk</td><td>error</td><td></td><td>контрольный логин «vk» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии</td></tr><tr><td>⚠️ calibrate:youtube</td><td>error</td><td></td><td>контрольный логин «YouTube» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии</td></tr><tr><td>⚠️ calibrate:zenn</td><td>error</td><td></td><td>контрольный логин «zenn» НЕ найден — источник недоступен или изменил разметку; его результаты понижены в доверии</td></tr><tr><td>⚠️ 500px</td><td>error</td><td></td><td>ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)</td></tr><tr><td>⚠️ 9gag</td><td>error</td><td></td><td>ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)</td></tr><tr><td>⚠️ bluesky</td><td>error</td><td></td><td>ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)</td></tr><tr><td>⚠️ blogspot</td><td>error</td><td></td><td>ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)</td></tr><tr><td>⚠️ anilist</td><td>error</td><td></td><td>ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)</td></tr><tr><td>⚠️ bugcrowd</td><td>error</td><td></td><td>ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)</td></tr><tr><td>⚠️ aboutme</td><td>error</td><td></td><td>ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)</td></tr><tr><td>⚠️ bandcamp</td><td>error</td><td></td><td>ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)</td></tr><tr><td>⚠️ codeforces</td><td>error</td><td></td><td>ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)</td></tr><tr><td>⚠️ chesscom</td><td>error</td><td></td><td>ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)</td></tr><tr><td>⚠️ disqus</td><td>error</td><td></td><td>ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)</td></tr><tr><td>⚠️ codewars</td><td>error</td><td></td><td>ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)</td></tr><tr><td>⚠️ dockerhub</td><td>error</td><td></td><td>ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)</td></tr><tr><td>⚠️ codesandbox</td><td>error</td><td></td><td>ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)</td></tr><tr><td>⚠️ calendly</td><td>error</td><td></td><td>ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)</td></tr><tr><td>⚠️ artstation</td><td>error</td><td></td><td>ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)</td></tr><tr><td>⚠️ dailymotion</td><td>error</td><td></td><td>ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)</td></tr><tr><td>⚠️ deviantart</td><td>error</td><td></td><td>ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)</td></tr><tr><td>⚠️ codepen</td><td>error</td><td></td><td>ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)</td></tr><tr><td>⚠️ buymeacoffee</td><td>error</td><td></td><td>ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)</td></tr><tr><td>⚠️ behance</td><td>error</td><td></td><td>ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)</td></tr><tr><td>⚠️ devto</td><td>error</td><td></td><td>ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)</td></tr><tr><td>⚠️ codeberg</td><td>error</td><td></td><td>ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)</td></tr><tr><td>⚠️ bitbucket</td><td>error</td><td></td><td>ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)</td></tr><tr><td>✅ github</td><td>found</td><td>200</td><td>HTTP 200 ∈ [200]</td></tr><tr><td>⚠️ cratesio</td><td>error</td><td></td><td>ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)</td></tr><tr><td>⚠️ gitlab</td><td>error</td><td></td><td>ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)</td></tr><tr><td>⚠️ duolingo</td><td>error</td><td></td><td>ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)</td></tr><tr><td>⚠️ etsy</td><td>error</td><td></td><td>ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)</td></tr><tr><td>⚠️ foursquare</td><td>error</td><td></td><td>ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)</td></tr><tr><td>⚠️ exercism</td><td>error</td><td></td><td>ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)</td></tr><tr><td>⚠️ dribbble</td><td>error</td><td></td><td>ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)</td></tr><tr><td>⚠️ ebay</td><td>error</td><td></td><td>ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)</td></tr><tr><td>⚠️ habr</td><td>error</td><td></td><td>ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)</td></tr><tr><td>⚠️ genius</td><td>error</td><td></td><td>ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)</td></tr><tr><td>⚠️ glitch</td><td>error</td><td></td><td>ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)</td></tr><tr><td>⚠️ hashnode</td><td>error</td><td></td><td>ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)</td></tr><tr><td>⚠️ hackerone</td><td>error</td><td></td><td>ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)</td></tr><tr><td>⚠️ gravatar</td><td>error</td><td></td><td>ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)</td></tr><tr><td>➖ npm</td><td>not_found</td><td>401</td><td>name = null (op=exists)</td></tr><tr><td>⚠️ gist</td><td>error</td><td></td><td>ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)</td></tr><tr><td>⚠️ imgur</td><td>error</td><td></td><td>ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)</td></tr><tr><td>⚠️ jsfiddle</td><td>error</td><td></td><td>ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)</td></tr><tr><td>⚠️ freecodecamp</td><td>error</td><td></td><td>ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)</td></tr><tr><td>⚠️ hackerrank</td><td>error</td><td></td><td>ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)</td></tr><tr><td>⚠️ kaggle</td><td>error</td><td></td><td>ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)</td></tr><tr><td>⚠️ huggingface</td><td>error</td><td></td><td>ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)</td></tr><tr><td>⚠️ flickr</td><td>error</td><td></td><td>ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)</td></tr><tr><td>⚠️ instagram</td><td>error</td><td></td><td>ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)</td></tr><tr><td>⚠️ kick</td><td>error</td><td></td><td>ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)</td></tr><tr><td>⚠️ keybase</td><td>error</td><td></td><td>ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)</td></tr><tr><td>⚠️ kofi</td><td>error</td><td></td><td>ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)</td></tr><tr><td>⚠️ lastfm</td><td>error</td><td></td><td>ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)</td></tr><tr><td>⚠️ leetcode</td><td>error</td><td></td><td>ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)</td></tr><tr><td>⚠️ mastodon.social</td><td>error</td><td></td><td>ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)</td></tr><tr><td>⚠️ lichess</td><td>error</td><td></td><td>ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)</td></tr><tr><td>⚠️ letterboxd</td><td>error</td><td></td><td>ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)</td></tr><tr><td>⚠️ livejournal</td><td>error</td><td></td><td>ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)</td></tr><tr><td>⚠️ launchpad</td><td>error</td><td></td><td>ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)</td></tr><tr><td>⚠️ myanimelist</td><td>error</td><td></td><td>ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)</td></tr><tr><td>⚠️ opensea</td><td>error</td><td></td><td>ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)</td></tr><tr><td>⚠️ producthunt</td><td>error</td><td></td><td>ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)</td></tr><tr><td>⚠️ mixcloud</td><td>error</td><td></td><td>ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)</td></tr><tr><td>⚠️ osu</td><td>error</td><td></td><td>ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)</td></tr><tr><td>⚠️ namemc</td><td>error</td><td></td><td>ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)</td></tr><tr><td>⚠️ linktree</td><td>error</td><td></td><td>ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)</td></tr><tr><td>⚠️ qiita</td><td>error</td><td></td><td>ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)</td></tr><tr><td>⚠️ patreon</td><td>error</td><td></td><td>ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)</td></tr><tr><td>⚠️ pinterest</td><td>error</td><td></td><td>ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)</td></tr><tr><td>⚠️ pikabu</td><td>error</td><td></td><td>ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)</td></tr><tr><td>⚠️ reddit</td><td>error</td><td></td><td>ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)</td></tr><tr><td>⚠️ roblox</td><td>error</td><td></td><td>ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)</td></tr><tr><td>⚠️ rubygems</td><td>error</td><td></td><td>ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)</td></tr><tr><td>⚠️ replit</td><td>error</td><td></td><td>ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)</td></tr><tr><td>⚠️ soundcloud</td><td>error</td><td></td><td>ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)</td></tr><tr><td>⚠️ sourceforge</td><td>error</td><td></td><td>ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)</td></tr><tr><td>⚠️ spotify</td><td>error</td><td></td><td>ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)</td></tr><tr><td>⚠️ steam</td><td>error</td><td></td><td>ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)</td></tr><tr><td>⚠️ substack</td><td>error</td><td></td><td>ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)</td></tr><tr><td>⚠️ vimeo</td><td>error</td><td></td><td>ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)</td></tr><tr><td>⚠️ tryhackme</td><td>error</td><td></td><td>ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)</td></tr><tr><td>⚠️ vcru</td><td>error</td><td></td><td>ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)</td></tr><tr><td>⚠️ twitch</td><td>error</td><td></td><td>ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)</td></tr><tr><td>⚠️ untappd</td><td>error</td><td></td><td>ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)</td></tr><tr><td>⚠️ tumblr</td><td>error</td><td></td><td>ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)</td></tr><tr><td>⚠️ unsplash</td><td>error</td><td></td><td>ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)</td></tr><tr><td>⚠️ vk</td><td>error</td><td></td><td>ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)</td></tr><tr><td>⚠️ telegram</td><td>error</td><td></td><td>ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)</td></tr><tr><td>⚠️ wordpress</td><td>error</td><td></td><td>ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)</td></tr><tr><td>⚠️ youtube</td><td>error</td><td></td><td>ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)</td></tr><tr><td>⚠️ trakt</td><td>error</td><td></td><td>ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)</td></tr><tr><td>⚠️ vercel</td><td>error</td><td></td><td>ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)</td></tr><tr><td>⚠️ zenn</td><td>error</td><td></td><td>ConnectError: TLS/SSL connection has been closed (EOF) (_ssl.c:992)</td></tr><tr><td>✅ github-api</td><td>found</td><td>200</td><td></td></tr><tr><td>⚠️ gitlab-api</td><td>error</td><td></td><td></td></tr><tr><td>➖ keybase</td><td>not_found</td><td></td><td></td></tr><tr><td>⚠️ reddit-api</td><td>error</td><td></td><td></td></tr><tr><td>➖ hackernews</td><td>not_found</td><td></td><td></td></tr><tr><td>➖ stackoverflow</td><td>not_found</td><td></td><td>точных совпадений нет (в выдаче 0)</td></tr></table><div class="warn">Не прошли калибровку (результаты помечены low): anilist, artstation, bandcamp, behance, bitbucket, bluesky, bugcrowd, chesscom, codeberg, codeforces, codepen, codewars, cratesio, dailymotion, devto, disqus, dockerhub, dribbble, duolingo, ebay, etsy, exercism, foursquare, freecodecamp, genius, gist, gitlab, glitch, habr, hackerone, hackerrank, hashnode, huggingface, imgur, instagram, kaggle, keybase, kick, lastfm, launchpad, leetcode, letterboxd, lichess, linktree, mastodon.social, namemc, npm, opensea, osu, patreon, pinterest, producthunt, qiita, reddit, replit, roblox, rubygems, soundcloud, sourceforge, spotify, telegram, trakt, tumblr, twitch, unsplash, vimeo, vk, youtube, zenn</div></details>
+<footer>OsintX 1.0.0 · данные получены из открытых источников в реальном времени.
+Недоступные источники помечены и не считаются «не найдено». Отчёт сгенерирован 2026-09-20 13:17 UTC.</footer>
+</div>
+
+<h2>Схема связей (mermaid)</h2>
+<pre>graph LR
+    n0[&#34;username: torvalds&#34;] --&gt;|has_account| n1[&#34;site: github&#34;]</pre>
+
+<h2>Текстовый отчёт</h2>
+<pre>==============================================================================
+  OsintX — отчёт по цели: torvalds  (тип: username)
+  ID поиска: 82c1084335c64f76 | 2026-09-20T13:15:45Z | 24.08 с
+==============================================================================
+
+  Находок: 5   |   Источников проверено: 169 (ответили 7, недоступно 162)   |   Покрытие: 4.1%
+  Оценка цифровой экспозиции: 14/100
+  Достоверность находок: high: 4, low: 1
+  По категориям: username: 5
+
+── USERNAME ────────────────────────────────────────────────────────────────
+🟢 [github] github: аккаунт найден
+    ↳ https://github.com/torvalds
+    доказательство: HTTP 200 ∈ [200]
+🟢 [github-api] GitHub: Linus Torvalds (@torvalds), репозиториев: 12, подписчиков: 324356
+    ↳ https://github.com/torvalds
+    доказательство: api.github.com/users/torvalds → login=torvalds, created_at=2011-09-03T15:26:22Z
+    данные: name=&#34;Linus Torvalds&#34;; company=&#34;Linux Foundation&#34;; location=&#34;Portland, OR&#34;; created_at=&#34;2011-09-03T15:26:22Z&#34;; public_repos=12; followers=324356; following=0; avatar=&#34;https://avatars.githubusercontent.com/u/1024025?v=4&#34;
+🟢 [github-repos] GitHub: 12 последних репозиториев, языки: C, Python, C++, OpenSCAD
+    ↳ https://github.com/torvalds?tab=repositories
+    доказательство: api.github.com/users/torvalds/repos → 12 репозиториев
+    данные: repos=[{&#34;name&#34;: &#34;linux&#34;, &#34;url&#34;: &#34;https://github.com/torvalds/linux&#34;, &#34;lang&#34;: &#34;C&#34;, &#34;stars&#34;: 249586, &#34;updated&#34;: &#34;2026-09-20T13:06:42Z&#34;, &#34;fork&#34;: false}, {&#34;name&#34;: &#34;GuitarPedal&#34;, &#34;url&#34;: &#34;https://github.com/torvalds/GuitarPedal&#34;, &#34;lang&#34;: &#34;Python&#34;, &#34;stars&#34;: 2350, &#34;up…
+🟢 [normalize] Цель нормализована: «torvalds» (длина 8, только буквы)
+    доказательство: нормализация регистра/символов + генерация вариантов написания
+    данные: variants=[&#34;torvalds&#34;, &#34;torvalds1&#34;, &#34;torvalds01&#34;, &#34;torvalds7&#34;, &#34;torvalds77&#34;, &#34;torvalds99&#34;, &#34;…+6&#34;]
+⚪ [dorks] Поисковые ссылки по логину
+    ↳ https://www.google.com/search?q=%22torvalds%22
+    доказательство: ссылки для ручной проверки (не автоматическое утверждение)
+    данные: links=[&#34;https://www.google.com/search?q=%22torvalds%22&#34;, &#34;https://github.com/search?q=torvalds&amp;type=users&#34;, &#34;https://t.me/torvalds&#34;, &#34;https://www.bing.com/search?q=%22torvalds%22+profile&#34;]
+
+── ИСТОЧНИКИ ──────────────────────────────────────────────────────────────────
+
+[username] проверено 169, найдено 3, недоступно 162, 24.04 с
+   ⚠ Не прошли калибровку (результаты помечены low): anilist, artstation, bandcamp, behance, bitbucket, bluesky, bugcrowd, chesscom, codeberg, codeforces, codepen, codewars, cratesio, dailymotion, devto, disqus, dockerhub, dribbble, duolingo, ebay, etsy, exercism, foursquare, freecodecamp, genius, gist, gitlab, glitch, habr, hackerone, hackerrank, hashnode, huggingface, imgur, instagram, kaggle, keybase, kick, lastfm, launchpad, leetcode, letterboxd, lichess, linktree, mastodon.social, namemc, npm, opensea, osu, patreon, pinterest, producthunt, qiita, reddit, replit, roblox, rubygems, soundcloud, sourceforge, spotify, telegram, trakt, tumblr, twitch, unsplash, vimeo, vk, youtube, zenn
+
+  (для детального списка каждого источника запустите с --verbose)
+
+──────────────────────────────────────────────────────────────────────────────
+Отчёт содержит только данные из открытых источников, полученные в реальном времени.
+Недоступные источники помечены как error/blocked и НЕ считаются «не найдено».</pre>
+</div>
+</body></html>

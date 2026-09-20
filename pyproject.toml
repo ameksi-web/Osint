@@ -1,0 +1,40 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "osintx"
+version = "1.0.0"
+description = "OsintX — реальный OSINT-комбайн: email, username, телефон, Telegram, домен, IP, имя, утечки. CLI + Web UI + Telegram-бот."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "OsintX" }]
+dependencies = [
+    "httpx>=0.27",
+    "phonenumbers>=8.13",
+    "dnspython>=2.4",
+    "fastapi>=0.110",
+    "uvicorn[standard]>=0.29",
+    "jinja2>=3.1",
+    "rich>=13.7",
+    "python-telegram-bot>=21.0",
+    "python-multipart>=0.0.9",
+]
+
+[project.optional-dependencies]
+mtproto = ["telethon>=1.36"]     # глубокий Telegram-модуль (ID, DC, поиск по сообщениям)
+dev = ["pytest>=8.0", "pytest-asyncio>=0.23"]
+
+[project.scripts]
+osintx = "osintx.cli:main"
+
+[tool.setuptools]
+packages = ["osintx", "osintx.core", "osintx.modules", "osintx.web", "osintx.bot"]
+
+[tool.setuptools.package-data]
+osintx = ["data/*.json", "data/*.txt", "web/templates/*.html", "web/static/*"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]

@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OsintX — OSINT-поиск</title>
+<style>
+:root{--bg:#0e1016;--card:#161a24;--card2:#1c212e;--muted:#8b93a7;--fg:#e8ebf2;--acc:#4f8cff;--ok:#3ecf8e;--warn:#ffb84d;--bad:#ff6b6b;--line:#242a3a}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+a{color:var(--acc);text-decoration:none}a:hover{text-decoration:underline}
+header{padding:22px 20px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,#151a26,#0e1016)}
+.wrap{max-width:1180px;margin:0 auto;padding:0 18px}
+h1{margin:0;font-size:23px;letter-spacing:.3px}
+.sub{color:var(--muted);font-size:13px;margin-top:4px}
+.grid{display:grid;grid-template-columns:1.35fr .85fr;gap:18px;margin:22px 0}
+@media(max-width:900px){.grid{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px}
+.card h2{margin:0 0 12px;font-size:16px}
+label{display:block;font-size:12.5px;color:var(--muted);margin:10px 0 4px}
+input[type=text],select,input[type=number]{width:100%;padding:11px 12px;border-radius:9px;border:1px solid var(--line);background:#0c0f16;color:var(--fg);font-size:15px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.row>*{flex:1}
+button{padding:12px 18px;border:0;border-radius:9px;background:var(--acc);color:#fff;font-weight:600;cursor:pointer;font-size:15px}
+button:hover{filter:brightness(1.1)} button:disabled{opacity:.5;cursor:progress}
+.chips{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
+.chip{background:#202634;border:1px solid var(--line);border-radius:20px;padding:5px 11px;font-size:12.5px;cursor:pointer;color:#cfd6e6}
+.chip:hover{border-color:var(--acc)}
+.check{display:flex;gap:14px;flex-wrap:wrap;margin-top:10px;font-size:13.5px;color:#cfd6e6}
+.check label{display:inline-flex;gap:6px;align-items:center;margin:0;color:#cfd6e6;font-size:13.5px}
+.muted{color:var(--muted);font-size:13px}
+.stat{display:inline-block;background:var(--card2);border:1px solid var(--line);border-radius:9px;padding:8px 12px;margin:4px 6px 0 0;font-size:13px}
+.stat b{color:#fff}
+.log{background:#0a0d13;border:1px solid var(--line);border-radius:10px;padding:12px;height:300px;overflow:auto;font:12.5px/1.5 ui-monospace,Menlo,Consolas,monospace;white-space:pre-wrap}
+.hit{color:var(--ok)} .err{color:var(--bad)} .info{color:var(--muted)}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th,td{text-align:left;padding:7px 9px;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--muted);font-weight:600}
+.tag{display:inline-block;background:#202634;border-radius:20px;padding:2px 9px;font-size:11.5px;margin-right:5px}
+footer{color:var(--muted);font-size:12.5px;padding:26px 0 50px;border-top:1px solid var(--line);margin-top:30px}
+.badge{padding:2px 8px;border-radius:20px;font-size:11.5px;background:#202634;color:#c7cee0;margin-right:6px}
+.hidden{display:none}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <h1>🔎 OsintX <span class="muted" style="font-size:13px">v{{ version }}</span></h1>
+  <div class="sub">Поиск по открытым источникам: email, логины, телефон, Telegram, домен, IP, ФИО, криптоадреса.
+    Реальные запросы и реальные доказательства — без выдуманных данных.</div>
+</div></header>
+
+<div class="wrap">
+<div class="grid">
+  <div class="card">
+    <h2>Новый поиск</h2>
+    <label for="target">Что ищем</label>
+    <input type="text" id="target" placeholder="ivan.petrov@example.com · @durov · +79991234567 · example.com · 8.8.8.8 · Иван Петров" autofocus>
+    <div class="chips" id="examples">
+      <span class="chip" data-t="torvalds">torvalds (логин)</span>
+      <span class="chip" data-t="durov">@durov (Telegram)</span>
+      <span class="chip" data-t="github.com">github.com (домен)</span>
+      <span class="chip" data-t="8.8.8.8">8.8.8.8 (IP)</span>
+      <span class="chip" data-t="test@gmail.com">test@gmail.com (email)</span>
+    </div>
+    <div class="check">
+      <label><input type="checkbox" id="deep"> Глубокий режим</label>
+      <label><input type="checkbox" id="variants"> Варианты написания</label>
+      <label><input type="checkbox" id="smtp"> SMTP-проверка ящика</label>
+      <label><input type="checkbox" id="use_keys" checked> Использовать API-ключи</label>
+    </div>
+    <div style="margin-top:14px"><button id="go">Начать поиск</button></div>
+    <div class="muted" style="margin-top:10px" id="hint">
+      Доступные модули: <span id="plan"></span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Возможности</h2>
+    <div class="muted">База источников:</div>
+    <div>
+      <span class="stat"><b>{{ source_counts.username }}</b> логинов</span>
+      <span class="stat"><b>{{ source_counts.email }}</b> email-сервисов</span>
+      <span class="stat"><b>{{ source_counts.phone }}</b> телефонных</span>
+      <span class="stat"><b>{{ stats.searches }}</b> поисков в базе</span>
+      <span class="stat"><b>{{ stats.entities }}</b> сущностей</span>
+      <span class="stat"><b>{{ stats.edges }}</b> связей</span>
+    </div>
+    <div class="muted" style="margin-top:12px">
+      {% if env.mtproto %}<span class="tag">MTProto: включён</span>{% else %}<span class="tag">MTProto: нет ключей</span>{% endif %}
+      {% if env.bot %}<span class="tag">Telegram-бот: настроен</span>{% endif %}
+      {% if env.api_keys %}<span class="tag">API-ключи: {{ env.api_keys|join(', ') }}</span>{% endif %}
+      {% if not env.api_keys %}<span class="tag">API-ключи не заданы (базовые источники работают без них)</span>{% endif %}
+    </div>
+    <div style="margin-top:12px">
+      <a href="/sources">→ Реестр источников</a><br>
+      <a href="/docs">→ API (Swagger)</a><br>
+      <a href="/api/meta">→ /api/meta (JSON)</a>
+    </div>
+  </div>
+</div>
+
+<div class="card" id="progressCard" style="margin-bottom:18px">
+  <h2>Прогресс <span class="muted" id="jobInfo"></span></h2>
+  <div class="log" id="log">Ожидание запуска…</div>
+  <div class="row" style="margin-top:12px">
+    <button id="openReport" disabled>Открыть отчёт</button>
+    <button id="dlJson" disabled style="background:#2a3145">Скачать JSON</button>
+    <button id="dlHtml" disabled style="background:#2a3145">Скачать HTML</button>
+    <button id="dlCsv" disabled style="background:#2a3145">Скачать CSV</button>
+  </div>
+  <div id="inlineStats" class="muted" style="margin-top:10px"></div>
+</div>
+
+<div class="card" style="margin-bottom:18px">
+  <h2>Внешние базы (локальный индекс)</h2>
+  <div class="muted">Загрузите свои наборы данных (CSV/JSON/TXT с email, телефонами, логинами) —
+    поиск будет проверять их автоматически как источник <code>local-datasets</code>.</div>
+  <form id="uploadForm" style="margin-top:12px" class="row">
+    <input type="file" name="file" id="dsFile" style="flex:2">
+    <input type="text" name="name" id="dsName" placeholder="имя базы (необязательно)">
+    <button type="submit" style="flex:0 0 auto">Загрузить</button>
+  </form>
+  <div id="dsList" style="margin-top:12px">
+    {% for d in datasets %}
+      <div class="stat"><b>{{ d.name }}</b> — {{ d.rows }} строк ({{ d.imported_at[:16] }})</div>
+    {% endfor %}
+    {% if not datasets %}<span class="muted">Пока ничего не загружено.</span>{% endif %}
+  </div>
+</div>
+
+<div class="card">
+  <h2>История поисков</h2>
+  {% if history %}
+  <table>
+    <tr><th>Когда</th><th>Цель</th><th>Тип</th><th>Находок</th><th>Покрытие</th><th></th></tr>
+    {% for h in history %}
+    <tr>
+      <td>{{ (h.started_at or '')[:16] }}</td>
+      <td>{{ h.target }}</td>
+      <td><span class="badge">{{ h.target_type }}</span></td>
+      <td>{{ h.findings }}</td>
+      <td>{{ h.coverage }}%</td>
+      <td><a href="/report/{{ h.id }}">отчёт</a></td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}<div class="muted">История пуста.</div>{% endif %}
+</div>
+
+<footer>
+  OsintX использует только открытые источники. Недоступные источники помечаются как error/blocked и
+  никогда не выдаются за «не найдено». Проверяйте находки вручную — совпадение логина или email не
+  доказывает личность.
+</footer>
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const plan = {{ plan|tojson }};
+$('plan').textContent = 'email → ' + (plan.email||[]).join(', ') + ' · логин → ' + (plan.username||[]).join(', ') +
+  ' · домен → ' + (plan.domain||[]).join(', ');
+
+document.querySelectorAll('.chip').forEach(c => c.onclick = () => { $('target').value = c.dataset.t; });
+
+let currentJob = null, currentSearchId = null;
+
+function logLine(html, cls) {
+  const el = document.createElement('div');
+  if (cls) el.className = cls;
+  el.innerHTML = html;
+  const box = $('log');
+  box.appendChild(el);
+  box.scrollTop = box.scrollHeight;
+}
+
+async function start() {
+  const target = $('target').value.trim();
+  if (!target) { $('target').focus(); return; }
+  $('go').disabled = true;
+  $('log').innerHTML = '';
+  $('inlineStats').textContent = '';
+  $('openReport').disabled = $('dlJson').disabled = $('dlHtml').disabled = $('dlCsv').disabled = true;
+  logLine('→ запуск поиска по «' + target + '» …', 'info');
+  const resp = await fetch('/api/search', {method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({target, deep: $('deep').checked, variants: $('variants').checked,
+                          smtp: $('smtp').checked, use_keys: $('use_keys').checked})});
+  if (!resp.ok) { logLine('Ошибка запуска: ' + resp.status, 'err'); $('go').disabled = false; return; }
+  const data = await resp.json();
+  currentJob = data.job_id;
+  $('jobInfo').textContent = 'ID: ' + data.job_id + ' · тип цели: ' + data.target_type;
+  const es = new EventSource('/api/stream/' + currentJob);
+  es.onmessage = (ev) => {
+    const e = JSON.parse(ev.data);
+    if (e.kind === 'hit') logLine('✅ <span class="hit">' + e.source + '</span> — ' + (e.url || e.detail || ''), '');
+    else if (e.kind === 'module_start') logLine('▶ ' + (e.title || e.module), 'info');
+    else if (e.kind === 'stage') logLine('  ' + e.message, 'info');
+    else if (e.kind === 'module_done') logLine('  ✓ ' + e.module + ': проверено ' + e.checked + ', найдено ' + e.findings + ' (' + e.duration_ms + ' мс)', 'info');
+    else if (e.kind === 'start') logLine('Цель: ' + e.target + ' (' + e.target_type + ')', 'info');
+    else if (e.kind === 'error') logLine('⚠ ' + e.message, 'err');
+    else if (e.kind === 'done' || e.kind === 'stream_end') { finish(); es.close(); }
+  };
+  es.onerror = () => { es.close(); finish(); };
+}
+
+async function finish() {
+  if (!currentJob) return;
+  const r = await fetch('/api/report/' + currentJob);
+  const d = await r.json();
+  $('go').disabled = false;
+  if (d.status) { logLine('Задача не завершилась: ' + d.status, 'err'); return; }
+  currentSearchId = d.search_id;
+  const s = d.summary || {};
+  logLine('— поиск завершён —', 'info');
+  $('inlineStats').innerHTML = 'Находок: <b>' + s.findings + '</b> · проверено источников: <b>' +
+     s.sources_checked + '</b> (недоступно ' + s.sources_failed + ') · покрытие <b>' + s.coverage +
+     '%</b> · экспозиция <b>' + s.risk_score + '/100</b>';
+  $('openReport').disabled = $('dlJson').disabled = $('dlHtml').disabled = $('dlCsv').disabled = false;
+}
+
+$('go').onclick = start;
+$('target').addEventListener('keydown', e => { if (e.key === 'Enter') start(); });
+$('openReport').onclick = () => currentSearchId && window.open('/report/' + currentSearchId, '_blank');
+$('dlJson').onclick = () => currentSearchId && location.assign('/report/' + currentSearchId + '/download?fmt=json');
+$('dlHtml').onclick = () => currentSearchId && location.assign('/report/' + currentSearchId + '/download?fmt=html');
+$('dlCsv').onclick  = () => currentSearchId && location.assign('/report/' + currentSearchId + '/download?fmt=csv');
+
+$('uploadForm').onsubmit = async (e) => {
+  e.preventDefault();
+  const f = $('dsFile').files[0];
+  if (!f) return;
+  const fd = new FormData();
+  fd.append('file', f);
+  fd.append('name', $('dsName').value);
+  const r = await fetch('/api/datasets', {method:'POST', body: fd});
+  const d = await r.json();
+  const div = document.createElement('div');
+  div.className = 'stat';
+  div.innerHTML = '<b>' + d.dataset + '</b> — ' + d.rows + ' строк';
+  $('dsList').appendChild(div);
+};
+</script>
+</body></html>

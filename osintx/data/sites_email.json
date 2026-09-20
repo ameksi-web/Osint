@@ -1,0 +1,265 @@
+{
+ "title": "Реестр источников OsintX: email",
+ "updated": "2026-09-20",
+ "sites": [
+  {
+   "name": "discord-email",
+   "url": "https://discord.com/api/v9/auth/register",
+   "strategy": "message_include",
+   "confidence": "medium",
+   "kind": "account",
+   "tags": [
+    "api"
+   ],
+   "method": "POST",
+   "json_body": {
+    "email": "{email}",
+    "username": "osintxprobe1",
+    "password": "Qwerty!23456",
+    "consent": true,
+    "date_of_birth": "1995-01-01"
+   },
+   "found_msgs": [
+    "EMAIL_ALREADY_REGISTERED"
+   ],
+   "note": "Discord: ответ EMAIL_ALREADY_REGISTERED означает, что аккаунт с таким email существует (Cloudflare может блокировать — тогда статус blocked)",
+   "timeout": 12,
+   "retries": 0
+  },
+  {
+   "name": "duolingo-email",
+   "url": "https://www.duolingo.com/2017-06-30/users",
+   "strategy": "json_path",
+   "confidence": "medium",
+   "kind": "account",
+   "tags": [
+    "api"
+   ],
+   "params": {
+    "email": "{email}"
+   },
+   "json_found": {
+    "path": "users.0.username",
+    "op": "exists"
+   },
+   "note": "Duolingo: публичный список пользователей по email (так делает holehe)"
+  },
+  {
+   "name": "gravatar-email",
+   "url": "https://gravatar.com/{email_hash}.json",
+   "strategy": "json_path",
+   "confidence": "high",
+   "kind": "profile",
+   "tags": [
+    "api"
+   ],
+   "json_found": {
+    "path": "entry",
+    "op": "non_empty"
+   },
+   "note": "Gravatar: профиль по MD5-хешу адреса (WordPress-аккаунт)"
+  },
+  {
+   "name": "hunter-verify",
+   "url": "https://api.hunter.io/v2/email-verifier",
+   "strategy": "unsupported",
+   "confidence": "low",
+   "kind": "meta",
+   "tags": [
+    "api"
+   ],
+   "note": "Hunter.io проверяется в коде модуля (нужен ключ)",
+   "disabled": true
+  },
+  {
+   "name": "instagram-email",
+   "url": "https://www.instagram.com/accounts/account_recovery_send_ajax/",
+   "strategy": "message_include",
+   "confidence": "medium",
+   "kind": "account",
+   "tags": [
+    "api"
+   ],
+   "method": "POST",
+   "payload": {
+    "email_or_username": "{email}"
+   },
+   "found_msgs": [
+    "We sent an email to",
+    "email_sent"
+   ],
+   "note": "Instagram: запрос восстановления → «We sent an email to», если аккаунт есть"
+  },
+  {
+   "name": "microsoft",
+   "url": "https://login.microsoftonline.com/common/GetCredentialType",
+   "strategy": "json_path",
+   "confidence": "high",
+   "kind": "account",
+   "tags": [
+    "api"
+   ],
+   "method": "POST",
+   "json_body": {
+    "Username": "{email}",
+    "IsOtherIdpSupported": true,
+    "CheckPhones": false
+   },
+   "json_found": {
+    "path": "IfExistsResult",
+    "op": "equals",
+    "value": 0
+   },
+   "note": "Microsoft GetCredentialType: IfExistsResult=0 значит аккаунт существует (1/5/6 — нет)"
+  },
+  {
+   "name": "mozilla",
+   "url": "https://api.accounts.firefox.com/v1/account/status",
+   "strategy": "json_path",
+   "confidence": "high",
+   "kind": "account",
+   "tags": [
+    "api"
+   ],
+   "method": "POST",
+   "json_body": {
+    "email": "{email}"
+   },
+   "json_found": {
+    "path": "exists",
+    "op": "equals",
+    "value": true
+   },
+   "note": "Firefox Accounts: POST /v1/account/status → exists=true, если аккаунт есть"
+  },
+  {
+   "name": "pinterest-email",
+   "url": "https://www.pinterest.com/resource/EmailExistsResource/get/",
+   "strategy": "json_path",
+   "confidence": "medium",
+   "kind": "account",
+   "tags": [
+    "api"
+   ],
+   "params": {
+    "source_url": "/password/reset/",
+    "data": "{\"options\":{\"email\":\"{email}\"}}"
+   },
+   "json_found": {
+    "path": "resource_response.data",
+    "op": "equals",
+    "value": true
+   },
+   "note": "Pinterest: resource_response.data=true, если email занят"
+  },
+  {
+   "name": "protonmail",
+   "url": "https://api.protonmail.ch/pks/lookup",
+   "strategy": "status_code",
+   "confidence": "high",
+   "kind": "account",
+   "tags": [
+    "api"
+   ],
+   "params": {
+    "op": "index",
+    "search": "{email}"
+   },
+   "found_codes": [
+    200
+   ],
+   "not_found_codes": [
+    404
+   ],
+   "note": "Proton Mail: публичный PGP-сервер отдаёт ключ только для существующих адресов"
+  },
+  {
+   "name": "slack-check",
+   "url": "https://slack.com/api/users.admin.invite",
+   "strategy": "unsupported",
+   "confidence": "low",
+   "kind": "account",
+   "tags": [],
+   "note": "Требует токен/workspace — публичной проверки нет, оставлено как пример",
+   "disabled": true
+  },
+  {
+   "name": "spotify-email",
+   "url": "https://www.spotify.com/api/signup/validate",
+   "strategy": "json_path",
+   "confidence": "low",
+   "kind": "account",
+   "tags": [
+    "api"
+   ],
+   "params": {
+    "fields": "email",
+    "email": "{email}",
+    "validate": "1"
+   },
+   "json_found": {
+    "path": "email",
+    "op": "equals",
+    "value": true
+   },
+   "note": "Spotify: validate=true означает, что email свободен → инвертируем через калибровку (низкое доверие)"
+  },
+  {
+   "name": "tumblr-email",
+   "url": "https://www.tumblr.com/svc/account/register",
+   "strategy": "message_include",
+   "confidence": "low",
+   "kind": "account",
+   "tags": [
+    "api"
+   ],
+   "method": "POST",
+   "payload": {
+    "email": "{email}",
+    "password": "Qwerty!23456"
+   },
+   "found_msgs": [
+    "already",
+    "уже"
+   ]
+  },
+  {
+   "name": "twitter-email",
+   "url": "https://api.twitter.com/i/users/email_available.json",
+   "strategy": "json_path",
+   "confidence": "medium",
+   "kind": "account",
+   "tags": [
+    "api"
+   ],
+   "params": {
+    "email": "{email}"
+   },
+   "json_found": {
+    "path": "valid",
+    "op": "equals",
+    "value": false
+   },
+   "note": "Twitter: valid=false означает, что email уже занят (аккаунт есть)"
+  },
+  {
+   "name": "wordpress-email",
+   "url": "https://public-api.wordpress.com/rest/v1.1/users/email/exists",
+   "strategy": "json_path",
+   "confidence": "medium",
+   "kind": "account",
+   "tags": [
+    "api"
+   ],
+   "params": {
+    "email": "{email}"
+   },
+   "json_found": {
+    "path": "exists",
+    "op": "equals",
+    "value": true
+   },
+   "note": "WordPress.com: /users/email/exists → exists=true"
+  }
+ ]
+}

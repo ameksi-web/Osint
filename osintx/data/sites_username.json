@@ -1,0 +1,1451 @@
+{
+ "title": "Реестр источников OsintX: username",
+ "updated": "2026-09-20",
+ "sites": [
+  {
+   "name": "500px",
+   "url": "https://500px.com/p/{username}",
+   "strategy": "status_code",
+   "confidence": "medium",
+   "kind": "profile",
+   "tags": [
+    "art"
+   ]
+  },
+  {
+   "name": "9gag",
+   "url": "https://9gag.com/u/{username}",
+   "strategy": "status_code",
+   "confidence": "medium",
+   "kind": "profile",
+   "tags": [
+    "media"
+   ]
+  },
+  {
+   "name": "aboutme",
+   "url": "https://about.me/{username}",
+   "strategy": "status_code",
+   "confidence": "medium",
+   "kind": "profile",
+   "tags": [
+    "profile"
+   ]
+  },
+  {
+   "name": "angelco",
+   "url": "https://angel.co/u/{username}",
+   "strategy": "status_code",
+   "confidence": "low",
+   "kind": "profile",
+   "tags": [
+    "work"
+   ]
+  },
+  {
+   "name": "anilist",
+   "url": "https://anilist.co/user/{username}/",
+   "strategy": "status_code",
+   "confidence": "high",
+   "kind": "profile",
+   "tags": [
+    "media"
+   ],
+   "control_user": "AniList"
+  },
+  {
+   "name": "artstation",
+   "url": "https://www.artstation.com/{username}",
+   "strategy": "status_code",
+   "confidence": "high",
+   "kind": "profile",
+   "tags": [
+    "art"
+   ],
+   "control_user": "artstation"
+  },
+  {
+   "name": "bandcamp",
+   "url": "https://bandcamp.com/{username}",
+   "strategy": "status_code",
+   "confidence": "medium",
+   "kind": "profile",
+   "tags": [
+    "music"
+   ],
+   "control_user": "bandcamp"
+  },
+  {
+   "name": "behance",
+   "url": "https://www.behance.net/{username}",
+   "strategy": "status_code",
+   "confidence": "high",
+   "kind": "profile",
+   "tags": [
+    "art"
+   ],
+   "control_user": "behance"
+  },
+  {
+   "name": "bitbucket",
+   "url": "https://bitbucket.org/{username}/",
+   "strategy": "status_code",
+   "confidence": "medium",
+   "kind": "profile",
+   "tags": [
+    "dev"
+   ],
+   "control_user": "atlassian"
+  },
+  {
+   "name": "blogspot",
+   "url": "https://{username}.blogspot.com/",
+   "strategy": "status_code",
+   "confidence": "medium",
+   "kind": "profile",
+   "tags": [
+    "blog"
+   ]
+  },
+  {
+   "name": "bluesky",
+   "url": "https://public.api.bsky.app/xrpc/app.bsky.actor.getProfile",
+   "strategy": "json_path",
+   "confidence": "high",
+   "kind": "profile",
+   "tags": [
+    "social",
+    "fediverse"
+   ],
+   "control_user": "bsky.app",
+   "params": {
+    "actor": "{username}.bsky.social"
+   },
+   "json_found": {
+    "path": "did",
+    "op": "non_empty"
+   },
+   "note": "Bluesky: проверяется handle <логин>.bsky.social через публичный API"
+  },
+  {
+   "name": "bugcrowd",
+   "url": "https://bugcrowd.com/{username}",
+   "strategy": "status_code",
+   "confidence": "medium",
+   "kind": "profile",
+   "tags": [
+    "security"
+   ],
+   "control_user": "bugcrowd"
+  },
+  {
+   "name": "buymeacoffee",
+   "url": "https://www.buymeacoffee.com/{username}",
+   "strategy": "status_code",
+   "confidence": "medium",
+   "kind": "profile",
+   "tags": [
+    "money"
+   ]
+  },
+  {
+   "name": "calendly",
+   "url": "https://calendly.com/{username}",
+   "strategy": "status_code",
+   "confidence": "medium",
+   "kind": "profile",
+   "tags": [
+    "work"
+   ]
+  },
+  {
+   "name": "cashapp",
+   "url": "https://cash.app/${username}",
+   "strategy": "status_code",
+   "confidence": "low",
+   "kind": "profile",
+   "tags": [
+    "money"
+   ]
+  },
+  {
+   "name": "chesscom",
+   "url": "https://www.chess.com/member/{username}",
+   "strategy": "status_code",
+   "confidence": "high",
+   "kind": "profile",
+   "tags": [
+    "games"
+   ],
+   "control_user": "hikaru"
+  },
+  {
+   "name": "codeberg",
+   "url": "https://codeberg.org/{username}",
+   "strategy": "status_code",
+   "confidence": "high",
+   "kind": "profile",
+   "tags": [
+    "dev"
+   ],
+   "control_user": "Codeberg"
+  },
+  {
+   "name": "codeforces",
+   "url": "https://codeforces.com/profile/{username}",
+   "strategy": "status_code",
+   "confidence": "high",
+   "kind": "profile",
+   "tags": [
+    "dev",
+    "ctf"
+   ],
+   "control_user": "tourist"
+  },
+  {
+   "name": "codepen",
+   "url": "https://codepen.io/{username}",
+   "strategy": "status_code",
+   "confidence": "high",
+   "kind": "profile",
+   "tags": [
+    "dev"
+   ],
+   "control_user": "codepen"
+  },
+  {
+   "name": "codesandbox",
+   "url": "https://codesandbox.io/u/{username}",
+   "strategy": "status_code",
+   "confidence": "medium",
+   "kind": "profile",
+   "tags": [
+    "dev"
+   ]
+  },
+  {
+   "name": "codewars",
+   "url": "https://www.codewars.com/users/{username}",
+   "strategy": "status_code",
+   "confidence": "high",
+   "kind": "profile",
+   "tags": [
+    "dev",
+    "ctf"
+   ],
+   "control_user": "codewars"
+  },
+  {
+   "name": "cratesio",
+   "url": "https://crates.io/api/v1/users/{username}",
+   "strategy": "status_code",
+   "confidence": "high",
+   "kind": "profile",
+   "tags": [
+    "dev"
+   ],
+   "control_user": "alexcrichton"
+  },
+  {
+   "name": "crunchbase",
+   "url": "https://www.crunchbase.com/person/{username}",
+   "strategy": "status_code",
+   "confidence": "low",
+   "kind": "profile",
+   "tags": [
+    "work"
+   ]
+  },
+  {
+   "name": "dailymotion",
+   "url": "https://www.dailymotion.com/{username}",
+   "strategy": "status_code",
+   "confidence": "medium",
+   "kind": "profile",
+   "tags": [
+    "video"
+   ],
+   "control_user": "dailymotion"
+  },
+  {
+   "name": "deviantart",
+   "url": "https://www.deviantart.com/{username}",
+   "strategy": "status_code",
+   "confidence": "medium",
+   "kind": "profile",
+   "tags": [
+    "art"
+   ]
+  },
+  {
+   "name": "devto",
+   "url": "https://dev.to/api/users/by_username",
+   "strategy": "json_path",
+   "confidence": "high",
+   "kind": "profile",
+   "tags": [
+    "dev"
+   ],
+   "control_user": "ben",
+   "params": {
+    "url": "{username}"
+   },
+   "json_found": {
+    "path": "username",
+    "op": "exists"
+   }
+  },
+  {
+   "name": "disqus",
+   "url": "https://disqus.com/by/{username}/",
+   "strategy": "status_code",
+   "confidence": "high",
+   "kind": "profile",
+   "tags": [
+    "social"
+   ],
+   "control_user": "disqus"
+  },
+  {
+   "name": "dockerhub",
+   "url": "https://hub.docker.com/v2/users/{username}/",
+   "strategy": "json_path",
+   "confidence": "high",
+   "kind": "profile",
+   "tags": [
+    "dev"
+   ],
+   "control_user": "library",
+   "json_found": {
+    "path": "username",
+    "op": "exists"
+   }
+  },
+  {
+   "name": "dribbble",
+   "url": "https://dribbble.com/{username}",
+   "strategy": "status_code",
+   "confidence": "high",
+   "kind": "profile",
+   "tags": [
+    "art"
+   ],
+   "control_user": "dribbble"
+  },
+  {
+   "name": "duolingo",
+   "url": "https://www.duolingo.com/profile/{username}",
+   "strategy": "status_code",
+   "confidence": "medium",
+   "kind": "profile",
+   "tags": [
+    "edu"
+   ],
+   "control_user": "duolingo"
+  },
+  {
+   "name": "dzen",
+   "url": "https://dzen.ru/{username}",
+   "strategy": "status_code",
+   "confidence": "low",
+   "kind": "profile",
+   "tags": [
+    "blog",
+    "ru"
+   ]
+  },
+  {
+   "name": "ebay",
+   "url": "https://www.ebay.com/usr/{username}",
+   "strategy": "status_code",
+   "confidence": "medium",
+   "kind": "profile",
+   "tags": [
+    "market"
+   ],
+   "control_user": "ebay"
+  },
+  {
+   "name": "etsy",
+   "url": "https://www.etsy.com/shop/{username}",
+   "strategy": "status_code",
+   "confidence": "medium",
+   "kind": "profile",
+   "tags": [
+    "market"
+   ],
+   "control_user": "etsy"
+  },
+  {
+   "name": "exercism",
+   "url": "https://exercism.org/profiles/{username}",
+   "strategy": "status_code",
+   "confidence": "high",
+   "kind": "profile",
+   "tags": [
+    "dev"
+   ],
+   "control_user": "exercism"
+  },
+  {
+   "name": "facebook",
+   "url": "https://www.facebook.com/{username}",
+   "strategy": "message_exclude",
+   "confidence": "low",
+   "kind": "profile",
+   "tags": [
+    "social"
+   ],
+   "not_found_msgs": [
+    "content isn't available",
+    "This content isn't available right now",
+    "Page Not Found"
+   ],
+   "note": "Facebook почти всегда требует вход"
+  },
+  {
+   "name": "flickr",
+   "url": "https://www.flickr.com/people/{username}",
+   "strategy": "status_code",
+   "confidence": "medium",
+   "kind": "profile",
+   "tags": [
+    "art"
+   ]
+  },
+  {
+   "name": "foursquare",
+   "url": "https://foursquare.com/{username}",
+   "strategy": "status_code",
+   "confidence": "medium",
+   "kind": "profile",
+   "tags": [
+    "geo"
+   ],
+   "control_user": "foursquare"
+  },
+  {
+   "name": "freecodecamp",
+   "url": "https://www.freecodecamp.org/{username}",
+   "strategy": "status_code",
+   "confidence": "medium",
+   "kind": "profile",
+   "tags": [
+    "dev"
+   ],
+   "control_user": "quincy"
+  },
+  {
+   "name": "genius",
+   "url": "https://genius.com/{username}",
+   "strategy": "status_code",
+   "confidence": "medium",
+   "kind": "profile",
+   "tags": [
+    "music"
+   ],
+   "control_user": "genius"
+  },
+  {
+   "name": "gist",
+   "url": "https://gist.github.com/{username}",
+   "strategy": "status_code",
+   "confidence": "high",
+   "kind": "profile",
+   "tags": [
+    "dev"
+   ],
+   "control_user": "torvalds"
+  },
+  {
+   "name": "github",
+   "url": "https://github.com/{username}",
+   "strategy": "status_code",
+   "confidence": "high",
+   "kind": "profile",
+   "tags": [
+    "dev"
+   ],
+   "control_user": "torvalds",
+   "extract_meta": true
+  },
+  {
+   "name": "gitlab",
+   "url": "https://gitlab.com/{username}",
+   "strategy": "status_code",
+   "confidence": "medium",
+   "kind": "profile",
+   "tags": [
+    "dev"
+   ],
+   "control_user": "gitlab"
+  },
+  {
+   "name": "glitch",
+   "url": "https://glitch.com/@{username}",
+   "strategy": "status_code",
+   "confidence": "medium",
+   "kind": "profile",
+   "tags": [
+    "dev"
+   ],
+   "control_user": "glitch"
+  },
+  {
+   "name": "goodreads",
+   "url": "https://www.goodreads.com/{username}",
+   "strategy": "status_code",
+   "confidence": "low",
+   "kind": "profile",
+   "tags": [
+    "media"
+   ]
+  },
+  {
+   "name": "gravatar",
+   "url": "https://gravatar.com/{username}.json",
+   "strategy": "json_path",
+   "confidence": "high",
+   "kind": "profile",
+   "tags": [
+    "profile"
+   ],
+   "json_found": {
+    "path": "entry",
+    "op": "non_empty"
+   }
+  },
+  {
+   "name": "habr",
+   "url": "https://habr.com/ru/users/{username}/",
+   "strategy": "status_code",
+   "confidence": "high",
+   "kind": "profile",
+   "tags": [
+    "blog",
+    "ru",
+    "dev"
+   ],
+   "control_user": "habr"
+  },
+  {
+   "name": "hackerone",
+   "url": "https://hackerone.com/{username}",
+   "strategy": "status_code",
+   "confidence": "high",
+   "kind": "profile",
+   "tags": [
+    "security"
+   ],
+   "control_user": "hackerone"
+  },
+  {
+   "name": "hackerrank",
+   "url": "https://www.hackerrank.com/{username}",
+   "strategy": "status_code",
+   "confidence": "medium",
+   "kind": "profile",
+   "tags": [
+    "dev",
+    "ctf"
+   ],
+   "control_user": "hackerrank"
+  },
+  {
+   "name": "hashnode",
+   "url": "https://hashnode.com/@{username}",
+   "strategy": "status_code",
+   "confidence": "medium",
+   "kind": "profile",
+   "tags": [
+    "blog",
+    "dev"
+   ],
+   "control_user": "hashnode"
+  },
+  {
+   "name": "huggingface",
+   "url": "https://huggingface.co/{username}",
+   "strategy": "status_code",
+   "confidence": "high",
+   "kind": "profile",
+   "tags": [
+    "dev",
+    "ai"
+   ],
+   "control_user": "huggingface"
+  },
+  {
+   "name": "imgur",
+   "url": "https://imgur.com/user/{username}",
+   "strategy": "status_code",
+   "confidence": "high",
+   "kind": "profile",
+   "tags": [
+    "media"
+   ],
+   "control_user": "imgur"
+  },
+  {
+   "name": "instagram",
+   "url": "https://www.instagram.com/{username}/",
+   "strategy": "message_exclude",
+   "confidence": "medium",
+   "kind": "profile",
+   "tags": [
+    "social"
+   ],
+   "control_user": "instagram",
+   "not_found_msgs": [
+    "Sorry, this page isn't available",
+    "Page Not Found"
+   ],
+   "extract_meta": true,
+   "note": "Instagram часто отдаёт заглушку для дата-центровых IP"
+  },
+  {
+   "name": "jsfiddle",
+   "url": "https://jsfiddle.net/user/{username}/",
+   "strategy": "status_code",
+   "confidence": "medium",
+   "kind": "profile",
+   "tags": [
+    "dev"
+   ]
+  },
+  {
+   "name": "kaggle",
+   "url": "https://www.kaggle.com/{username}",
+   "strategy": "status_code",
+   "confidence": "high",
+   "kind": "profile",
+   "tags": [
+    "dev",
+    "data"
+   ],
+   "control_user": "kaggle"
+  },
+  {
+   "name": "keybase",
+   "url": "https://keybase.io/{username}",
+   "strategy": "status_code",
+   "confidence": "medium",
+   "kind": "profile",
+   "tags": [
+    "dev",
+    "crypto"
+   ],
+   "control_user": "chris"
+  },
+  {
+   "name": "keybase-json",
+   "url": "https://keybase.io/_/api/1.0/user/lookup.json",
+   "strategy": "json_path",
+   "confidence": "medium",
+   "kind": "profile",
+   "tags": [
+    "dev"
+   ],
+   "params": {
+    "username": "{username}"
+   },
+   "json_found": {
+    "path": "them.0.id",
+    "op": "exists"
+   },
+   "note": "keybase уже проверяется через API в коде модуля",
+   "disabled": true
+  },
+  {
+   "name": "kick",
+   "url": "https://kick.com/{username}",
+   "strategy": "status_code",
+   "confidence": "medium",
+   "kind": "profile",
+   "tags": [
+    "video"
+   ],
+   "control_user": "kick"
+  },
+  {
+   "name": "ko-fi",
+   "url": "https://ko-fi.com/{username}",
+   "strategy": "status_code",
+   "confidence": "low",
+   "kind": "profile",
+   "tags": [
+    "money"
+   ],
+   "note": "дубль buymeacoffee-подобного сервиса, оставлен пример отключённого источника",
+   "disabled": true
+  },
+  {
+   "name": "kofi",
+   "url": "https://ko-fi.com/{username}",
+   "strategy": "status_code",
+   "confidence": "medium",
+   "kind": "profile",
+   "tags": [
+    "money"
+   ]
+  },
+  {
+   "name": "lastfm",
+   "url": "https://www.last.fm/user/{username}",
+   "strategy": "status_code",
+   "confidence": "high",
+   "kind": "profile",
+   "tags": [
+    "music"
+   ],
+   "control_user": "RJ"
+  },
+  {
+   "name": "launchpad",
+   "url": "https://launchpad.net/~{username}",
+   "strategy": "status_code",
+   "confidence": "medium",
+   "kind": "profile",
+   "tags": [
+    "dev"
+   ],
+   "control_user": "ubuntu"
+  },
+  {
+   "name": "leetcode",
+   "url": "https://leetcode.com/{username}/",
+   "strategy": "status_code",
+   "confidence": "high",
+   "kind": "profile",
+   "tags": [
+    "dev",
+    "ctf"
+   ],
+   "control_user": "leetcode"
+  },
+  {
+   "name": "letterboxd",
+   "url": "https://letterboxd.com/{username}/",
+   "strategy": "status_code",
+   "confidence": "high",
+   "kind": "profile",
+   "tags": [
+    "media"
+   ],
+   "control_user": "letterboxd"
+  },
+  {
+   "name": "lichess",
+   "url": "https://lichess.org/@{username}",
+   "strategy": "status_code",
+   "confidence": "high",
+   "kind": "profile",
+   "tags": [
+    "games"
+   ],
+   "control_user": "lichess"
+  },
+  {
+   "name": "linkedin",
+   "url": "https://www.linkedin.com/in/{username}",
+   "strategy": "status_code",
+   "confidence": "low",
+   "kind": "profile",
+   "tags": [
+    "social",
+    "work"
+   ],
+   "note": "LinkedIn отдаёт HTTP 999 ботам"
+  },
+  {
+   "name": "linktree",
+   "url": "https://linktr.ee/{username}",
+   "strategy": "status_code",
+   "confidence": "high",
+   "kind": "profile",
+   "tags": [
+    "profile"
+   ],
+   "control_user": "linktree"
+  },
+  {
+   "name": "livejournal",
+   "url": "https://{username}.livejournal.com/",
+   "strategy": "status_code",
+   "confidence": "medium",
+   "kind": "profile",
+   "tags": [
+    "blog",
+    "ru"
+   ]
+  },
+  {
+   "name": "mastodon.social",
+   "url": "https://mastodon.social/@{username}",
+   "strategy": "status_code",
+   "confidence": "high",
+   "kind": "profile",
+   "tags": [
+    "social",
+    "fediverse"
+   ],
+   "control_user": "mastodon"
+  },
+  {
+   "name": "medium",
+   "url": "https://medium.com/@{username}",
+   "strategy": "message_exclude",
+   "confidence": "low",
+   "kind": "profile",
+   "tags": [
+    "blog"
+   ],
+   "not_found_msgs": [
+    "Out of nothing, something",
+    "404"
+   ]
+  },
+  {
+   "name": "mixcloud",
+   "url": "https://www.mixcloud.com/{username}/",
+   "strategy": "status_code",
+   "confidence": "medium",
+   "kind": "profile",
+   "tags": [
+    "music"
+   ]
+  },
+  {
+   "name": "myanimelist",
+   "url": "https://myanimelist.net/profile/{username}",
+   "strategy": "status_code",
+   "confidence": "medium",
+   "kind": "profile",
+   "tags": [
+    "media"
+   ]
+  },
+  {
+   "name": "myspace",
+   "url": "https://myspace.com/{username}",
+   "strategy": "status_code",
+   "confidence": "low",
+   "kind": "profile",
+   "tags": [
+    "social"
+   ]
+  },
+  {
+   "name": "namemc",
+   "url": "https://namemc.com/profile/{username}",
+   "strategy": "status_code",
+   "confidence": "medium",
+   "kind": "profile",
+   "tags": [
+    "games"
+   ],
+   "control_user": "Notch"
+  },
+  {
+   "name": "npm",
+   "url": "https://registry.npmjs.org/-/user/org.couchdb.user:{username}",
+   "strategy": "json_path",
+   "confidence": "high",
+   "kind": "profile",
+   "tags": [
+    "dev"
+   ],
+   "control_user": "npm",
+   "json_found": {
+    "path": "name",
+    "op": "exists"
+   }
+  },
+  {
+   "name": "ok",
+   "url": "https://ok.ru/{username}",
+   "strategy": "status_code",
+   "confidence": "low",
+   "kind": "profile",
+   "tags": [
+    "social",
+    "ru"
+   ],
+   "note": "OK.ru отдаёт 200 и для несуществующих страниц — нужна калибровка"
+  },
+  {
+   "name": "opensea",
+   "url": "https://opensea.io/{username}",
+   "strategy": "status_code",
+   "confidence": "medium",
+   "kind": "profile",
+   "tags": [
+    "crypto"
+   ],
+   "control_user": "opensea"
+  },
+  {
+   "name": "osu",
+   "url": "https://osu.ppy.sh/users/{username}",
+   "strategy": "status_code",
+   "confidence": "high",
+   "kind": "profile",
+   "tags": [
+    "games"
+   ],
+   "control_user": "peppy"
+  },
+  {
+   "name": "patreon",
+   "url": "https://www.patreon.com/{username}",
+   "strategy": "status_code",
+   "confidence": "medium",
+   "kind": "profile",
+   "tags": [
+    "money"
+   ],
+   "control_user": "patreon"
+  },
+  {
+   "name": "paypal",
+   "url": "https://www.paypal.me/{username}",
+   "strategy": "message_exclude",
+   "confidence": "low",
+   "kind": "profile",
+   "tags": [
+    "money"
+   ],
+   "not_found_msgs": [
+    "This profile doesn't exist",
+    "We can't find this profile"
+   ]
+  },
+  {
+   "name": "pikabu",
+   "url": "https://pikabu.ru/@{username}",
+   "strategy": "status_code",
+   "confidence": "medium",
+   "kind": "profile",
+   "tags": [
+    "blog",
+    "ru"
+   ]
+  },
+  {
+   "name": "pinterest",
+   "url": "https://www.pinterest.com/{username}/",
+   "strategy": "status_code",
+   "confidence": "high",
+   "kind": "profile",
+   "tags": [
+    "social"
+   ],
+   "control_user": "pinterest"
+  },
+  {
+   "name": "producthunt",
+   "url": "https://www.producthunt.com/@{username}",
+   "strategy": "status_code",
+   "confidence": "medium",
+   "kind": "profile",
+   "tags": [
+    "tech"
+   ],
+   "control_user": "producthunt"
+  },
+  {
+   "name": "pypi",
+   "url": "https://pypi.org/user/{username}/",
+   "strategy": "status_code",
+   "confidence": "low",
+   "kind": "profile",
+   "tags": [
+    "dev"
+   ],
+   "control_user": "kennethreitz",
+   "note": "PyPI отдаёт страницу-челлендж (HTTP 200) для ботов: без калибровки возможен ложный «найден». Проверяй результат вручную по ссылке."
+  },
+  {
+   "name": "qiita",
+   "url": "https://qiita.com/{username}",
+   "strategy": "status_code",
+   "confidence": "medium",
+   "kind": "profile",
+   "tags": [
+    "dev",
+    "jp"
+   ],
+   "control_user": "qiita"
+  },
+  {
+   "name": "quora",
+   "url": "https://www.quora.com/profile/{username}",
+   "strategy": "status_code",
+   "confidence": "low",
+   "kind": "profile",
+   "tags": [
+    "social"
+   ],
+   "note": "Quora блокирует ботов (403) — результат помечается как blocked"
+  },
+  {
+   "name": "reddit",
+   "url": "https://www.reddit.com/user/{username}/about.json",
+   "strategy": "json_path",
+   "confidence": "high",
+   "kind": "profile",
+   "tags": [
+    "social"
+   ],
+   "control_user": "reddit",
+   "json_found": {
+    "path": "data.name",
+    "op": "exists"
+   }
+  },
+  {
+   "name": "replit",
+   "url": "https://replit.com/@{username}",
+   "strategy": "status_code",
+   "confidence": "medium",
+   "kind": "profile",
+   "tags": [
+    "dev"
+   ],
+   "control_user": "replit"
+  },
+  {
+   "name": "replit-2",
+   "url": "https://replit.com/@{username}",
+   "strategy": "status_code",
+   "confidence": "low",
+   "kind": "profile",
+   "tags": [
+    "dev"
+   ],
+   "note": "пример отключённой записи",
+   "disabled": true
+  },
+  {
+   "name": "roblox",
+   "url": "https://users.roblox.com/v1/usernames/users",
+   "strategy": "json_path",
+   "confidence": "high",
+   "kind": "profile",
+   "tags": [
+    "games"
+   ],
+   "control_user": "Roblox",
+   "method": "POST",
+   "json_body": {
+    "usernames": [
+     "{username}"
+    ],
+    "excludeBypassDisplayNameChanges": true
+   },
+   "json_found": {
+    "path": "data.0.id",
+    "op": "exists"
+   }
+  },
+  {
+   "name": "rubygems",
+   "url": "https://rubygems.org/profiles/{username}",
+   "strategy": "status_code",
+   "confidence": "medium",
+   "kind": "profile",
+   "tags": [
+    "dev"
+   ],
+   "control_user": "dhh"
+  },
+  {
+   "name": "rutube",
+   "url": "https://rutube.ru/channel/{username}/",
+   "strategy": "status_code",
+   "confidence": "low",
+   "kind": "profile",
+   "tags": [
+    "video",
+    "ru"
+   ]
+  },
+  {
+   "name": "shopify",
+   "url": "https://{username}.myshopify.com/",
+   "strategy": "status_code",
+   "confidence": "low",
+   "kind": "profile",
+   "tags": [
+    "market"
+   ]
+  },
+  {
+   "name": "snapchat",
+   "url": "https://www.snapchat.com/add/{username}",
+   "strategy": "status_code",
+   "confidence": "low",
+   "kind": "profile",
+   "tags": [
+    "social"
+   ]
+  },
+  {
+   "name": "soundbetter",
+   "url": "https://soundbetter.com/profiles/{username}",
+   "strategy": "status_code",
+   "confidence": "low",
+   "kind": "profile",
+   "tags": [
+    "music"
+   ]
+  },
+  {
+   "name": "soundcloud",
+   "url": "https://soundcloud.com/{username}",
+   "strategy": "status_code",
+   "confidence": "high",
+   "kind": "profile",
+   "tags": [
+    "music"
+   ],
+   "control_user": "soundcloud"
+  },
+  {
+   "name": "sourceforge",
+   "url": "https://sourceforge.net/u/{username}/profile",
+   "strategy": "status_code",
+   "confidence": "medium",
+   "kind": "profile",
+   "tags": [
+    "dev"
+   ],
+   "control_user": "sourceforge"
+  },
+  {
+   "name": "splice",
+   "url": "https://splice.com/{username}",
+   "strategy": "status_code",
+   "confidence": "low",
+   "kind": "profile",
+   "tags": [
+    "music"
+   ]
+  },
+  {
+   "name": "spotify",
+   "url": "https://open.spotify.com/user/{username}",
+   "strategy": "status_code",
+   "confidence": "medium",
+   "kind": "profile",
+   "tags": [
+    "music"
+   ],
+   "control_user": "spotify"
+  },
+  {
+   "name": "stackblitz",
+   "url": "https://stackblitz.com/@{username}",
+   "strategy": "status_code",
+   "confidence": "low",
+   "kind": "profile",
+   "tags": [
+    "dev"
+   ]
+  },
+  {
+   "name": "steam",
+   "url": "https://steamcommunity.com/id/{username}",
+   "strategy": "message_exclude",
+   "confidence": "high",
+   "kind": "profile",
+   "tags": [
+    "games"
+   ],
+   "not_found_msgs": [
+    "The specified profile could not be found"
+   ]
+  },
+  {
+   "name": "steamid",
+   "url": "https://steamcommunity.com/search/users/#text={username}",
+   "strategy": "message_exclude",
+   "confidence": "low",
+   "kind": "profile",
+   "tags": [
+    "games"
+   ],
+   "not_found_msgs": [],
+   "note": "поиск по Steam — только через их API/поиск, оставлено как заглушка",
+   "disabled": true
+  },
+  {
+   "name": "substack",
+   "url": "https://{username}.substack.com/",
+   "strategy": "status_code",
+   "confidence": "medium",
+   "kind": "profile",
+   "tags": [
+    "blog"
+   ]
+  },
+  {
+   "name": "telegram",
+   "url": "https://t.me/{username}",
+   "strategy": "status_code",
+   "confidence": "high",
+   "kind": "profile",
+   "tags": [
+    "messenger",
+    "ru"
+   ],
+   "control_user": "durov"
+  },
+  {
+   "name": "telegram-preview",
+   "url": "https://t.me/s/{username}",
+   "strategy": "message_exclude",
+   "confidence": "low",
+   "kind": "profile",
+   "tags": [
+    "messenger"
+   ],
+   "not_found_msgs": [
+    "If you have Telegram, you can contact",
+    "Preview channel"
+   ],
+   "note": "отдельная проверка каналов делается Telegram-модулем",
+   "disabled": true
+  },
+  {
+   "name": "teletype",
+   "url": "https://teletype.in/@{username}",
+   "strategy": "status_code",
+   "confidence": "low",
+   "kind": "profile",
+   "tags": [
+    "blog",
+    "ru"
+   ]
+  },
+  {
+   "name": "tenchat",
+   "url": "https://tenchat.ru/{username}",
+   "strategy": "status_code",
+   "confidence": "low",
+   "kind": "profile",
+   "tags": [
+    "social",
+    "ru"
+   ]
+  },
+  {
+   "name": "tiktok",
+   "url": "https://www.tiktok.com/@{username}",
+   "strategy": "message_exclude",
+   "confidence": "low",
+   "kind": "profile",
+   "tags": [
+    "social"
+   ],
+   "control_user": "tiktok",
+   "not_found_msgs": [
+    "Couldn't find this account",
+    "Couldn’t find this account"
+   ]
+  },
+  {
+   "name": "trakt",
+   "url": "https://trakt.tv/users/{username}",
+   "strategy": "status_code",
+   "confidence": "high",
+   "kind": "profile",
+   "tags": [
+    "media"
+   ],
+   "control_user": "trakt"
+  },
+  {
+   "name": "trello",
+   "url": "https://trello.com/{username}",
+   "strategy": "status_code",
+   "confidence": "low",
+   "kind": "profile",
+   "tags": [
+    "work"
+   ]
+  },
+  {
+   "name": "tryhackme",
+   "url": "https://tryhackme.com/p/{username}",
+   "strategy": "status_code",
+   "confidence": "medium",
+   "kind": "profile",
+   "tags": [
+    "ctf",
+    "security"
+   ]
+  },
+  {
+   "name": "tumblr",
+   "url": "https://{username}.tumblr.com/",
+   "strategy": "status_code",
+   "confidence": "medium",
+   "kind": "profile",
+   "tags": [
+    "blog"
+   ],
+   "control_user": "staff"
+  },
+  {
+   "name": "twitch",
+   "url": "https://www.twitch.tv/{username}",
+   "strategy": "status_code",
+   "confidence": "high",
+   "kind": "profile",
+   "tags": [
+    "video"
+   ],
+   "control_user": "twitch"
+  },
+  {
+   "name": "twitter",
+   "url": "https://x.com/{username}",
+   "strategy": "message_exclude",
+   "confidence": "low",
+   "kind": "profile",
+   "tags": [
+    "social"
+   ],
+   "not_found_msgs": [
+    "This account doesn’t exist",
+    "This account doesn't exist",
+    "Hmm...this page doesn’t exist"
+   ],
+   "note": "X/Twitter требует JS и часто отдаёт страницу входа"
+  },
+  {
+   "name": "unsplash",
+   "url": "https://unsplash.com/@{username}",
+   "strategy": "status_code",
+   "confidence": "high",
+   "kind": "profile",
+   "tags": [
+    "art"
+   ],
+   "control_user": "unsplash"
+  },
+  {
+   "name": "untappd",
+   "url": "https://untappd.com/user/{username}",
+   "strategy": "status_code",
+   "confidence": "medium",
+   "kind": "profile",
+   "tags": [
+    "social"
+   ]
+  },
+  {
+   "name": "vcru",
+   "url": "https://vc.ru/u/{username}",
+   "strategy": "status_code",
+   "confidence": "medium",
+   "kind": "profile",
+   "tags": [
+    "blog",
+    "ru"
+   ]
+  },
+  {
+   "name": "venmo",
+   "url": "https://account.venmo.com/u/{username}",
+   "strategy": "status_code",
+   "confidence": "low",
+   "kind": "profile",
+   "tags": [
+    "money"
+   ]
+  },
+  {
+   "name": "vercel",
+   "url": "https://vercel.com/{username}",
+   "strategy": "status_code",
+   "confidence": "medium",
+   "kind": "profile",
+   "tags": [
+    "dev"
+   ]
+  },
+  {
+   "name": "vimeo",
+   "url": "https://vimeo.com/{username}",
+   "strategy": "status_code",
+   "confidence": "high",
+   "kind": "profile",
+   "tags": [
+    "video"
+   ],
+   "control_user": "vimeo"
+  },
+  {
+   "name": "vk",
+   "url": "https://vk.com/{username}",
+   "strategy": "message_exclude",
+   "confidence": "medium",
+   "kind": "profile",
+   "tags": [
+    "social",
+    "ru"
+   ],
+   "control_user": "vk",
+   "not_found_msgs": [
+    "Профиль не найден",
+    "Page not found",
+    "Такой страницы нет"
+   ]
+  },
+  {
+   "name": "wordpress",
+   "url": "https://{username}.wordpress.com/",
+   "strategy": "status_code",
+   "confidence": "medium",
+   "kind": "profile",
+   "tags": [
+    "blog"
+   ]
+  },
+  {
+   "name": "xing",
+   "url": "https://www.xing.com/profile/{username}",
+   "strategy": "status_code",
+   "confidence": "low",
+   "kind": "profile",
+   "tags": [
+    "work"
+   ]
+  },
+  {
+   "name": "youtube",
+   "url": "https://www.youtube.com/@{username}",
+   "strategy": "status_code",
+   "confidence": "high",
+   "kind": "profile",
+   "tags": [
+    "video"
+   ],
+   "control_user": "YouTube"
+  },
+  {
+   "name": "zenn",
+   "url": "https://zenn.dev/{username}",
+   "strategy": "status_code",
+   "confidence": "medium",
+   "kind": "profile",
+   "tags": [
+    "dev",
+    "jp"
+   ],
+   "control_user": "zenn"
+  }
+ ]
+}

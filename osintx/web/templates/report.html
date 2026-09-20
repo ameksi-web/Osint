@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OsintX — отчёт по {{ report.target }}</title>
+<style>
+:root{--bg:#0e1016;--card:#161a24;--muted:#8b93a7;--fg:#e8ebf2;--acc:#4f8cff;--line:#242a3a}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+a{color:var(--acc);text-decoration:none}a:hover{text-decoration:underline}
+.wrap{max-width:1100px;margin:0 auto;padding:0 18px 60px}
+header{padding:20px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,#151a26,#0e1016)}
+h1{margin:0;font-size:20px}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}
+.toolbar a{background:#202634;border:1px solid var(--line);border-radius:8px;padding:7px 12px;font-size:13.5px;color:#cfd6e6}
+.toolbar a:hover{border-color:var(--acc)}
+.stat{display:inline-block;background:#1c212e;border:1px solid var(--line);border-radius:9px;padding:8px 12px;margin:4px 6px 0 0;font-size:13px}
+.muted{color:var(--muted)}
+h2{font-size:17px;border-left:3px solid var(--acc);padding-left:10px;margin:26px 0 12px}
+h3{font-size:15px;color:#cfd6e6;margin:18px 0 8px}
+.finding{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--acc);border-radius:10px;padding:12px 14px;margin:10px 0}
+.finding.high{border-left-color:#3ecf8e}.finding.medium{border-left-color:#ffb84d}.finding.low{border-left-color:#5a6478}
+.finding .t{font-weight:600;margin-bottom:5px}
+.ev{margin-top:7px;padding:8px 10px;background:#0a0d13;border-radius:7px;font:12.5px/1.45 ui-monospace,Menlo,Consolas,monospace;color:#a9b3c9;white-space:pre-wrap;word-break:break-word}
+table{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:8px;background:var(--card);border-radius:10px;overflow:hidden}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--muted);font-weight:600;background:#141824}
+code{background:#0a0d13;padding:1px 5px;border-radius:5px}
+details{background:var(--card);border:1px solid var(--line);border-radius:9px;padding:9px 12px;margin:7px 0}
+summary{cursor:pointer;color:#c8d0e0}
+pre{background:#0a0d13;border:1px solid var(--line);border-radius:10px;padding:12px;overflow:auto;font:12.5px/1.45 ui-monospace,Menlo,Consolas,monospace}
+.warn{background:#2a1f14;border:1px solid #543a1b;color:#ffcf8f;padding:10px 12px;border-radius:9px;margin:8px 0}
+</style>
+</head>
+<body>
+<header><div class="wrap" style="padding:0">
+  <h1>🔎 OsintX — отчёт по цели <code>{{ report.target }}</code></h1>
+  <div class="muted">Тип: {{ report.target_type }} · ID: {{ report.search_id }} · {{ report.started_at }} ·
+    {{ (report.duration_ms / 1000) | round(1) }} с · v{{ version }}</div>
+  <div>
+    <span class="stat"><b>{{ summary.findings }}</b> находок</span>
+    <span class="stat"><b>{{ summary.sources_checked }}</b> источников</span>
+    <span class="stat"><b>{{ summary.sources_failed }}</b> недоступно</span>
+    <span class="stat"><b>{{ summary.coverage }}%</b> покрытие</span>
+    <span class="stat"><b>{{ summary.risk_score }}/100</b> экспозиция</span>
+  </div>
+  <div class="toolbar">
+    <a href="/">← Новый поиск</a>
+    <a href="/report/{{ report.search_id }}/download?fmt=json">JSON</a>
+    <a href="/report/{{ report.search_id }}/download?fmt=html">HTML</a>
+    <a href="/report/{{ report.search_id }}/download?fmt=md">Markdown</a>
+    <a href="/report/{{ report.search_id }}/download?fmt=csv">CSV</a>
+    <a href="/report/{{ report.search_id }}/download?fmt=txt">Текст</a>
+    <a href="/report/{{ report.search_id }}/download?fmt=mermaid">Граф (mermaid)</a>
+  </div>
+</div></header>
+
+<div class="wrap">
+{{ report_html|safe }}
+
+<h2>Схема связей (mermaid)</h2>
+<pre>{{ mermaid }}</pre>
+
+<h2>Текстовый отчёт</h2>
+<pre>{{ text_report }}</pre>
+</div>
+</body></html>
