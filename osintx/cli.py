@@ -159,6 +159,59 @@ def cmd_search(args: argparse.Namespace) -> int:
 
 
 # ───────────────────────────── история/БД ─────────────────────────────
+def cmd_changes(args: argparse.Namespace) -> int:
+    """osintx changes <цель> — как менялись ник/имя/био/город между проверками."""
+    from .insights import format_changes
+
+    store = get_store()
+    target = args.target
+    changes = store.profile_changes(target, limit=args.limit)
+    stats = store.snapshot_stats(target)
+    latest = store.latest_snapshots(target)
+    if not stats["total"]:
+        _print(f"По цели «{target}» наблюдений пока нет.\n"
+               f"Выполните поиск (osintx search {target}) — OsintX запомнит публичные поля "
+               f"(ник, имя, био, город, подписчики) и будет показывать изменения при следующих проверках.\n"
+               f"Автоматически проверять цель можно командой: osintx watch add {target}")
+        return 0
+    print(format_changes(changes, target))
+    print(f"\nНаблюдений всего: {stats['total']} (полей: {len(stats['fields'])})")
+    if latest:
+        print("\nПоследние известные значения:")
+        for key, value in sorted(latest.items()):
+            print(f"  {key} = {value[:100]}")
+    return 0
+
+
+def cmd_geo(args: argparse.Namespace) -> int:
+    """osintx geo <цель> — где живёт: страна/город по публичным профилям."""
+    from .engine import Engine
+
+    engine = Engine()
+    modules = (["geo", "telegram", "username", "wayback"] if args.deep
+               else ["geo", "telegram", "username"])
+    report = engine.search_sync(args.target, modules=modules, no_save=args.no_save)
+
+    geo = [f for f in report.findings if f.category == "geo"]
+    if not geo:
+        _print("Гео-данных не найдено. Это не значит, что их нет: проверьте блок «источники» ниже — "
+               "если источники помечены blocked/error, сеть не дала получить данные.")
+    else:
+        for f in geo:
+            print(f"[{f.confidence}] {f.title}")
+            if f.url:
+                print(f"    ↳ {f.url}")
+            if f.evidence:
+                print(f"    доказательство: {f.evidence[:200]}")
+    location = report.meta.get("insights", {}).get("location")
+    if location:
+        print(f"\n📍 Вероятное местоположение: {location}")
+    if args.verbose:
+        print()
+        print(report.to_text(verbose=True))
+    return 0
+
+
 def cmd_history(args: argparse.Namespace) -> int:
     store = get_store()
     rows = store.history(limit=args.limit, target=args.target)
@@ -486,6 +539,18 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--verbose", "-v", action="store_true", help="Показывать статус каждого источника")
     p.add_argument("--quiet", "-q", action="store_true", help="Только JSON в stdout")
     p.set_defaults(func=cmd_search)
+
+    p = sub.add_parser("changes", help="Что менялось у цели: ник, имя, био, город (между проверками)")
+    p.add_argument("target")
+    p.add_argument("--limit", "-n", type=int, default=30)
+    p.set_defaults(func=cmd_changes)
+
+    p = sub.add_parser("geo", help="Где живёт цель: страна/город по публичным профилям")
+    p.add_argument("target")
+    p.add_argument("--deep", action="store_true", help="Добавить веб-архив и логин-площадки")
+    p.add_argument("--no-save", action="store_true")
+    p.add_argument("--verbose", "-v", action="store_true", help="Показать полный отчёт")
+    p.set_defaults(func=cmd_geo)
 
     p = sub.add_parser("history", help="История поисков")
     p.add_argument("--limit", "-n", type=int, default=30)

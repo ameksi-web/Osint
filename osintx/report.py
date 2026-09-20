@@ -40,6 +40,14 @@ def to_text(report: Report, *, verbose: bool = False, max_per_category: int = 40
         add("  Достоверность находок: " + ", ".join(f"{k}: {v}" for k, v in s["by_confidence"].items()))
     if s.get("by_category"):
         add("  По категориям: " + ", ".join(f"{k}: {v}" for k, v in s["by_category"].items()))
+    insights = report.meta.get("insights") or {}
+    if insights:
+        if insights.get("location"):
+            add(f"  📍 Местоположение: {insights['location']}")
+        if insights.get("names"):
+            add(f"  🏷 Известен как: {', '.join(insights['names'][:5])}")
+        if insights.get("changes"):
+            add(f"  🕓 Изменений с прошлых проверок: {insights['changes']}")
     add("")
     if report.warnings:
         add("  ⚠ Предупреждения:")

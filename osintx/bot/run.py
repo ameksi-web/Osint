@@ -87,6 +87,8 @@ HELP = f"""<b>OsintX {__version__}</b> — OSINT-поиск по открыты�
 <b>Поиск</b>
 /search &lt;цель&gt; · /deep &lt;цель&gt;
 /email · /user · /phone · /tg · /domain · /ip · /name — быстрый поиск нужного типа
+/geo &lt;цель&gt; — где живёт: страна и город по публичным профилям
+/changes &lt;цель&gt; — что менялось: ник, имя, био, город (по прошлым проверкам)
 
 <b>Результат</b>
 Кнопки под сводкой: раскрутить найденное дальше (пивот), листать находки (◀ ▶),
@@ -282,6 +284,47 @@ async def cmd_typed(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         await update.message.reply_text(f"Использование: /{command} <значение>")
         return
     await run_search(update, target, target_type=target_type)
+
+
+async def cmd_geo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """«Где живёт?» — страна/город по публичным профилям (GitHub, Gravatar, Keybase, Steam, телефон)."""
+    if not await _guard(update):
+        return
+    target = " ".join(context.args).strip()
+    if not target:
+        await update.message.reply_text(
+            "Использование: /geo <цель>\n"
+            "Смотрю страну и город по публичным данным: локации в профилях GitHub/GitLab, "
+            "Gravatar, Keybase, Steam, bio в Telegram, страна номера телефона.\n"
+            "Пример: /geo torvalds")
+        return
+    await run_search(update, target, modules=["geo", "telegram", "username", "wayback"],
+                     deep=False, use_keys=False)
+
+
+async def cmd_changes(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Что менялось у цели: ник, имя, био, город — по прошлым проверкам."""
+    if not await _guard(update):
+        return
+    target = " ".join(context.args).strip()
+    if not target:
+        await update.message.reply_text("Использование: /changes <цель>\n"
+                                        "Покажу, что изменилось с прошлых проверок (ник, имя, био, город, "
+                                        "подписчики). Первое наблюдение добавляется каждым поиском.")
+        return
+    from ..insights import format_changes
+
+    store = get_store()
+    changes = store.profile_changes(target, limit=20)
+    stats = store.snapshot_stats(target)
+    latest = store.latest_snapshots(target)
+    text = format_changes(changes, target)
+    if stats["total"]:
+        text += f"\n\nНаблюдений: {stats['total']}"
+        if latest:
+            text += "\nПоследние значения:\n" + "\n".join(
+                f"• <code>{html.escape(k)}</code> = {html.escape(v[:80])}" for k, v in sorted(latest.items())[:8])
+    await update.message.reply_text(text[:4000], parse_mode=ParseMode.HTML)
 
 
 async def cmd_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -948,6 +991,7 @@ def build_application(token: str, *, proxy: str | None = None) -> Application:
         CommandHandler("graph", cmd_graph), CommandHandler("watch", cmd_watch),
         CommandHandler("settings", cmd_settings), CommandHandler("modules", cmd_modules),
         CommandHandler("report", cmd_report), CommandHandler("cancel", cmd_cancel),
+        CommandHandler("geo", cmd_geo), CommandHandler("changes", cmd_changes),
     ]
     for name in FORCED_TYPE:
         commands.append(CommandHandler(name, cmd_typed))

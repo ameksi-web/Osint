@@ -121,6 +121,12 @@ def summary_text(report: Report, page: int = 0, per_page: int = 8) -> tuple[str,
         f"(недоступно {summary['sources_failed']}, покрытие {summary['coverage']}%) · "
         f"экспозиция {summary['risk_score']}/100",
     ]
+    insights = report.meta.get("insights") or {}
+    if insights.get("location"):
+        lines.append(f"📍 <b>Где живёт:</b> {html.escape(str(insights['location']))}")
+    if insights.get("changes"):
+        lines.append(f"🕓 <b>Изменений с прошлых проверок:</b> {insights['changes']} "
+                     f"(подробнее — /changes <code>{html.escape(report.target[:24])}</code>)")
     if summary["coverage"] < 50 and summary["sources_checked"]:
         lines.append("⚠️ Большая часть источников недоступна из вашей сети — результат неполный "
                      "(не путать с «ничего не найдено»).")

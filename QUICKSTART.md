@@ -99,7 +99,9 @@ osintx search torvalds --deep --variants --html-out torvalds.html
 osintx search "Иван Петров" -m person --deep
 osintx search example.com -m domain --verbose
 osintx password 'qwerty123'          # проверка пароля по утечкам
-osintx doctor                        # какие источники доступны из вашей сети
+osintx geo torvalds                   # где живёт: страна/город по публичным профилям
+osintx changes torvalds               # как менялся ник/имя/био — с прошлых проверок
+osintx doctor                         # какие источники доступны из вашей сети
 ```
 
 ---
@@ -132,6 +134,8 @@ python bot.py --check    # реальная проверка токена чер
 /search <цель>       полный поиск (email, логин, @telegram, телефон, домен, IP, ФИО, крипта)
 /deep <цель>         глубокий поиск + варианты написания
 /email /user /phone /tg /domain /ip /name <значение>   быстрый поиск одного типа
+/geo <цель>          где живёт: страна/город по публичным профилям
+/changes <цель>      как менялся ник/имя/био/город между проверками
 /id <@user|телефон>  Telegram-разведка (с MTProto — ID, DC, поиск по сообщениям)
 /cancel              остановить текущий поиск
 /watch add|list|check|rm <цель>   наблюдение: сообщает только о НОВЫХ находках

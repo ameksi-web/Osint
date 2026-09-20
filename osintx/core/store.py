@@ -70,6 +70,17 @@ CREATE INDEX IF NOT EXISTS idx_index_value ON index_entries(value);
 CREATE TABLE IF NOT EXISTS cache (
     key TEXT PRIMARY KEY, value TEXT, created_at REAL, ttl REAL
 );
+CREATE TABLE IF NOT EXISTS profile_snapshots (
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  target      TEXT NOT NULL,
+  source      TEXT NOT NULL,
+  field       TEXT NOT NULL,
+  value       TEXT NOT NULL,
+  url         TEXT DEFAULT '',
+  search_id   TEXT,
+  observed_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_snapshots_target ON profile_snapshots(target, field, source);
 CREATE TABLE IF NOT EXISTS user_prefs (
     user_id INTEGER PRIMARY KEY,
     deep INTEGER DEFAULT 0,
@@ -357,6 +368,72 @@ class Store:
         with self._lock:
             self.conn.execute("DELETE FROM watchlist WHERE target=?", (target,))
             self.conn.commit()
+
+    # ───────────────────────── история изменений профиля ─────────────────────────
+    def record_snapshots(self, target: str, snapshots: list[dict[str, str]],
+                         search_id: str | None = None) -> int:
+        """Запоминает текущие значения публичных полей цели.
+
+        Дубликаты не пишутся: новая запись появляется только если значение изменилось
+        (или это первое наблюдение). Так накапливается реальная история изменений.
+        """
+        written = 0
+        with self._lock:
+            for item in snapshots:
+                source = str(item.get("source") or "?")[:80]
+                field_name = str(item.get("field") or "?")[:40]
+                value = str(item.get("value") or "").strip()
+                if not value:
+                    continue
+                row = self.conn.execute(
+                    "SELECT value FROM profile_snapshots WHERE target=? AND source=? AND field=?"
+                    " ORDER BY id DESC LIMIT 1", (target, source, field_name)).fetchone()
+                if row and row["value"] == value:
+                    continue
+                self.conn.execute(
+                    "INSERT INTO profile_snapshots (target,source,field,value,url,search_id,observed_at)"
+                    " VALUES (?,?,?,?,?,?,?)",
+                    (target, source, field_name, value[:1000], str(item.get("url") or "")[:500],
+                     search_id, _iso()))
+                written += 1
+            self.conn.commit()
+        return written
+
+    def profile_changes(self, target: str, limit: int = 50) -> list[dict[str, Any]]:
+        """История изменений: что и когда менялось у цели (ник, имя, био, город...)."""
+        with self._lock:
+            rows = self.conn.execute(
+                "SELECT source,field,value,url,observed_at FROM profile_snapshots"
+                " WHERE target=? ORDER BY id", (target,)).fetchall()
+        previous: dict[tuple[str, str], dict[str, Any]] = {}
+        changes: list[dict[str, Any]] = []
+        for row in rows:
+            key = (row["source"], row["field"])
+            old = previous.get(key)
+            if old and old["value"] != row["value"]:
+                changes.append({"source": row["source"], "field": row["field"],
+                                "old": old["value"], "new": row["value"],
+                                "changed_at": row["observed_at"], "url": row["url"]})
+            previous[key] = {"value": row["value"], "url": row["url"], "at": row["observed_at"]}
+        return changes[-limit:][::-1]
+
+    def snapshot_stats(self, target: str) -> dict[str, Any]:
+        """Сколько наблюдений и по каким полям накоплено по цели."""
+        with self._lock:
+            rows = self.conn.execute(
+                "SELECT source,field,COUNT(*) c,MIN(observed_at) first,MAX(observed_at) last"
+                " FROM profile_snapshots WHERE target=? GROUP BY source,field", (target,)).fetchall()
+        return {"fields": [dict(r) for r in rows], "total": sum(int(r["c"]) for r in rows)}
+
+    def latest_snapshots(self, target: str) -> dict[str, str]:
+        """Последние известные значения полей цели: {source.field: value}."""
+        with self._lock:
+            rows = self.conn.execute(
+                "SELECT source,field,value FROM profile_snapshots WHERE target=? ORDER BY id", (target,)).fetchall()
+        out: dict[str, str] = {}
+        for row in rows:
+            out[f"{row['source']}.{row['field']}"] = row["value"]
+        return out
 
     # ───────────────────────── внешние базы (датасеты) ─────────────────────────
     def import_dataset(self, path: Path | str, name: str | None = None, kind: str = "auto",

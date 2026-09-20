@@ -13,12 +13,14 @@ from .core.utils import detect_target_type, normalize
 from .modules.base import Context, Module, entity_id
 from .modules.crypto import CryptoModule
 from .modules.domain import DomainModule
+from .modules.geo import GeoModule
 from .modules.email import EmailModule
 from .modules.ip import IpModule
 from .modules.person import PersonModule
 from .modules.phone import PhoneModule
 from .modules.telegram import TelegramModule
 from .modules.username import UsernameModule
+from .modules.wayback import WaybackModule
 
 MODULES: dict[str, Module] = {
     "email": EmailModule(),
@@ -29,20 +31,23 @@ MODULES: dict[str, Module] = {
     "ip": IpModule(),
     "person": PersonModule(),
     "crypto": CryptoModule(),
+    "geo": GeoModule(),
+    "wayback": WaybackModule(),
     "breach": None,  # вызывается из email-модуля
 }
 
-# какие модули запускать для какого типа цели
+# какие модули запускать для какого типа цели.
+# geo — где живёт (страна/город из публичных профилей), wayback — история ников/страницы.
 PLAN: dict[str, list[str]] = {
-    "email": ["email", "domain", "telegram", "username"],
-    "username": ["username", "telegram"],
-    "telegram": ["telegram", "username"],
-    "phone": ["phone", "telegram"],
-    "domain": ["domain"],
+    "email": ["email", "domain", "telegram", "username", "geo", "wayback"],
+    "username": ["username", "telegram", "geo", "wayback"],
+    "telegram": ["telegram", "username", "geo", "wayback"],
+    "phone": ["phone", "telegram", "geo", "wayback"],
+    "domain": ["domain", "wayback"],
     "ip": ["ip"],
-    "person": ["person"],
+    "person": ["person", "geo"],
     "crypto": ["crypto"],
-    "url": ["domain"],
+    "url": ["domain", "wayback"],
     "unknown": [],
 }
 
@@ -108,7 +113,8 @@ class Engine:
         timeout = opts.get("timeout") or self.settings.timeout
         async with HttpClient(self.settings, timeout=timeout) as http:
             self.http = http
-            ctx = Context(settings=self.settings, http=http, store=self.store, options=opts,
+            ctx_options = {**opts, "target_type": target_type, "original_target": target}
+            ctx = Context(settings=self.settings, http=http, store=self.store, options=ctx_options,
                           emit=on_event or _noop, cancel_event=cancel_event)
             await ctx.notify(kind="start", target=target, target_type=target_type, modules=module_names)
             for name in module_names:
@@ -139,6 +145,13 @@ class Engine:
             report.meta["http_stats"] = http.stats.to_dict()
         report.duration_ms = int((time.perf_counter() - started) * 1000)
         self._finalize(report)
+        # инсайты: где живёт, под какими именами известен, что изменилось с прошлых проверок
+        try:
+            from .insights import apply as apply_insights
+
+            apply_insights(report, store=self.store, record=not opts.get("no_save"))
+        except Exception as exc:  # инсайты не должны ломать поиск
+            report.warnings.append(f"Инсайты не собрались: {type(exc).__name__}: {exc}")
         if not opts.get("no_save"):
             try:
                 self.store.save_report(report)
