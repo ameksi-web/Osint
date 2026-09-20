@@ -337,6 +337,15 @@ def cmd_graph(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_net(args: argparse.Namespace) -> int:
+    """osintx net — почему не подключается Telegram / pip (DNS, TCP, TLS)."""
+    from .netcheck import diagnose
+
+    report, ok = diagnose()
+    print(report)
+    return 0 if ok else 1
+
+
 def cmd_doctor(args: argparse.Namespace) -> int:
     """Проверка окружения: зависимости, доступность источников, ключи."""
     settings = get_settings()
@@ -530,6 +539,9 @@ def build_parser() -> argparse.ArgumentParser:
 
     p = sub.add_parser("doctor", help="Проверить окружение и доступность источников")
     p.set_defaults(func=cmd_doctor)
+
+    p = sub.add_parser("net", help="Диагностика сети: DNS, TCP, TLS, прокси (для бота и поиска)")
+    p.set_defaults(func=cmd_net)
 
     p = sub.add_parser("init", aliases=["setup", "wizard"],
                        help="Мастер настройки: токен бота, ключи API, прокси → .env")

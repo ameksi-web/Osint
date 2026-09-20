@@ -2,6 +2,7 @@
 rem OsintX — запуск Telegram-бота одной командой (Windows).
 rem   start_bot.bat            — установить зависимости (при необходимости) и запустить бота
 rem   start_bot.bat --check    — только проверить токен и настройки
+rem   start_bot.bat --net      — диагностика сети (DNS/TCP/TLS)
 rem   start_bot.bat --setup    — открыть мастер настройки (.env)
 setlocal
 cd /d "%~dp0"
@@ -38,6 +39,10 @@ if "%~1"=="--setup" (
 )
 if "%~1"=="--check" (
   python bot.py --check
+  goto :done
+)
+if "%~1"=="--net" (
+  python bot.py --net
   goto :done
 )
 python bot.py

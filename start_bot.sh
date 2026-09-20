@@ -4,6 +4,7 @@
 #   ./start_bot.sh              — установить зависимости (при необходимости) и запустить бота
 #   ./start_bot.sh --check      — только проверить токен и настройки
 #   ./start_bot.sh --setup      — открыть мастер настройки (.env)
+#   ./start_bot.sh --net        — диагностика сети (DNS/TCP/TLS, прокси)
 #
 # Работает на Linux и macOS. Для Windows используйте start_bot.bat
 set -euo pipefail
@@ -35,5 +36,6 @@ fi
 case "${1:-}" in
   --setup) shift; exec python bot.py --init "$@" ;;
   --check) shift; exec python bot.py --check "$@" ;;
+  --net)   shift; exec python bot.py --net "$@" ;;
   *)       exec python bot.py "$@" ;;
 esac

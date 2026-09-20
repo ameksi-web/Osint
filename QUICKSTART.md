@@ -106,12 +106,22 @@ osintx doctor                        # какие источники досту�
 
 ## Если что-то не работает
 
+Первый шаг всегда один — диагностика сети:
+
+```bash
+python bot.py --net      # DNS, TCP, TLS для api.telegram.org, pypi.org, github.com + прокси
+python bot.py --check    # реальная проверка токена через getMe
+```
+
+
 | Симптом | Причина и решение |
 |---|---|
 | `Не задан TELEGRAM_BOT_TOKEN` | запустите `osintx init` или впишите токен в `.env` вручную |
 | Бот запустился, но не отвечает | напишите ему `/start`; проверьте, что запущен не второй экземпляр бота (два процесса с одним токеном конфликтуют) |
 | `Unauthorized` в логах | токен неверный/отозван — перевыпустите у @BotFather (`/mybots` → API Token → Revoke) |
-| `ConnectError` к api.telegram.org | блокировка сети или нужен прокси в `OSINTX_PROXY` |
+| `getaddrinfo failed`, «DNS» | не работает DNS: `python bot.py --net`, затем `nslookup api.telegram.org`, смена DNS на `8.8.8.8`/`1.1.1.1`, `ipconfig /flushdns` |
+| `ConnectError` к api.telegram.org | DNS в порядке, но соединения блокируются: нужен прокси — `TELEGRAM_PROXY=socks5://127.0.0.1:1080` (и `pip install socksio`) |
+| `pip` падает на `files.pythonhosted.org` | тот же DNS-сбой: смените DNS и повторите `pip install -r requirements.txt`; apscheduler для бота НЕ нужен |
 | «Пробив» не находит данные | часть сайтов блокирует ботов: запустите с домашнего IP, добавьте прокси, смотрите блок «покрытие источников» в отчёте |
 | Часть источников `error`/`blocked` | это не «не найдено», а отказ источника — так и должно быть видно в отчёте |
 | Нужен числовой Telegram ID | заполните `TG_API_ID`/`TG_API_HASH` (my.telegram.org) и один раз выполните `osintx tgauth` |

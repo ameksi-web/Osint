@@ -33,6 +33,7 @@
 from __future__ import annotations
 
 import asyncio
+import warnings
 import html
 import io
 import logging
@@ -42,6 +43,7 @@ from typing import Any
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.constants import ChatAction, ParseMode
+from telegram.error import NetworkError
 from telegram.ext import (Application, CallbackQueryHandler, CommandHandler, ContextTypes,
                           MessageHandler, filters)
 
@@ -53,6 +55,7 @@ from ..core.models import ModuleResult
 from ..core.store import get_store
 from ..core.utils import detect_target_type
 from ..engine import Engine
+from ..netcheck import diagnose, explain_network_error
 from ..report import FORMATS
 from . import ui
 from .limits import RateLimiter
@@ -789,18 +792,36 @@ class _QueryAsUpdate:
 
 
 async def cmd_error(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
-    log.error("Ошибка обработки: %s", context.error)
+    """Ошибки не должны молча killить бота и не должны пугать трейсбеком."""
+    error = context.error
+    text = str(error)
+    if isinstance(error, NetworkError) or "getaddrinfo" in text or "ConnectError" in text:
+        log.error("сетевая ошибка при обращении к Telegram: %s", text)
+        if not getattr(cmd_error, "_hint_shown", False):
+            cmd_error._hint_shown = True       # подсказку печатаем один раз за запуск
+            print(explain_network_error(error))
+        return
+    log.error("Ошибка обработки: %s", error, exc_info=error)
 
 
 # ───────────────────────────── фоновые задачи ─────────────────────────────
-async def watch_job(context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Периодическая проверка целей наблюдения с уведомлением чата-владельца."""
+async def run_watch_cycle(bot) -> list[dict[str, Any]]:
+    """Один цикл наблюдения: проверить «просроченные» цели и уведомить владельцев.
+
+    Возвращает результаты проверки (для тестов и логов).
+    """
     store = get_store()
     due = store.watch_due()
     if not due:
-        return
-    log.info("фоновая проверка наблюдения: %s цел(ей)", len(due))
+        return []
+    log.info("проверка наблюдения: %s цел(ей)", len(due))
     results = await watch_check_all(store=store, engine=Engine(), only_due=True, limit=5)
+    await notify_watch_results(bot, results)
+    return results
+
+
+async def notify_watch_results(bot, results: list[dict[str, Any]]) -> None:
+    """Отправляет уведомление только если по цели появились новые данные."""
     for item in results:
         chat_id = item.get("chat_id")
         if not chat_id or item.get("error") or item.get("first_time") or not item.get("new"):
@@ -809,30 +830,115 @@ async def watch_job(context: ContextTypes.DEFAULT_TYPE) -> None:
                 f"<code>{html.escape(str(item['target']))}</code> — новых находок: {len(item['new'])}\n"
                 + "\n".join(f"• {html.escape(str(entry)[:120])}" for entry in item["new"][:8]))
         try:
-            await context.bot.send_message(chat_id, text[:4000], parse_mode=ParseMode.HTML)
+            await bot.send_message(chat_id, text[:4000], parse_mode=ParseMode.HTML)
         except Exception as exc:
             log.warning("не удалось отправить уведомление в %s: %s", chat_id, exc)
 
 
+async def watch_job(context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Задача для JobQueue (если установлен apscheduler)."""
+    await run_watch_cycle(context.bot)
+
+
+async def _watch_loop(app: Application, interval_hours: float) -> None:
+    """Запасной планировщик без apscheduler: обычная asyncio-задача."""
+    await asyncio.sleep(120)  # даём боту стартовать
+    while True:
+        try:
+            await run_watch_cycle(app.bot)
+        except asyncio.CancelledError:
+            raise
+        except Exception as exc:  # цикл не должен умирать из-за одной ошибки
+            log.warning("ошибка в цикле наблюдения: %s", exc)
+        await asyncio.sleep(max(900.0, float(interval_hours) * 3600))
+
+
+def _job_queue(app: Application):
+    """Возвращает JobQueue, если apscheduler установлен (иначе None, без предупреждений)."""
+    try:
+        import apscheduler  # noqa: F401
+    except ImportError:
+        return None
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")   # PTB ругается, если JobQueue не настроен
+        try:
+            return app.job_queue
+        except (RuntimeError, AttributeError):
+            return None
+
+
+def setup_watch_scheduler(app: Application, interval_hours: float) -> str:
+    """Ставит фоновую проверку наблюдений.
+
+    Возвращает режим: ``job_queue`` (apscheduler), ``task`` (встроенный цикл) или ``off``.
+    apscheduler — необязательная зависимость: без него всё работает через asyncio-задачу.
+    """
+    if not interval_hours:
+        return "off"
+    job_queue = _job_queue(app)
+    if job_queue is not None:
+        job_queue.run_repeating(watch_job, interval=timedelta(hours=interval_hours),
+                                first=timedelta(minutes=2), name="osintx-watch")
+        return "job_queue"
+    try:
+        app.create_task(_watch_loop(app, interval_hours), name="osintx-watch")
+        return "task"
+    except Exception as exc:  # pragma: no cover - экзотические сборки PTB
+        log.warning("не удалось включить фоновое наблюдение: %s", exc)
+        return "off"
+
+
 async def post_init(application: Application) -> None:
-    """Ставим фоновые задачи после старта (нужен запущенный JobQueue)."""
+    """После старта: включаем фоновое наблюдение и логируем, кто мы."""
     settings = get_settings()
-    if settings.watch_interval and application.job_queue:
-        application.job_queue.run_repeating(
-            watch_job, interval=timedelta(hours=settings.watch_interval),
-            first=timedelta(minutes=2), name="osintx-watch")
-        log.info("наблюдение: фоновая проверка каждые %s ч", settings.watch_interval)
+    mode = setup_watch_scheduler(application, settings.watch_interval)
+    log.info("наблюдение: режим %s, интервал %s ч", mode, settings.watch_interval)
     try:
         me = await application.bot.get_me()
         log.info("бот запущен: @%s", me.username)
-    except Exception:
-        pass
+    except Exception as exc:
+        log.warning("не удалось получить данные бота: %s", exc)
 
 
 # ───────────────────────────── сборка и запуск ─────────────────────────────
-def build_application(token: str) -> Application:
-    """Собирает приложение со всеми командами (без обращения к сети)."""
-    app = Application.builder().token(token).concurrent_updates(True).post_init(post_init).build()
+def _socks_support() -> bool:
+    """Установлен ли socksio (нужен httpx для socks4/socks5-прокси)."""
+    try:
+        import socksio  # noqa: F401
+        return True
+    except ImportError:
+        return False
+
+
+def proxy_hint(proxy: str) -> str:
+    """Разбирает настройку прокси: (можно_использовать, предупреждение)."""
+    proxy = (proxy or "").strip()
+    if not proxy:
+        return True, ""
+    if proxy.startswith(("socks4", "socks5")) and not _socks_support():
+        return False, ("Для SOCKS-прокси нужен пакет socksio:  pip install socksio\n"
+                       "   Либо укажите HTTP-прокси:  TELEGRAM_PROXY=http://host:port")
+    if not proxy.startswith(("http://", "https://", "socks4://", "socks5://")):
+        return False, ("Адрес прокси должен начинаться с http://, https://, socks4:// или socks5://\n"
+                       f"   сейчас: {proxy!r}")
+    return True, ""
+
+
+def build_application(token: str, *, proxy: str | None = None) -> Application:
+    """Собирает приложение со всеми командами (без обращения к сети).
+
+    ``proxy`` (или TELEGRAM_PROXY/OSINTX_PROXY из окружения) направляет запросы к
+    Telegram через http/socks5-прокси — нужно там, где Telegram блокируется.
+    """
+    settings = get_settings()
+    proxy = proxy if proxy is not None else settings.telegram_proxy
+    builder = Application.builder().token(token).concurrent_updates(True).post_init(post_init)
+    if proxy:
+        usable, hint = proxy_hint(proxy)
+        if not usable:
+            raise RuntimeError(f"Прокси настроен неверно: {hint}")
+        builder = builder.proxy(proxy).get_updates_proxy(proxy)
+    app = builder.build()
     commands = [
         CommandHandler("start", cmd_start), CommandHandler("help", cmd_start),
         CommandHandler("search", cmd_search), CommandHandler("deep", cmd_deep),
@@ -878,6 +984,7 @@ def check_bot(args) -> int:
     """osintx bot --check — проверить токен и настройки, ничего не запуская."""
     settings = get_settings()
     token = args.token or settings.bot_token
+    with_net = getattr(args, "net", False)
     print("Проверка настроек Telegram-бота\n" + "-" * 40)
     print(f"токен: {'задан' if token else 'НЕ ЗАДАН (получить у @BotFather)'}"
           + (f" ({token[:10]}…)" if token else ""))
@@ -885,7 +992,14 @@ def check_bot(args) -> int:
     print(f"MTProto: {'настроен' if settings.tg_api_id and settings.tg_api_hash else 'не настроен'}")
     print(f"фоновая проверка наблюдения: "
           f"{'каждые %g ч' % settings.watch_interval if settings.watch_interval else 'выключена'}")
+    print(f"прокси для Telegram: {settings.telegram_proxy or 'не используется'}")
+    if settings.telegram_proxy:
+        usable, hint = proxy_hint(settings.telegram_proxy)
+        print(f"   проверка прокси: {'✅ можно использовать' if usable else '❌ ' + hint}")
     print(f"каталог данных: {settings.data_dir}")
+    if with_net:
+        report, _ok = diagnose()
+        print("\n" + report)
     if not token:
         print("\nДобавьте в .env:  TELEGRAM_BOT_TOKEN=123456:AA...\n"
               "Или запустите мастер: osintx init")
@@ -894,27 +1008,56 @@ def check_bot(args) -> int:
     print("\n" + message)
     if ok:
         print("\nЗапуск:  python bot.py   (или osintx bot)")
+    else:
+        print(explain_network_error(message))
+        if not with_net:
+            print("\nПодробная диагностика сети:  python bot.py --net")
     return 0 if ok else 1
+
+
+def _cli_token(argv: list[str]) -> str:
+    for index, item in enumerate(argv):
+        if item == "--token" and index + 1 < len(argv):
+            return argv[index + 1].strip()
+    return ""
 
 
 def main() -> int:
     settings = get_settings()
     import sys
+    if "--net" in sys.argv:
+        report, ok = diagnose()
+        print(report)
+        return 0 if ok else 1
     if "--check" in sys.argv:
         from argparse import Namespace
-        argv = sys.argv[sys.argv.index("--check"):]
-        token = ""
-        for index, item in enumerate(argv):
-            if item == "--token" and index + 1 < len(argv):
-                token = argv[index + 1]
-        return check_bot(Namespace(token=token))
+        return check_bot(Namespace(token=_cli_token(sys.argv), net="--net" in sys.argv))
     if not settings.bot_token:
         print("Не задан TELEGRAM_BOT_TOKEN. Добавьте токен от @BotFather в .env")
         print("Проверить настройки и токен без запуска:  osintx bot --check")
         return 1
-    app = build_application(settings.bot_token)
+    try:
+        app = build_application(settings.bot_token)
+    except RuntimeError as exc:
+        print(f"❌ {exc}")
+        return 1
+    if settings.telegram_proxy:
+        print(f"Прокси для Telegram: {settings.telegram_proxy}")
     print("OsintX-бот запущен. Команды: /help | Ctrl+C — остановить.")
-    app.run_polling(allowed_updates=["message", "callback_query"])
+    try:
+        app.run_polling(allowed_updates=["message", "callback_query"], drop_pending_updates=True)
+    except KeyboardInterrupt:
+        print("\nОстановлено.")
+        return 130
+    except (NetworkError, ConnectionError, OSError) as exc:
+        print(explain_network_error(exc))
+        return 2
+    except Exception as exc:
+        text = str(exc)
+        if "getaddrinfo" in text or "ConnectError" in text or "NetworkError" in text:
+            print(explain_network_error(exc))
+            return 2
+        raise
     return 0
 
 

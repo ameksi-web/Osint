@@ -106,6 +106,8 @@ class Settings:
     search_cooldown: float = field(default_factory=lambda: float(os.environ.get("TELEGRAM_SEARCH_COOLDOWN", 8)))
     max_searches_per_hour: int = field(default_factory=lambda: int(os.environ.get("TELEGRAM_MAX_PER_HOUR", 40)))
     watch_interval: float = field(default_factory=lambda: float(os.environ.get("TELEGRAM_WATCH_INTERVAL", 6)))
+    telegram_proxy: str = field(default_factory=lambda: (
+        os.environ.get("TELEGRAM_PROXY", "").strip() or os.environ.get("OSINTX_PROXY", "").strip()))
 
     # ключи провайдеров
     keys: dict[str, str] = field(default_factory=lambda: {

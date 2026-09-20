@@ -7,6 +7,7 @@
 Примеры:
     python bot.py                     # запустить бота
     python bot.py --check             # проверить токен и настройки, не запуская
+    python bot.py --net               # диагностика сети: DNS, TCP, TLS, прокси
     python bot.py --token 123:AA...   # запустить с токеном из аргумента
     python bot.py --init              # открыть мастер настройки (.env)
 
@@ -24,7 +25,7 @@ if str(ROOT) not in sys.path:
 
 def _missing_dependencies() -> list[str]:
     missing = []
-    for module, package in (("telegram", "python-telegram-bot[job-queue]"),
+    for module, package in (("telegram", "python-telegram-bot"),
                             ("httpx", "httpx"),
                             ("phonenumbers", "phonenumbers"),
                             ("dns", "dnspython")):
@@ -82,6 +83,12 @@ def main(argv: list[str] | None = None) -> int:
             config.get_settings(reload=True)
         return check_bot(Namespace(token=token))
 
+    if "--net" in argv:
+        from osintx.netcheck import diagnose
+        report, ok = diagnose()
+        print(report)
+        return 0 if ok else 1
+
     from osintx.bot.run import main as bot_main
     return bot_main()
 
@@ -92,3 +99,10 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         print("\nОстановлено пользователем.")
         raise SystemExit(130)
+    except Exception as exc:  # сетевые сбои показываем понятным текстом, а не трейсбеком
+        text = str(exc)
+        if "getaddrinfo" in text or "ConnectError" in text or "NetworkError" in text:
+            from osintx.netcheck import explain_network_error
+            print(explain_network_error(exc))
+            raise SystemExit(2)
+        raise
