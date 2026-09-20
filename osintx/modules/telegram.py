@@ -9,7 +9,11 @@
 
 С входом в аккаунт (MTProto, Telethon — нужны TG_API_ID/TG_API_HASH):
   * числовой ID и access_hash аккаунта, DC (дата-центр), флаги (premium, verified, scam);
-  * количество общих чатов, статус (онлайн/недавно), bio целиком;
+  * количество общих чатов, общие группы (GetCommonChats) — «в каких группах он был»;
+  * чаты/каналы, где найдены его сообщения (из глобального поиска) — «где он писал»;
+  * список юзернеймов аккаунта (в т.ч. дополнительные) — прошлые ники копятся в локальной базе;
+  * чаще всего встречающиеся слова, хэштеги, домены и активные часы его сообщений;
+  * статус (онлайн/недавно), bio целиком;
   * ГЛОБАЛЬНЫЙ ПОИСК сообщений по слову/номеру/email (то, что умеет Void OSINT);
   * разрешение числового ID → username и наоборот;
   * поиск по номеру телефона (если номер в контактах) — через ImportContacts.
@@ -40,6 +44,121 @@ TG_SUBSCRIBERS = re.compile(r'([\d\s.,KkMmкК]+)\s*(subscribers|подписч�
 
 POST_LINK = re.compile(r'href="(https://t\.me/{name}/\d+)"', re.IGNORECASE)
 POST_ID = re.compile(r'data-post="([A-Za-z0-9_]+)/(\d+)"')
+
+
+# ─────────────────── разбор текстов: «что чаще всего пишет» ───────────────────
+STOPWORDS = {
+    # русские
+    "это", "этот", "эта", "эти", "как", "так", "что", "чтобы", "для", "или", "если", "есть", "был",
+    "была", "были", "быть", "его", "её", "ее", "их", "они", "она", "оно", "мы", "вы", "ты", "я",
+    "все", "всё", "весь", "ещё", "еще", "уже", "тоже", "также", "там", "тут", "здесь", "когда",
+    "кто", "чем", "про", "под", "над", "при", "без", "через", "между", "очень", "просто", "можно",
+    "надо", "нужно", "будет", "будут", "меня", "тебя", "нам", "вам", "ним", "ней", "них", "себя",
+    "свой", "свои", "который", "которая", "которые", "которое", "этого", "этому", "этом", "того",
+    "тому", "том", "these", "this", "that", "than", "then", "there", "here", "from", "with", "have",
+    "has", "had", "will", "would", "your", "you", "our", "their", "them", "they", "what", "when",
+    "which", "while", "about", "into", "just", "like", "more", "most", "some", "such", "only",
+    "also", "been", "were", "was", "are", "and", "the", "for", "not", "but", "вот", "даже", "либо",
+    "будто", "раз", "два", "три", "себя", "сейчас", "потом", "пока", "всё-таки", "кстати", "вообще",
+    "https", "http", "www", "com", "ru", "org", "net", "его", "нее", "него", "этот-то", "пост",
+}
+WORD_RE = re.compile(r"[A-Za-zА-Яа-яЁё][\wА-Яа-яЁё]{3,}")
+HASHTAG_RE = re.compile(r"#([A-Za-zА-Яа-яЁё0-9_]{2,50})")
+DOMAIN_RE = re.compile(r"https?://([\w.-]+\.[A-Za-z]{2,})")
+EMOJI_RE = re.compile("[\U0001F300-\U0001FAFF\u2600-\u27BF]")
+CYR_RE = re.compile(r"[А-Яа-яЁё]")
+
+
+def analyse_texts(texts: list[str], limit: int = 10) -> dict[str, Any]:
+    """Что чаще всего встречается в сообщениях: слова, хэштеги, домены, язык, длина.
+
+    Никаких домыслов: всё считается по реальным текстам сообщений/постов.
+    """
+    words: dict[str, int] = {}
+    tags: dict[str, int] = {}
+    domains: dict[str, int] = {}
+    letters = {"кириллица": 0, "латиница": 0}
+    total_len = 0
+    emoji = 0
+    for text in texts:
+        body = str(text or "")
+        total_len += len(body)
+        emoji += len(EMOJI_RE.findall(body))
+        letters["кириллица"] += len(CYR_RE.findall(body))
+        letters["латиница"] += len(re.findall(r"[A-Za-z]", body))
+        for word in WORD_RE.findall(body):
+            low = word.lower()
+            if low in STOPWORDS or len(low) < 4:
+                continue
+            words[low] = words.get(low, 0) + 1
+        for tag in HASHTAG_RE.findall(body):
+            tags[tag.lower()] = tags.get(tag.lower(), 0) + 1
+        for domain in DOMAIN_RE.findall(body):
+            low = domain.lower().lstrip("www.")
+            domains[low] = domains.get(low, 0) + 1
+    total_letters = sum(letters.values())
+    language = "не определён"
+    if total_letters:
+        share = letters["кириллица"] / total_letters
+        language = ("кириллица" if share >= 0.6 else "латиница" if share <= 0.4 else "смешанный")
+    return {
+        "words": sorted(words.items(), key=lambda kv: (-kv[1], kv[0]))[:limit],
+        "hashtags": sorted(tags.items(), key=lambda kv: (-kv[1], kv[0]))[:limit],
+        "domains": sorted(domains.items(), key=lambda kv: (-kv[1], kv[0]))[:limit],
+        "messages": len([t for t in texts if str(t or "").strip()]),
+        "avg_length": round(total_len / max(len(texts), 1)),
+        "language": language,
+        "emoji": emoji,
+    }
+
+
+def active_hours(dates: list[str], limit: int = 3) -> list[dict[str, Any]]:
+    """Самые активные часы по времени сообщений (работает, если в дате есть время)."""
+    hours: dict[int, int] = {}
+    weekdays: dict[str, int] = {}
+    for raw in dates:
+        text = str(raw or "").strip()
+        match = re.search(r"(?:T|\s|^)(\d{1,2}):(\d{2})", text)   # время после даты/пробела
+        if match:
+            hour = int(match.group(1))
+            if 0 <= hour <= 23:
+                hours[hour] = hours.get(hour, 0) + 1
+        day = text[:10]
+        try:
+            import datetime
+
+            name = ("пн", "вт", "ср", "чт", "пт", "сб", "вс")[datetime.date.fromisoformat(day).weekday()]
+            weekdays[name] = weekdays.get(name, 0) + 1
+        except ValueError:
+            continue
+    top_hours = sorted(hours.items(), key=lambda kv: (-kv[1], kv[0]))[:limit]
+    return [{"hour": f"{hour:02d}:00–{hour:02d}:59", "messages": count} for hour, count in top_hours], \
+           sorted(weekdays.items(), key=lambda kv: (-kv[1], kv[0]))[:3]
+
+
+def aggregate_chats(hits: list[dict[str, Any]], limit: int = 20) -> list[dict[str, Any]]:
+    """По найденным сообщениям — в каких открытых чатах/каналах человек писал и сколько раз."""
+    chats: dict[str, dict[str, Any]] = {}
+    for hit in hits:
+        name = hit.get("chat") or hit.get("chat_id")
+        if not name:
+            continue
+        key = str(name).lstrip("@").lower()
+        item = chats.setdefault(key, {"chat": str(name).lstrip("@"), "messages": 0, "links": [],
+                                      "last_date": "", "samples": []})
+        item["messages"] += 1
+        if hit.get("link") and hit["link"] not in item["links"]:
+            item["links"].append(hit["link"])
+        date = str(hit.get("date") or "")[:10]
+        if date > item["last_date"]:
+            item["last_date"] = date
+        if hit.get("text") and len(item["samples"]) < 3:
+            item["samples"].append(str(hit["text"])[:160])
+    # больше всего сообщений — сверху, при равенстве свежие чаты выше
+    out = sorted(chats.values(), key=lambda i: (i["messages"], i["last_date"]), reverse=True)
+    for item in out:
+        item["links"] = item["links"][:5]
+    return out[:limit]
 
 
 def _post_links(body: str, username: str) -> list[str]:
@@ -80,6 +199,8 @@ class TelegramModule(Module):
             if posts:
                 await self._activity(ctx, username, posts, result)
                 await self._search_in_channel(ctx, username, posts, result)
+                await self._topics(ctx, f"@{username}", posts, result, source="t.me:topics",
+                                   note="по публичным постам канала/группы (t.me/s)")
             await self._fragment(ctx, username, result)
         if ctx.settings.tg_api_id and ctx.settings.tg_api_hash:
             await self._mtproto(ctx, target, username, result)
@@ -96,6 +217,19 @@ class TelegramModule(Module):
                 detail="Поиск Telegram-аккаунта по номеру требует авторизованной сессии MTProto "
                        "(метод contacts.importContacts). Публичных способов нет — сторонние «боты-пробивы» "
                        "используют чужие сессии и нарушают ToS."))
+
+        # «в каких группах был»: честно про то, что публично видно, а что нет
+        self.add_status(result, SourceStatus(
+            source="telegram:groups", category="telegram",
+            status="found" if deep_enabled else "unsupported",
+            detail=("Общие группы с вашим аккаунтом получены через MTProto (GetCommonChats), "
+                    "а чаты, где цель писала, — из глобального поиска сообщений.")
+            if deep_enabled else
+            ("Список групп, в которых состоит человек, Telegram публично не показывает: это приватные "
+             "данные аккаунта. Публично видны только те чаты/каналы, где он оставлял сообщения. "
+             "Настроив TG_API_ID/TG_API_HASH (my.telegram.org), модуль добавит общие с вами группы "
+             "(GetCommonChats) и все открытые чаты, где найдены его сообщения (глобальный поиск).")))
+        await self._identifiers(ctx, username, result)
         await self._dorks(ctx, target, username, result)
 
     # ───────────────────────── публичная страница t.me ─────────────────────────
@@ -155,6 +289,7 @@ class TelegramModule(Module):
             for site in re.findall(r"https?://([\w.-]+\.[a-z]{2,})", desc, re.IGNORECASE):
                 add_edge(result, entity_id("telegram", username), entity_id("domain", site.lower()),
                          "link_in_telegram_bio", 0.6, "ссылка в описании профиля")
+        result.meta.setdefault("telegram_usernames", []).append(username)
         self.add_status(result, SourceStatus(source="t.me", category="telegram", status="found", url=url,
                                              http_code=200, latency_ms=resp.latency_ms))
 
@@ -311,6 +446,127 @@ class TelegramModule(Module):
                 http_code=resp.status_code, tags=["telegram", "поиск", "где писал", key])
             add_entity(result, "telegram_search", f"{username}:{query}", hits=len(hits) or len(texts))
 
+    # ─────────────────── «что чаще всего пишет» и «где писал» ───────────────────
+    async def _topics(self, ctx: Context, label: str, posts: list[dict[str, Any]],
+                      result: ModuleResult, *, source: str, note: str) -> None:
+        """Чаще всего встречающиеся слова/хэштеги/домены и активные часы по сообщениям."""
+        texts = [p.get("text", "") for p in posts if str(p.get("text") or "").strip()]
+        if not texts:
+            return
+        stats = analyse_texts(texts)
+        hours, weekdays = active_hours([p.get("date", "") for p in posts])
+        top_words = [f"{word} ×{count}" for word, count in stats["words"][:8]]
+        if not top_words and not stats["hashtags"]:
+            return
+        title = (f"Чаще всего в сообщениях {label}: " + ", ".join(top_words[:6])) if top_words else \
+                f"Чаще всего хэштеги {label}: " + ", ".join(f"#{tag}" for tag, _ in stats["hashtags"][:6])
+        data = {
+            "top_words": stats["words"], "hashtags": stats["hashtags"], "domains": stats["domains"],
+            "language": stats["language"], "avg_length": stats["avg_length"],
+            "emoji": stats["emoji"], "messages": stats["messages"],
+            "active_hours": hours, "active_weekdays": weekdays,
+            "summary": title, "note": note,
+        }
+        bits: list[str] = []
+        if stats["hashtags"]:
+            bits.append("хэштеги: " + ", ".join(f"#{t}" for t, _ in stats["hashtags"][:5]))
+        if stats["domains"]:
+            bits.append("ссылки на: " + ", ".join(d for d, _ in stats["domains"][:5]))
+        if hours:
+            bits.append("чаще пишет в " + ", ".join(h["hour"][:5] for h in hours))
+        evidence = (f"{note}: разобрано {stats['messages']} сообщений, в среднем {stats['avg_length']} символов"
+                    + ("; " + "; ".join(bits) if bits else ""))
+        self.add_finding(result, source=source, category="telegram", kind="topics", confidence="medium",
+                         title=title[:250], value=label, data=data, evidence=evidence[:900],
+                         url=(posts[0].get("url") or "") if posts else "")
+        add_entity(result, "telegram_topics", label, words=[w for w, _ in stats["words"][:10]],
+                   hashtags=[t for t, _ in stats["hashtags"][:10]])
+
+    def _chats_finding(self, result: ModuleResult, hits: list[dict[str, Any]], *,
+                       source: str = "mtproto:chats", label: str = "") -> None:
+        """В каких открытых чатах/каналах найдены сообщения человека — «где писал»."""
+        chats = aggregate_chats(hits)
+        if not chats:
+            return
+        total = sum(c["messages"] for c in chats)
+        title = (f"Telegram: писал в {len(chats)} открытых чатах/каналах — всего {total} сообщений"
+                 + (f" (запрос «{label}»)" if label else ""))
+        self.add_finding(result, source=source, category="telegram", kind="chats", confidence="high",
+                         title=title[:250], value=label or ",".join(c["chat"] for c in chats[:3]),
+                         url=chats[0]["links"][0] if chats[0]["links"] else "",
+                         data={"chats": chats, "chats_count": len(chats), "messages": total,
+                               "note": "только открытые чаты/каналы, где найдены сообщения; "
+                                       "полный список групп аккаунта Telegram публично не отдаёт"},
+                         evidence=f"{source}: сообщения сгруппированы по чатам — " +
+                                  ", ".join(f"{c['chat']} ({c['messages']})" for c in chats[:6]))
+        add_entity(result, "telegram_chats", label or "target", chats=[c["chat"] for c in chats[:20]])
+
+    async def _common_chats(self, ctx: Context, client, entity, result: ModuleResult) -> None:
+        """Общие группы цели и вашего аккаунта (MTProto GetCommonChats)."""
+        from telethon import functions
+        try:
+            res = await client(functions.messages.GetCommonChatsRequest(user_id=entity, max_id=0, limit=50))
+        except Exception as exc:
+            self.add_status(result, SourceStatus(source="mtproto:common-chats", category="telegram",
+                                                 status="error", error=f"{type(exc).__name__}: {exc}"[:200]))
+            return
+        chats = getattr(res, "chats", None) or []
+        if not chats:
+            self.add_status(result, SourceStatus(
+                source="mtproto:common-chats", category="telegram", status="not_found",
+                detail="общих групп с вашим аккаунтом не найдено (это НЕ значит, что у цели нет групп — "
+                       "видны только те, где состоите и вы)"))
+            return
+        items = [{
+            "title": getattr(c, "title", None) or getattr(c, "username", None),
+            "username": getattr(c, "username", None),
+            "id": getattr(c, "id", None),
+            "participants": getattr(c, "participants_count", None),
+            "link": (f"https://t.me/{getattr(c, 'username')}" if getattr(c, "username", None) else None),
+        } for c in chats]
+        self.add_finding(result, source="mtproto:common-chats", category="telegram", kind="groups",
+                         confidence="high",
+                         title=f"Telegram: общих групп с вашим аккаунтом — {len(items)}",
+                         url=next((i["link"] for i in items if i["link"]), ""),
+                         value=str(getattr(entity, "id", "")),
+                         data={"chats": items, "count": len(items),
+                               "note": "GetCommonChats показывает только чаты, где состоите и вы, и цель; "
+                                       "полный список групп аккаунта приватный"},
+                         evidence="messages.GetCommonChats(user_id=…) → " +
+                                  ", ".join(str(i["title"]) for i in items[:8]))
+        for item in items:
+            if item["link"]:
+                add_edge(result, entity_id("telegram_id", str(getattr(entity, "id", ""))),
+                         entity_id("telegram", item["username"]), "common_chat", 0.9,
+                         "общая группа (MTProto GetCommonChats)")
+        self.add_status(result, SourceStatus(source="mtproto:common-chats", category="telegram",
+                                             status="found", detail=f"{len(items)} общих групп"))
+
+    async def _identifiers(self, ctx: Context, username: str | None, result: ModuleResult) -> None:
+        """Все увиденные юзернеймы аккаунта: текущий и дополнительные (MTProto) — для истории ников."""
+        names = [str(n).lstrip("@") for n in (result.meta.get("telegram_usernames") or []) if n]
+        names = [n for n in dict.fromkeys(names) if n]
+        current = username or (names[0] if names else "")
+        if not names and not current:
+            return
+        if current and current not in names:
+            names.insert(0, current)
+        title = f"Telegram: юзернеймы — @{current}" + (f" (+{len(names) - 1} доп.)" if len(names) > 1 else "")
+        self.add_finding(
+            result, source="t.me:usernames", category="telegram", kind="identifiers", confidence="high",
+            title=title, url=f"https://t.me/{current}" if current else "", value=current,
+            data={"username": current, "usernames": ", ".join(names), "current": current,
+                  "observed": names,
+                  "note": "ники, увиденные этим поиском (t.me + MTProto usernames). Прежние ники "
+                          "накапливаются в локальной базе: /usernames и osintx usernames показывают "
+                          "их даже когда бот не запущен"},
+            evidence=f"источники ников: t.me/{current}"
+                     + (", MTProto users.GetFullUser (usernames)" if len(names) > 1 else ""))
+        for name in names[1:]:
+            if current:
+                add_edge(result, entity_id("telegram", current), entity_id("telegram", name),
+                         "same_account_username", 0.9, "дополнительный юзернейм того же аккаунта (MTProto)")
+
     # ───────────────────────── fragment.com ─────────────────────────
     async def _fragment(self, ctx: Context, username: str, result: ModuleResult) -> None:
         url = f"https://fragment.com/username/{username}"
@@ -424,8 +680,12 @@ class TelegramModule(Module):
                          value=str(data.get("id")), data=data,
                          evidence=f"users.GetFullUser → id={data['id']}, access_hash={data.get('access_hash')}, "
                                   f"dc_id={data.get('dc_id')}, common_chats={common_chats}")
+        for name in [data.get("username"), *(data.get("usernames") or [])]:
+            if name:
+                result.meta.setdefault("telegram_usernames", []).append(str(name))
         add_entity(result, "telegram_id", str(data["id"]), username=data.get("username"),
                    premium=data.get("premium"), dc=data.get("dc_id"), phone=data.get("phone"))
+        await self._common_chats(ctx, client, entity, result)
         if data.get("username"):
             add_edge(result, entity_id("telegram_id", str(data["id"])), entity_id("telegram", data["username"]),
                      "id_username", 1.0, "одна и та же сущность Telegram (MTProto)")
@@ -483,6 +743,10 @@ class TelegramModule(Module):
             if h.get("sender_username"):
                 add_edge(result, entity_id("query", query), entity_id("telegram", h["sender_username"]),
                          "mentioned_in_telegram_message", 0.5, f"сообщение от {h['date']}")
+        self._chats_finding(result, hits, source="mtproto:chats", label=query)
+        search_posts = [{"text": h["text"], "date": h["date"], "url": h.get("link") or ""} for h in hits]
+        await self._topics(ctx, f"по запросу «{query}»", search_posts, result,
+                           source="mtproto:topics", note="по сообщениям из глобального поиска Telegram")
         self.add_status(result, SourceStatus(source="mtproto:search", category="telegram", status="found",
                                              detail=f"{len(hits)} сообщений"))
 

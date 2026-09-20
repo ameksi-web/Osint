@@ -127,6 +127,13 @@ def summary_text(report: Report, page: int = 0, per_page: int = 8) -> tuple[str,
     if insights.get("changes"):
         lines.append(f"🕓 <b>Изменений с прошлых проверок:</b> {insights['changes']} "
                      f"(подробнее — /changes <code>{html.escape(report.target[:24])}</code>)")
+    names = insights.get("usernames") or {}
+    if names.get("current"):
+        line = f"🏷 <b>Юзернеймы:</b> @{html.escape(str(names['current']))}"
+        if names.get("previous"):
+            line += " · ранее: " + ", ".join(f"@{html.escape(str(n))}" for n in names["previous"][:5])
+            line += f" · /usernames <code>{html.escape(report.target[:24])}</code>"
+        lines.append(line)
     if summary["coverage"] < 50 and summary["sources_checked"]:
         lines.append("⚠️ Большая часть источников недоступна из вашей сети — результат неполный "
                      "(не путать с «ничего не найдено»).")

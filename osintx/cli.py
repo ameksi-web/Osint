@@ -161,7 +161,7 @@ def cmd_search(args: argparse.Namespace) -> int:
 # ───────────────────────────── история/БД ─────────────────────────────
 def cmd_changes(args: argparse.Namespace) -> int:
     """osintx changes <цель> — как менялись ник/имя/био/город между проверками."""
-    from .insights import format_changes
+    from .insights import format_changes, format_usernames
 
     store = get_store()
     target = args.target
@@ -175,11 +175,35 @@ def cmd_changes(args: argparse.Namespace) -> int:
                f"Автоматически проверять цель можно командой: osintx watch add {target}")
         return 0
     print(format_changes(changes, target))
+    usernames = store.username_history(target)
+    if usernames:
+        print()
+        print(format_usernames(usernames, target))
     print(f"\nНаблюдений всего: {stats['total']} (полей: {len(stats['fields'])})")
     if latest:
         print("\nПоследние известные значения:")
         for key, value in sorted(latest.items()):
             print(f"  {key} = {value[:100]}")
+    return 0
+
+
+def cmd_usernames(args: argparse.Namespace) -> int:
+    """osintx usernames <цель> — все ники цели: текущий и прежние (офлайн, из локальной базы).
+
+    Никаких запросов в сеть: история уже сохранена предыдущими поисками, поэтому
+    прежние юзернеймы видны и тогда, когда бот/веб-приложение не запущены.
+    """
+    from .insights import format_usernames
+
+    store = get_store()
+    target = args.target
+    history = store.username_history(target, limit=args.limit)
+    print(format_usernames(history, target))
+    if history and not args.no_search:
+        previous = [h["username"] for h in store.previous_usernames(target, limit=args.limit)]
+        if previous:
+            print(f"\nПрежние ники ({len(previous)}): " + ", ".join(f"@{name}" for name in previous))
+            print(f"Проверить их сейчас: osintx search <ник> · отслеживать цель: osintx watch add {target}")
     return 0
 
 
@@ -619,6 +643,12 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("target")
     p.add_argument("--limit", "-n", type=int, default=30)
     p.set_defaults(func=cmd_changes)
+
+    p = sub.add_parser("usernames", help="Все ники цели: текущий и прежние (офлайн, из локальной базы)")
+    p.add_argument("target")
+    p.add_argument("--limit", "-n", type=int, default=50)
+    p.add_argument("--no-search", action="store_true", help="Не показывать подсказки про новые поиски")
+    p.set_defaults(func=cmd_usernames)
 
     p = sub.add_parser("geo", help="Где живёт цель: страна/город по публичным профилям")
     p.add_argument("target")

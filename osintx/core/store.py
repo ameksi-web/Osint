@@ -102,7 +102,13 @@ CREATE VIRTUAL TABLE IF NOT EXISTS index_fts USING fts5(
 
 
 def _iso() -> str:
-    return time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+    """UTC-время с миллисекундами: наблюдения должны различаться по порядку.
+
+    Секундной точности мало — при нескольких записях подряд (или разборе
+    локальной истории ников) соседние наблюдения оказывались «одновременными».
+    """
+    now = time.time()
+    return time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime(now)) + f".{int(now * 1000) % 1000:03d}Z"
 
 
 class Store:
@@ -304,8 +310,10 @@ class Store:
                 out.append(row)
                 continue
             try:
-                stamp = calendar.timegm(_time.strptime(last, "%Y-%m-%dT%H:%M:%SZ"))
-            except ValueError:
+                # время пишется с миллисекундами («...T12:00:00.123Z») — отбрасываем их
+                stamp = calendar.timegm(_time.strptime(last.split(".")[0].rstrip("Z") + "Z",
+                                                       "%Y-%m-%dT%H:%M:%SZ"))
+            except (ValueError, AttributeError):
                 out.append(row)
                 continue
             if now - stamp >= interval * 3600:
@@ -398,6 +406,53 @@ class Store:
                 written += 1
             self.conn.commit()
         return written
+
+    # поля, в которых источники отдают ник/логин цели
+    USERNAME_FIELDS = ("username", "usernames", "login", "nickname", "nick", "screen_name")
+
+    def username_history(self, target: str, limit: int = 50) -> list[dict[str, Any]]:
+        """Все ники, когда-либо наблюдавшиеся у цели — от первого к последнему.
+
+        Читается только из локальной базы, поэтому прежние юзернеймы видны
+        даже тогда, когда бот/веб-приложение не запущены: история уже сохранена
+        предыдущими поисками. Пустые и мусорные значения отбрасываются.
+        """
+        placeholders = ",".join("?" for _ in self.USERNAME_FIELDS)
+        with self._lock:
+            rows = self.conn.execute(
+                f"SELECT source,field,value,url,observed_at,MIN(id) AS first_id,MAX(id) AS last_id"
+                f" FROM profile_snapshots WHERE target=? AND field IN ({placeholders})"
+                f" GROUP BY source,field,value ORDER BY first_id", (target, *self.USERNAME_FIELDS)).fetchall()
+        merged: dict[str, dict[str, Any]] = {}
+        for row in rows:
+            raw = str(row["value"] or "")
+            values = [raw] if row["field"] != "usernames" else raw.replace(";", ",").split(",")
+            for value in values:
+                name = value.strip().lstrip("@").strip()
+                if not name or name in ("—", "-", "None", "null") or len(name) > 64:
+                    continue
+                key = name.lower()
+                item = merged.setdefault(key, {"username": name, "sources": [], "first_seen": row["observed_at"],
+                                               "last_seen": row["observed_at"], "url": row["url"] or "",
+                                               "_first_id": row["first_id"], "_last_id": row["last_id"]})
+                item["sources"] = sorted({*item["sources"], row["source"]})
+                if row["first_id"] < item["_first_id"]:
+                    item["first_seen"], item["_first_id"] = row["observed_at"], row["first_id"]
+                if row["last_id"] > item["_last_id"]:
+                    item["last_seen"], item["_last_id"], item["url"] = row["observed_at"], row["last_id"], row["url"] or ""
+        history = sorted(merged.values(), key=lambda i: (i["_first_id"], i["username"].lower()))
+        for item in history:
+            item.pop("_first_id", None)
+            item.pop("_last_id", None)
+        return history[-limit:]
+
+    def previous_usernames(self, target: str, limit: int = 50) -> list[dict[str, Any]]:
+        """Ники цели, кроме текущего (того, что видели позже всех) — «бывшие юзернеймы»."""
+        history = self.username_history(target, limit=limit + 1)
+        if not history:
+            return []
+        latest = max(history, key=lambda i: i["last_seen"])
+        return [item for item in history if item["username"].lower() != latest["username"].lower()]
 
     def profile_changes(self, target: str, limit: int = 50) -> list[dict[str, Any]]:
         """История изменений: что и когда менялось у цели (ник, имя, био, город...)."""

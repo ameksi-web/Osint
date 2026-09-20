@@ -7,6 +7,8 @@ from __future__ import annotations
 
 import asyncio
 import json
+import pathlib
+import time
 
 from osintx.core.models import ModuleResult
 from osintx.core.store import Store
@@ -54,6 +56,10 @@ class FakeHttp:
 class FakeSettings:
     def __init__(self, keys=None):
         self.keys = keys or {}
+        self.tg_api_id = 0
+        self.tg_api_hash = ""
+        self.tg_session = "osintx"
+        self.data_dir = pathlib.Path(".")
 
     def key(self, name):
         return self.keys.get(name, "")
@@ -405,3 +411,180 @@ def test_person_code_search_github_and_gitlab():
     assert gitlab and gitlab[0].data["candidates"][0]["location"] == "Munich, Germany"
     assert any(e["relation"] == "name_match_github" for e in result.meta["edges"])
     ctx.store.close()
+
+# ───────────────── «что чаще всего пишет» и «где писал» (разбор) ─────────────────
+def test_analyse_texts_top_words_hashtags_domains():
+    from osintx.modules.telegram import analyse_texts
+
+    stats = analyse_texts([
+        "Смотрю OSINT и Telegram, вот ссылка https://github.com/osintx #osint #telegram",
+        "osint это важно, github.com/osintx ещё раз #osint",
+        "пишу про OSINT каждый день #osint",
+    ])
+    words = dict(stats["words"])
+    assert words["osint"] >= 3 and "https" not in words, "служебные слова не должны попадать в топ"
+    assert dict(stats["hashtags"])["osint"] == 3
+    assert dict(stats["domains"])["github.com"] == 1, "считаются реальные ссылки из текста"
+    assert stats["messages"] == 3 and stats["avg_length"] > 0
+
+
+def test_active_hours_and_weekdays():
+    from osintx.modules.telegram import active_hours
+
+    hours, weekdays = active_hours(["2026-09-18T21:15:00", "2026-09-18T21:40:00", "2026-09-19T09:05:00", "мусор"])
+    assert hours[0] == {"hour": "21:00–21:59", "messages": 2}
+    assert weekdays[0][0] == "пт" and weekdays[0][1] == 2
+
+
+def test_aggregate_chats_counts_messages():
+    from osintx.modules.telegram import aggregate_chats
+
+    hits = [{"chat": "osintchat", "link": "https://t.me/osintchat/1", "date": "2026-09-18", "text": "а"},
+            {"chat": "@osintchat", "link": "https://t.me/osintchat/2", "date": "2026-09-19", "text": "б"},
+            {"chat": "another_channel", "link": "https://t.me/another_channel/7", "date": "2026-09-01", "text": "в"},
+            {"chat": None, "link": None, "date": "", "text": "без чата"}]
+    chats = aggregate_chats(hits)
+    assert chats[0]["chat"] == "osintchat" and chats[0]["messages"] == 2
+    assert chats[0]["last_date"] == "2026-09-19"
+    assert len(chats[0]["links"]) == 2
+    assert {c["chat"] for c in chats} == {"osintchat", "another_channel"}
+
+
+def test_telegram_topics_finding_from_posts():
+    from osintx.modules.telegram import TelegramModule
+
+    posts = [{"date": "2026-09-18T21:15:00", "text": "Ищу OSINT по Telegram #osint https://github.com/x",
+              "url": "https://t.me/chan/1"},
+             {"date": "2026-09-19T09:05:00", "text": "OSINT каждый день #osint", "url": "https://t.me/chan/2"}]
+    ctx = _ctx(FakeHttp({}), {"target_type": "telegram"})
+    result = ModuleResult(module="telegram", target="chan")
+    asyncio.run(TelegramModule()._topics(ctx, "@chan", posts, result, source="t.me:topics", note="тест"))
+
+    finding = [f for f in result.findings if f.kind == "topics"][0]
+    assert "osint" in finding.title
+    assert dict(finding.data["hashtags"])["osint"] == 2
+    assert {h["hour"][:2] for h in finding.data["active_hours"]} == {"21", "09"}
+    assert finding.data["messages"] == 2
+    ctx.store.close()
+
+
+def test_telegram_chats_finding_lists_open_chats():
+    from osintx.modules.telegram import TelegramModule
+
+    module = TelegramModule()
+    result = ModuleResult(module="telegram", target="durov")
+    hits = [{"chat": "osintchat", "link": "https://t.me/osintchat/1", "date": "2026-09-18", "text": "привет"},
+            {"chat": "news_channel", "link": "https://t.me/news_channel/5", "date": "2026-09-17", "text": "пост"}]
+    module._chats_finding(result, hits, source="mtproto:chats", label="durov")
+
+    finding = [f for f in result.findings if f.kind == "chats"][0]
+    assert finding.data["chats_count"] == 2
+    assert finding.data["chats"][0]["chat"] == "osintchat"
+    assert "приватн" in finding.data["note"] or "не отдаёт" in finding.data["note"]
+    assert result.meta["entities"][0]["type"] == "telegram_chats"
+
+
+def test_telegram_identifiers_lists_seen_usernames():
+    from osintx.modules.telegram import TelegramModule
+
+    result = ModuleResult(module="telegram", target="durov")
+    result.meta["telegram_usernames"] = ["durov", "durov_old", "@durov_backup", "durov"]
+    asyncio.run(TelegramModule()._identifiers(_ctx(FakeHttp({})), "durov", result))
+
+    finding = [f for f in result.findings if f.source == "t.me:usernames"][0]
+    assert finding.data["current"] == "durov"
+    assert finding.data["observed"] == ["durov", "durov_old", "durov_backup"]
+    assert finding.data["usernames"] == "durov, durov_old, durov_backup"
+    edge = [e for e in result.meta["edges"] if e["relation"] == "same_account_username"]
+    assert len(edge) == 2, "каждый дополнительный ник — отдельная связь с текущим"
+
+
+def test_telegram_groups_status_is_honest_without_mtproto():
+    from osintx.modules.telegram import TelegramModule
+
+    http = FakeHttp({"t.me/s/durov": FakeResponse(text="<div data-post='durov/1'></div>")})
+    ctx = _ctx(http, {"target_type": "telegram"})
+    result = ModuleResult(module="telegram", target="durov")
+    asyncio.run(TelegramModule().run(ctx, "durov", result))
+
+    status = [s for s in result.statuses if s.source == "telegram:groups"][0]
+    assert status.status == "unsupported"
+    assert "приватн" in status.detail and "TG_API_ID" in status.detail
+    ctx.store.close()
+
+
+# ───────────────── прошлые юзернеймы: локальная история (офлайн) ─────────────────
+def test_store_username_history_and_previous():
+    from osintx.core.store import Store
+
+    store = Store(":memory:")
+    store.record_snapshots("durov", [
+        {"source": "t.me", "field": "username", "value": "durov_old", "url": "https://t.me/durov_old"},
+        {"source": "mtproto:entity", "field": "usernames", "value": "durov, durov_extra", "url": "u"},
+        {"source": "username", "field": "username", "value": "@durov", "url": ""},
+        {"source": "t.me", "field": "bio", "value": "не ник", "url": ""},
+        {"source": "t.me", "field": "username", "value": "—", "url": ""},
+    ])
+    history = store.username_history("durov")
+    assert [h["username"] for h in history] == ["durov_old", "durov", "durov_extra"]
+    assert history[1]["sources"] == ["mtproto:entity", "username"], "разные источники одного ника объединяются"
+    assert history[0]["first_seen"] <= history[0]["last_seen"]
+    assert store.username_history("nobody") == []
+    store.close()
+
+
+def test_store_previous_usernames_excludes_current():
+    from osintx.core.store import Store
+
+    store = Store(":memory:")
+    store.record_snapshots("t", [{"source": "t.me", "field": "username", "value": "old_name", "url": ""}])
+    time.sleep(0.02)
+    store.record_snapshots("t", [{"source": "t.me", "field": "username", "value": "new_name", "url": ""}])
+    previous = store.previous_usernames("t")
+    assert [p["username"] for p in previous] == ["old_name"]
+    store.close()
+
+
+def test_insights_reports_previous_usernames_and_is_idempotent():
+    from osintx.core.models import Report
+    from osintx.core.store import Store
+    from osintx import insights
+
+    store = Store(":memory:")
+    store.record_snapshots("durov", [{"source": "t.me", "field": "username", "value": "durov_old", "url": ""}])
+    time.sleep(0.02)
+    report = Report(target="durov", target_type="telegram")
+    report.merge(ModuleResult(module="telegram", target="durov"))
+    store.record_snapshots("durov", [{"source": "t.me", "field": "username", "value": "durov", "url": ""}])
+
+    insights.apply(report, store=store)
+    first = [f for f in report.findings if f.source == "insights:usernames"]
+    assert first, "прежние ники должны попасть в отчёт"
+    assert "durov_old" in first[0].title
+    assert report.meta["insights"]["usernames"]["current"] == "durov"
+    assert report.meta["insights"]["usernames"]["previous"] == ["durov_old"]
+
+    insights.apply(report, store=store)
+    again = [f for f in report.findings if f.source == "insights:usernames"]
+    assert len(again) == 1, "повторный apply не должен дублировать инсайт про ники"
+    store.close()
+
+
+def test_snapshots_include_usernames_field():
+    from osintx.core.models import Finding, Report
+    from osintx.insights import snapshots_from_report
+
+    report = Report(target="durov", target_type="telegram")
+    report.findings.append(Finding(source="t.me:usernames", category="telegram", kind="identifiers",
+                                   title="ники", confidence="high",
+                                   data={"username": "durov", "usernames": "durov, durov_old"}))
+    fields = {(s["field"], s["value"]) for s in snapshots_from_report(report)}
+    assert ("username", "durov") in fields
+    assert ("usernames", "durov, durov_old") in fields, "список ников тоже сохраняется в историю"
+
+
+def test_format_usernames_explains_empty_history():
+    from osintx.insights import format_usernames
+
+    text = format_usernames([], "nobody")
+    assert "не наблюдалось" in text and "osintx search nobody" in text

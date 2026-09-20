@@ -91,6 +91,7 @@ HELP = f"""<b>OsintX {__version__}</b> — OSINT-поиск по открыты�
 /changes &lt;цель&gt; — что менялось: ник, имя, био, город (по прошлым проверкам)
 /vk &lt;ник&gt; — ВКонтакте: профиль, город, посты, сообщества (+ VK_TOKEN для полного доступа)
 /max &lt;ник&gt; — мессенджер MAX: канал/бот по @нику, ссылки max.ru/u/…
+/usernames &lt;цель&gt; — все ники цели: текущий и прежние (локальная база, видно даже без запущенного бота)
 
 <b>Результат</b>
 Кнопки под сводкой: раскрутить найденное дальше (пивот), листать находки (◀ ▶),
@@ -98,8 +99,9 @@ HELP = f"""<b>OsintX {__version__}</b> — OSINT-поиск по открыты�
 
 <b>Telegram</b>
 /id &lt;@user|телефон&gt; — профиль, подписчики, посты, fragment; с MTProto — ID, DC, поиск по сообщениям
-«Где писал»: в поиске по @каналу/логину Telegram бот разбирает посты, считает активность
-и ищет упоминания через t.me/s/&lt;канал&gt;?q=… — конкретные посты со ссылками
+«Где писал»: бот разбирает посты, считает активность, чаще всего встречающиеся слова и хэштеги,
+ищет упоминания через t.me/s/&lt;канал&gt;?q=… Кто был в каких группах: с TG_API_ID/TG_API_HASH
+показываю общие с вами группы (GetCommonChats) и все открытые чаты, где человек писал
 
 <b>Наблюдение</b>
 /watch add &lt;цель&gt; · /watch list · /watch check · /watch rm &lt;цель&gt;
@@ -338,6 +340,31 @@ async def cmd_max(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await run_search(update, target, modules=["max", "telegram"], deep=False)
 
 
+async def cmd_usernames(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Все ники цели: текущий и прежние. Офлайн — читается из локальной базы OsintX."""
+    if not await _guard(update):
+        return
+    target = " ".join(context.args).strip()
+    if not target:
+        await update.message.reply_text(
+            "Использование: /usernames <цель>\n"
+            "Покажу все юзернеймы, которые OsintX видел у цели: текущий и прежние.\n"
+            "Работает офлайн, по локальной базе: история сохраняется каждым поиском, поэтому "
+            "прежние ники видно даже когда бот не запущен.\n"
+            "Пример: /usernames durov")
+        return
+    from ..insights import format_usernames
+
+    store = get_store()
+    history = store.username_history(target, limit=30)
+    text = format_usernames(history, target)
+    previous = [item["username"] for item in store.previous_usernames(target, limit=30)] if history else []
+    if previous:
+        text += ("\n\nНажмите, чтобы проверить прежний ник: /search " + previous[0]
+                 + "\nСледить за целью: /watch add " + target)
+    await update.message.reply_text(text[:4000])
+
+
 async def cmd_changes(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Что менялось у цели: ник, имя, био, город — по прошлым проверкам."""
     if not await _guard(update):
@@ -355,6 +382,14 @@ async def cmd_changes(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     stats = store.snapshot_stats(target)
     latest = store.latest_snapshots(target)
     text = format_changes(changes, target)
+    history = store.username_history(target, limit=30)
+    if history:
+        current = max(history, key=lambda item: item["last_seen"])["username"]
+        previous = [item["username"] for item in history if item["username"].lower() != current.lower()]
+        text += f"\n\n🏷 Юзернеймы (всего замечено {len(history)}): сейчас @{current}"
+        if previous:
+            text += "\nРанее: " + ", ".join(f"@{name}" for name in previous[:10])
+            text += "\nПодробнее — /usernames " + target
     if stats["total"]:
         text += f"\n\nНаблюдений: {stats['total']}"
         if latest:
@@ -1031,6 +1066,7 @@ def build_application(token: str, *, proxy: str | None = None) -> Application:
         CommandHandler("report", cmd_report), CommandHandler("cancel", cmd_cancel),
         CommandHandler("geo", cmd_geo), CommandHandler("changes", cmd_changes),
         CommandHandler("vk", cmd_vk), CommandHandler("max", cmd_max),
+        CommandHandler("usernames", cmd_usernames),
     ]
     for name in FORCED_TYPE:
         commands.append(CommandHandler(name, cmd_typed))

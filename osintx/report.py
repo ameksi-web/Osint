@@ -48,6 +48,12 @@ def to_text(report: Report, *, verbose: bool = False, max_per_category: int = 40
             add(f"  🏷 Известен как: {', '.join(insights['names'][:5])}")
         if insights.get("changes"):
             add(f"  🕓 Изменений с прошлых проверок: {insights['changes']}")
+        names = insights.get("usernames") or {}
+        if names.get("current"):
+            line = f"  🏷 Юзернеймы: @{names['current']}"
+            if names.get("previous"):
+                line += " · ранее: " + ", ".join(f"@{n}" for n in names["previous"][:6])
+            add(line)
     add("")
     if report.warnings:
         add("  ⚠ Предупреждения:")

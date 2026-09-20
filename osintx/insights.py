@@ -269,7 +269,7 @@ def build_contact_findings(report: Report) -> list[Finding]:
 
 
 SNAPSHOT_KEYS = ("display_name", "name", "nickname", "bio", "description", "location",
-                 "currentLocation", "city", "country", "username", "login", "avatar",
+                 "currentLocation", "city", "country", "username", "usernames", "login", "avatar",
                  "subscribers", "followers", "public_repos", "company", "registrar",
                  "created_at", "timecreated", "provider", "breaches")
 
@@ -349,6 +349,29 @@ def apply(report: Report, *, store: Any = None, record: bool = True,
             module.meta["changes"] = changes[:40]
         module.meta["snapshot_count"] = store.snapshot_stats(report.target)
 
+    # прежние юзернеймы: копятся в локальной базе, поэтому видны и без запущенного бота
+    username_insight: dict[str, Any] = {}
+    if store is not None:
+        try:
+            history = store.username_history(report.target)
+        except Exception:  # pragma: no cover
+            history = []
+        if history:
+            current = max(history, key=lambda i: i["last_seen"])["username"]
+            previous_names = [i["username"] for i in history if i["username"].lower() != current.lower()]
+            username_insight = {"current": current, "previous": previous_names, "count": len(history),
+                                "history": history}
+            if previous_names:
+                text = ", ".join(f"@{name}" for name in previous_names)
+                module.findings.append(Finding(
+                    source="insights:usernames", category="history", kind="change", confidence="high",
+                    title=f"Прежние юзернеймы: {text[:160]} (сейчас @{current})",
+                    value=text[:400], data=username_insight,
+                    evidence="накопленные наблюдения локальной базы OsintX по этой цели: каждый поиск "
+                             "запоминает увиденные ники, поэтому история видна и когда бот не запущен "
+                             "(osintx usernames / /usernames)"))
+        module.meta["usernames"] = username_insight
+
     if previous:
         module.meta["previous_searches"] = previous[:5]
 
@@ -357,6 +380,8 @@ def apply(report: Report, *, store: Any = None, record: bool = True,
         "location": next((f.value for f in findings if f.source == "insights:geo"), ""),
         "names": [f.value for f in findings if f.category == "identity" and f.kind == "name"][:8],
         "changes": len(module.meta.get("changes", [])),
+        "usernames": {key: value for key, value in (module.meta.get("usernames") or {}).items()
+                      if key != "history"},
     }
     report.compute_summary()
     return module
@@ -391,6 +416,32 @@ def format_changes(changes: list[dict[str, Any]], target: str = "") -> str:
                      f"«{item['old'][:60]}» → «{item['new'][:60]}»")
         if item.get("url"):
             lines.append(f"      {item['url']}")
+    return "\n".join(lines)
+
+
+def format_usernames(history: list[dict[str, Any]], target: str = "") -> str:
+    """Человекочитаемая история ников: текущий + прежние (для CLI /usernames и бота).
+
+    Данные берутся из локальной базы OsintX, поэтому история доступна и тогда,
+    когда бот/веб-приложение не запущены.
+    """
+    if not history:
+        return (f"Ников по цели «{target}» пока не наблюдалось.\n"
+                f"Выполните поиск (osintx search {target}) — OsintX запомнит увиденные юзернеймы, "
+                f"и при следующих проверках здесь появятся прежние ники.")
+    current = max(history, key=lambda item: item["last_seen"])["username"].lower()
+    lines = [f"Юзернеймы цели «{target}» — всего замечено: {len(history)}"]
+    for item in history:
+        mark = "  ← текущий" if item["username"].lower() == current else "  ← прежний"
+        sources = ", ".join(item.get("sources") or [])
+        lines.append(f"  @{item['username']}{mark}")
+        lines.append(f"      первый раз: {item['first_seen'][:16].replace('T', ' ')} · "
+                     f"последний: {item['last_seen'][:16].replace('T', ' ')} · источник: {sources}")
+        if item.get("url"):
+            lines.append(f"      {item['url']}")
+    lines.append("")
+    lines.append("Это локальная история OsintX (SQLite) — она видна и без запущенного бота: "
+                 "каждый поиск добавляет наблюдение.")
     return "\n".join(lines)
 
 
