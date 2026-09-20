@@ -1,0 +1,52 @@
+# OsintX в Docker: веб-интерфейс + Telegram-бот в одном окружении.
+#   cp .env.example .env    # заполните TELEGRAM_BOT_TOKEN и (по желанию) ключи
+#   docker compose up -d web
+#   docker compose run --rm bot        # запуск бота на переднем плане
+#   docker compose up -d bot           # или как фоновый сервис
+services:
+  web:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    image: osintx:latest
+    container_name: osintx-web
+    env_file: ../.env
+    environment:
+      OSINTX_DATA_DIR: /data
+      OSINTX_HOST: 0.0.0.0
+      OSINTX_PORT: "8000"
+    ports:
+      - "8000:8000"
+    volumes:
+      - osintx-data:/data
+    restart: unless-stopped
+
+  bot:
+    image: osintx:latest
+    container_name: osintx-bot
+    env_file: ../.env
+    environment:
+      OSINTX_DATA_DIR: /data
+    volumes:
+      - osintx-data:/data
+    command: ["python", "-m", "osintx.bot.run"]
+    restart: unless-stopped
+    depends_on:
+      - web
+
+  # Разовый вход в Telegram по MTProto (для /id и поиска по сообщениям):
+  #   docker compose run --rm tgauth
+  tgauth:
+    image: osintx:latest
+    profiles: ["manual"]
+    env_file: ../.env
+    environment:
+      OSINTX_DATA_DIR: /data
+    volumes:
+      - osintx-data:/data
+    stdin_open: true
+    tty: true
+    command: ["python", "-m", "osintx.tg_auth"]
+
+volumes:
+  osintx-data:

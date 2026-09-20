@@ -1,0 +1,23 @@
+[Unit]
+Description=OsintX Web UI (FastAPI)
+Documentation=https://github.com/ameksi-web/Osint
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/Osint
+EnvironmentFile=/opt/Osint/.env
+ExecStart=/opt/Osint/.venv/bin/python -m uvicorn osintx.web.app:app --host 0.0.0.0 --port 8000
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=read-only
+ReadWritePaths=/opt/Osint/.osintx-data
+
+[Install]
+WantedBy=multi-user.target

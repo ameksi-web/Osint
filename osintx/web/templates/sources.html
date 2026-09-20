@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="ru">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OsintX — реестр источников</title>
+<style>
+:root{--bg:#0e1016;--card:#161a24;--muted:#8b93a7;--fg:#e8ebf2;--acc:#4f8cff;--line:#242a3a}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.55 -apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+.wrap{max-width:1200px;margin:0 auto;padding:18px}
+a{color:var(--acc);text-decoration:none}
+h1{font-size:20px}
+table{width:100%;border-collapse:collapse;font-size:13px;background:var(--card);border-radius:10px;overflow:hidden}
+th,td{text-align:left;padding:7px 9px;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--muted);background:#141824}
+code{background:#0a0d13;padding:1px 5px;border-radius:5px;font-size:12px}
+.tag{display:inline-block;background:#202634;border-radius:20px;padding:1px 8px;font-size:11px;margin-right:4px}
+.tabs a{display:inline-block;padding:7px 12px;border:1px solid var(--line);border-radius:8px;margin-right:6px;background:#202634}
+.tabs a.active{border-color:var(--acc)}
+</style></head><body><div class="wrap">
+<h1>Реестр источников OsintX</h1>
+<div class="tabs" style="margin:12px 0">
+  {% for c in categories %}<a class="{{ 'active' if c == category else '' }}" href="/sources?category={{ c }}">{{ c }} ({{ counts[c] }})</a>{% endfor %}
+  <a href="/">← на главную</a>
+</div>
+<div style="color:#8b93a7;margin-bottom:10px">Активных источников: {{ sites|length }}.
+Каждый помечен стратегией проверки и уровнем доверия; источники с <code>control_user</code> проходят автокалибровку
+(проверяются на заведомо существующем и несуществующем логине).</div>
+<table>
+<tr><th>Источник</th><th>Стратегия</th><th>Доверие</th><th>URL-шаблон</th><th>Теги</th><th>Контроль</th><th>Примечание</th></tr>
+{% for s in sites %}
+<tr>
+  <td><b>{{ s.name }}</b></td>
+  <td>{{ s.strategy }}</td>
+  <td>{{ s.confidence }}</td>
+  <td><code>{{ s.url }}</code></td>
+  <td>{% for t in s.tags %}<span class="tag">{{ t }}</span>{% endfor %}</td>
+  <td>{{ s.control_user or '—' }}</td>
+  <td>{{ s.note or '' }}</td>
+</tr>
+{% endfor %}
+</table>
+</div></body></html>
