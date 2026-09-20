@@ -24,7 +24,7 @@ from ..core.registry import count_sources, load_sites
 from ..core.store import get_store
 from ..core.utils import detect_target_type
 from ..engine import Engine, PLAN
-from ..report import FORMATS, save as save_report, to_mermaid, to_text
+from ..report import FORMATS, to_mermaid, to_text
 
 BASE_DIR = Path(__file__).resolve().parent
 templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))

@@ -14,16 +14,14 @@
 from __future__ import annotations
 
 import asyncio
-import json
 import re
 from typing import Any
 
-from ..core.models import Finding, ModuleResult, SourceStatus
+from ..core.models import ModuleResult, SourceStatus
 from ..core.registry import load_sites
-from ..core.utils import parse_dork_target
 from ..core.variants import username_variants
 from .base import (Context, Module, SiteChecker, add_edge, add_entity, entity_id,
-                   make_finding, render_url)
+                   make_finding)
 
 HTML_TAG = re.compile(r"<[^>]+>")
 

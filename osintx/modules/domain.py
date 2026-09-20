@@ -378,9 +378,6 @@ class DomainModule(Module):
             title = re.sub(r"\s+", " ", re.sub(r"<[^>]+>", "", m.group(1))).strip()[:200]
         emails = sorted(set(re.findall(r"[\w.+-]+@[\w-]+\.[\w.]{2,}", body)))[:40]
         phones = sorted({re.sub(r"[^\d+]", "", p) for p in re.findall(r"\+?\d[\d\s()\-]{9,}\d", body)})[:20]
-        socials = sorted(set(re.findall(
-            r"https?://(?:www\.)?(t\.me|vk\.com|instagram\.com|facebook\.com|twitter\.com|x\.com|youtube\.com|"
-            r"linkedin\.com|github\.com|wa\.me|whatsapp\.com|telegram\.me)/[\w./@-]+", body)))  # noqa
         social_links = sorted(set(re.findall(
             r"https?://(?:www\.)?(?:t\.me|vk\.com|instagram\.com|facebook\.com|twitter\.com|x\.com|youtube\.com"
             r"|linkedin\.com|github\.com|wa\.me)/(?:[\w.@/-]{2,60})", body)))[:30]

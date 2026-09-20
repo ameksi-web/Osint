@@ -169,37 +169,111 @@ osintx sources --stats
 
 ## 🤖 Telegram-бот
 
-```bash
-# 1) получите токен у @BotFather и впишите в .env: TELEGRAM_BOT_TOKEN=...
-# 2) при желании ограничьте доступ: TELEGRAM_ALLOWED_IDS=123456789
-osintx bot
+### 1. Получите токен
+Напишите [@BotFather](https://t.me/BotFather) → `/newbot` → имя и юзернейм бота.
+Токен выглядит так: `123456789:AAH...`.
+
+### 2. Впишите настройки в `.env`
+
+```ini
+TELEGRAM_BOT_TOKEN=123456789:AAH...
+TELEGRAM_ALLOWED_IDS=          # свой ID (узнать: напишите боту /start — он ответит),
+                               # пусто = бот открыт для всех
+WEB_PUBLIC_URL=https://ваш-домен   # необязательно: кнопка «Открыть веб-отчёт»
 ```
 
-Команды: `/search <цель>`, `/deep <цель>`, `/id <@user|телефон>` (Telegram-разведка),
-`/password <пароль>`, `/history`, `/stats`, `/sources`, `/dataset-search <значение>`, `/graph <цель>`.
-Любое текстовое сообщение тоже трактуется как цель поиска. Результат приходит сводкой, а файлы
-отчёта (HTML/JSON/CSV) — по кнопкам.
-
-### MTProto: числовой ID, DC и поиск по сообщениям
-
-Чтобы получить то, что умеет Void OSINT (числовой ID, дата-центр, глобальный поиск по постам),
-нужен доступ по MTProto:
+### 3. Проверьте и запустите
 
 ```bash
-# 1) получите api_id/api_hash на https://my.telegram.org
-# 2) впишите в .env: TG_API_ID=..., TG_API_HASH=...
-osintx tgauth        # одноразовый вход: номер + код
-osintx search @username --deep
+osintx bot --check      # реальная проверка токена через getMe + отчёт о настройках
+osintx bot              # запуск (Ctrl+C — остановить)
 ```
 
-После авторизации модуль Telegram автоматически получает: числовой ID и access_hash, DC, флаги
-(premium/verified/scam), количество общих чатов, полное bio, а также выполняет
-`messages.SearchGlobal` — поиск по всем чатам по слову, email или номеру.
+Если `--check` пишет «Не удалось связаться с api.telegram.org» — сеть блокирует Telegram
+(частая ситуация в корпоративных сетях и песочницах): запускайте бота на своей машине/VPS
+или укажите прокси: `OSINTX_PROXY=socks5://user:pass@host:port`.
 
-Без MTProto **числовой ID не вычисляется**: публично его взять негде, «генераторы ID по юзернейму»
-в интернете — обман. OsintX честно помечает такие пункты как `unsupported`.
+### 4. Что умеет бот
 
----
+| Команда | Что делает |
+|---|---|
+| любой текст или `/search <цель>` | полный поиск (email, логин, @telegram, телефон, домен, IP, ФИО, крипта) |
+| `/deep <цель>` | глубокий поиск: больше источников, варианты написания |
+| `/id <@username\|телефон>` | Telegram-разведка: карточка t.me, подписчики, посты, fragment; с MTProto — ID, DC, общие чаты, поиск по сообщениям |
+| `/password <пароль>` | проверка пароля по утечкам (k-anonymity — сам пароль никуда не уходит, сообщение удаляется) |
+| `/watch add <цель>` / `list` / `check` / `rm` | наблюдение: бот сам сравнивает находки между запусками и показывает **только новые** |
+| `/graph <цель>` | схема связей (mermaid) |
+| `/history`, `/stats`, `/sources` | история поисков, статистика базы, количество источников |
+| `/dataset-search <значение>` | поиск по загруженным внешним базам |
+
+Результат приходит сводкой с уровнями достоверности, а файлы отчёта (HTML/JSON/CSV) —
+кнопками под сообщением. В группах бот отвечает только на упоминание.
+
+### 5. Держать бота запущенным постоянно
+
+```bash
+# systemd (рекомендуется)
+sudo cp deploy/osintx-bot.service /etc/systemd/system/
+sudo systemctl enable --now osintx-bot && journalctl -u osintx-bot -f
+
+# Docker
+cd deploy && docker compose up -d --build bot
+
+# или просто screen/tmux
+screen -S osintx-bot -d -m bash -c "cd $(pwd) && .venv/bin/osintx bot"
+```
+
+Подробности и варианты (включая веб-сервис и MTProto-вход) — в `deploy/README.md`.
+
+### 6. MTProto: числовой ID, DC и глобальный поиск по сообщениям
+
+```bash
+# 1) api_id/api_hash на https://my.telegram.org → API development tools
+# 2) в .env: TG_API_ID=..., TG_API_HASH=...
+osintx tgauth        # одноразовый вход: номер + код из Telegram
+osintx bot           # после входа /id начнёт отдавать ID, DC и поиск по сообщениям
+```
+
+Без MTProto **числовой ID не вычисляется**: публично его взять негде, «генераторы ID по
+юзернейму» — обман. OsintX честно помечает такие пункты как `unsupported`.
+
+### 7. Как доработать бота под себя
+
+Весь бот — один файл `osintx/bot/run.py`, каждая команда это функция `async def cmd_*(update, context)`,
+которая регистрируется в `main()`:
+
+```python
+async def cmd_ip(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Пассивный IP: адрес и ASN без полного поиска."""
+    ip = " ".join(context.args).strip()
+    if not ip:
+        await update.message.reply_text("Использование: /ip 8.8.8.8")
+        return
+    await run_search(update, ip)          # та же механика, что у /search
+
+# в main() рядом с остальными:
+app.add_handler(CommandHandler("ip", cmd_ip))
+```
+
+Полезные точки расширения:
+
+* `run_search()` — общая логика с прогрессом, клавиатурой и файлами отчётов;
+* `_report_keyboard()` — добавьте свои кнопки в `cmd_callback` (обработчик `data.startswith(...)`);
+* `Progress` — редактируемое сообщение прогресса (порог обновления 1.6 с, чтобы не упереться в лимиты Telegram);
+* `Engine().search(..., on_event=...)` — любые свои события можно вешать на тот же поток.
+
+Свой бот на другом фреймворке (aiogram и т.п.) — просто вызывайте движок напрямую:
+
+```python
+from osintx.report import to_html
+from osintx.engine import Engine
+
+report = await Engine().search(target, deep=True, on_event=my_progress)
+open("report.html", "w").write(to_html(report))
+```
+
+Для кнопки «Открыть в веб-приложении» задайте `WEB_PUBLIC_URL` и добавьте инлайн-кнопку
+`WebAppInfo(url=...)` — бот уже передаёт ваш ID в `settings.public_url`.
 
 ## 🔑 Ключи API (все опциональные)
 

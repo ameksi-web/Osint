@@ -20,7 +20,6 @@ from ..core.utils import parse_dork_target, translit
 from ..core.variants import name_to_usernames
 from .base import Context, Module, SiteChecker, add_edge, add_entity, entity_id, make_finding
 from .email import dns_lookup
-from .username import UsernameModule
 
 TOP_PROBE_SITES = ("github", "telegram", "instagram", "vk", "twitter", "tiktok", "youtube", "reddit",
                    "twitch", "steam", "keybase", "gitlab", "pinterest", "medium", "habr", "ok",
@@ -224,7 +223,7 @@ class PersonModule(Module):
                   f'https://www.google.com/search?q="{latin}"+linkedin',
                   f'https://www.google.com/search?q="{name}"+резюме+OR+CV+OR+filetype:pdf',
                   f'https://www.google.com/search?q="{name}"+(директор+OR+учредитель+OR+ИНН)',
-                  f'https://egrul.nalog.ru/index.html',
+                  'https://egrul.nalog.ru/index.html',
                   f'https://www.rusprofile.ru/search?query={name}',
                   f'https://yandex.ru/search/?text="{name}"',
                   f'https://www.facebook.com/search/people/?q={name}',

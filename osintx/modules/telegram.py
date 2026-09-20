@@ -19,12 +19,10 @@
 """
 from __future__ import annotations
 
-import asyncio
 import html
 import re
-from typing import Any
 
-from ..core.models import Finding, ModuleResult, SourceStatus
+from ..core.models import ModuleResult, SourceStatus
 from .base import Context, Module, add_edge, add_entity, entity_id
 
 TG_META = re.compile(r'<meta property="(og:title|og:description|og:image|og:url)" content="([^"]*)"')

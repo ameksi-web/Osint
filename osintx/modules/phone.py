@@ -65,7 +65,7 @@ class PhoneModule(Module):
         if parsed is None:
             self.add_status(result, SourceStatus(source="libphonenumber", category="phone", status="not_found",
                                                  detail=f"номер «{raw}» не распознан ни в одном регионе"))
-            result.errors.append(f"«{target}» не распознан как телефонный номер (проверь код страны)")
+            result.errors.append(f"«{raw}» не распознан как телефонный номер (проверь код страны)")
             return
         e164 = phonenumbers.format_number(parsed, phonenumbers.PhoneNumberFormat.E164)
         valid = phonenumbers.is_valid_number(parsed)
@@ -100,8 +100,8 @@ class PhoneModule(Module):
                                   f"region={region_code}, type={line}")
         add_entity(result, "phone", e164, region=region_code, operator=operator or None, valid=valid)
         if not valid:
-            result.errors.append(f"Номер не проходит проверку libphonenumber (is_valid=False) — "
-                                 f"возможно, выдуман или не присвоен")
+            result.errors.append("Номер не проходит проверку libphonenumber (is_valid=False) — "
+                                 "возможно, выдуман или не присвоен")
         self.add_status(result, SourceStatus(source="libphonenumber", category="phone",
                                              status="found" if valid else "not_found",
                                              detail=f"valid={valid}, region={region_code}"))
@@ -150,7 +150,7 @@ class PhoneModule(Module):
                                                      http_code=resp.status_code))
         # бесплатные публичные API, не требующие ключей
         free_apis = [
-            ("phoneinfoga-numverify-free", "https://api.numverify.com/validate?number={phone_digits}"),
+            ("numverify-free", "https://apilayer.net/api/validate?access_key=&number={phone_digits}"),
         ]
         for name, url_tpl in free_apis:
             url = url_tpl.replace("{phone_digits}", digits)

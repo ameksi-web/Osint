@@ -6,6 +6,7 @@
   /id <цель>       — Telegram-разведка: t.me-карточка, подписчики, посты, fragment,
                      а при настроенном MTProto — числовой ID, DC, общие чаты, поиск по сообщениям
   /password <пароль> — проверка пароля по утечкам (k-anonymity)
+  /watch add|list|check|rm <цель> — наблюдение: бот сам находит НОВЫЕ данные между запусками
   /history, /stats, /sources, /dataset-search <значение>, /graph <цель>
   просто текст      — трактуется как цель поиска
 
@@ -31,7 +32,7 @@ from ..config import get_settings
 from ..core.store import get_store
 from ..core.utils import detect_target_type, human_ms
 from ..engine import Engine
-from ..report import FORMATS, to_text
+from ..report import FORMATS
 
 logging.basicConfig(format="%(asctime)s %(levelname)s %(name)s: %(message)s", level=logging.INFO)
 logging.getLogger("httpx").setLevel(logging.WARNING)
@@ -58,6 +59,8 @@ HELP = f"""<b>OsintX {__version__}</b> — OSINT-поиск по открыты�
 /sources — сколько источников подключено
 /dataset-search &lt;значение&gt; — поиск по загруженным внешним базам
 /graph &lt;цель&gt; — схема связей (mermaid)
+/watch add &lt;цель&gt; — следить за целью (новые находки сообщатся)
+/watch list | /watch check | /watch rm &lt;цель&gt; — управление списком наблюдения
 
 Просто отправьте цель сообщением — начну поиск."""
 
@@ -356,6 +359,73 @@ async def cmd_graph(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
                                     parse_mode=ParseMode.MARKDOWN_V2)
 
 
+async def cmd_watch(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Наблюдение за целями: /watch add <цель>, /watch list, /watch check, /watch rm <цель>."""
+    if not await _guard(update):
+        return
+    store = get_store()
+    args = context.args or []
+    action = (args[0].lower() if args else "list")
+    rest = " ".join(args[1:]).strip()
+
+    if action == "add":
+        if not rest:
+            await update.message.reply_text("Использование: /watch add ivan.petrov@example.com")
+            return
+        target_type = detect_target_type(rest)
+        store.watch_add(rest, target_type, note=f"tg:{update.effective_user.id}")
+        await update.message.reply_text(
+            f"👁 В наблюдении: <code>{html.escape(rest)}</code> ({target_type})\n"
+            f"При запуске /watch check бот сравнит находки с прошлым разом и покажет только новые.",
+            parse_mode=ParseMode.HTML)
+
+    elif action in ("list", "ls"):
+        rows = store.watch_list()
+        if not rows:
+            await update.message.reply_text("Список наблюдения пуст. Добавьте: /watch add <цель>")
+            return
+        lines = ["<b>Наблюдение:</b>"]
+        for r in rows:
+            lines.append(f"• <code>{html.escape(r['target'])}</code> ({r['target_type']}) — "
+                         f"проверка: {(r['last_check'] or 'ещё не было')[:16]}")
+        await update.message.reply_text("\n".join(lines), parse_mode=ParseMode.HTML)
+
+    elif action in ("rm", "del", "remove"):
+        if not rest:
+            await update.message.reply_text("Использование: /watch rm <цель>")
+            return
+        store.watch_remove(rest)
+        await update.message.reply_text(f"Удалено из наблюдения: {rest}")
+
+    elif action == "check":
+        rows = store.watch_list()
+        if not rows:
+            await update.message.reply_text("Список наблюдения пуст.")
+            return
+        message = await update.message.reply_text(f"👁 Проверяю {len(rows)} цел(ей) …")
+        report_lines: list[str] = []
+        for row in rows[:10]:
+            report = await Engine().search(row["target"], deep=False, variant_probe=False, timeout=15)
+            fingerprint = json.dumps(sorted(f"{f.source}:{f.value or f.url}" for f in report.findings))
+            previous = row.get("last_fingerprint")
+            new_items: list[str] = []
+            if previous:
+                old = set(json.loads(previous))
+                new_items = [x for x in json.loads(fingerprint) if x not in old]
+            store.watch_update(row["target"], fingerprint)
+            if not previous:
+                report_lines.append(f"🆕 <code>{html.escape(row['target'])}</code> — первая проверка, "
+                                    f"находок {len(report.findings)}")
+            elif new_items:
+                report_lines.append(f"🔔 <code>{html.escape(row['target'])}</code> — новых данных: "
+                                    f"{len(new_items)}\n   " + "\n   ".join(html.escape(x[:90]) for x in new_items[:8]))
+            else:
+                report_lines.append(f"✅ <code>{html.escape(row['target'])}</code> — без изменений")
+        await message.edit_text("\n".join(report_lines)[:4000], parse_mode=ParseMode.HTML)
+    else:
+        await update.message.reply_text("Команды: /watch add <цель> | /watch list | /watch check | /watch rm <цель>")
+
+
 async def cmd_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
     await query.answer()
@@ -399,12 +469,54 @@ async def cmd_error(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     log.error("Ошибка обработки: %s", context.error)
 
 
-def main() -> int:
+async def _probe_token(token: str) -> tuple[bool, str]:
+    """Реальная проверка токена: getMe + доступность api.telegram.org."""
+    try:
+        from telegram import Bot
+        bot = Bot(token)
+        me = await bot.get_me()
+        return True, (f"✅ Токен рабочий. Бот: @{me.username} "
+                      f"({me.first_name or 'без имени'}, id={me.id})")
+    except Exception as exc:
+        name = type(exc).__name__
+        text = str(exc)[:200]
+        if "Unauthorized" in text or "401" in text:
+            return False, f"❌ Токен неверный или отозван: {text}"
+        if "ConnectError" in name or "Timeout" in name or "NetworkError" in name:
+            return False, (f"❌ Не удалось связаться с api.telegram.org ({name}: {text}).\n"
+                           "   Проверьте интернет/прокси. Из ограниченных сетей (например, песочниц "
+                           "с whitelist-прокси) Telegram API недоступен — запускайте бота на своей "
+                           "машине или VPS, либо укажите прокси в OSINTX_PROXY.")
+        return False, f"❌ Ошибка проверки токена: {name}: {text}"
+
+
+def check_bot(args) -> int:
+    """osintx bot --check — проверить токен и настройки, ничего не запуская."""
     settings = get_settings()
-    if not settings.bot_token:
-        print("Не задан TELEGRAM_BOT_TOKEN. Добавьте токен от @BotFather в .env")
+    token = args.token or settings.bot_token
+    print("Проверка настроек Telegram-бота\n" + "-" * 40)
+    print(f"токен: {'задан' if token else 'НЕ ЗАДАН (получить у @BotFather)'}"
+          + (f" ({token[:10]}…)" if token else ""))
+    print(f"ограничение доступа: {settings.allowed_ids or 'нет (бот открыт для всех)'}")
+    print(f"MTProto: {'настроен' if settings.tg_api_id and settings.tg_api_hash else 'не настроен'}")
+    print(f"каталог данных: {settings.data_dir}")
+    if not token:
+        print("\nДобавьте в .env:  TELEGRAM_BOT_TOKEN=123456:AA...\n"
+              "Инструкция: https://github.com/ameksi-web/Osint (раздел «Telegram-бот»)")
         return 1
-    app = Application.builder().token(settings.bot_token).concurrent_updates(True).build()
+    ok, message = asyncio.run(_probe_token(token))
+    print("\n" + message)
+    if ok:
+        print("\nЗапуск:  osintx bot        (или python -m osintx.bot.run)")
+    return 0 if ok else 1
+
+
+def build_application(token: str) -> "Application":
+    """Собирает приложение бота со всеми командами (без обращения к сети).
+
+    Вынесено отдельно, чтобы можно было тестировать и встраивать бота в свои сервисы.
+    """
+    app = Application.builder().token(token).concurrent_updates(True).build()
     app.add_handler(CommandHandler("start", cmd_start))
     app.add_handler(CommandHandler("help", cmd_start))
     app.add_handler(CommandHandler("search", cmd_search))
@@ -416,9 +528,29 @@ def main() -> int:
     app.add_handler(CommandHandler("sources", cmd_sources))
     app.add_handler(CommandHandler("dataset_search", cmd_dataset_search))
     app.add_handler(CommandHandler("graph", cmd_graph))
+    app.add_handler(CommandHandler("watch", cmd_watch))
     app.add_handler(CallbackQueryHandler(cmd_callback))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, cmd_text))
     app.add_error_handler(cmd_error)
+    return app
+
+
+def main() -> int:
+    settings = get_settings()
+    import sys
+    if "--check" in sys.argv:
+        from argparse import Namespace
+        argv = sys.argv[sys.argv.index("--check"):]
+        token = ""
+        for i, item in enumerate(argv):
+            if item == "--token" and i + 1 < len(argv):
+                token = argv[i + 1]
+        return check_bot(Namespace(token=token))
+    if not settings.bot_token:
+        print("Не задан TELEGRAM_BOT_TOKEN. Добавьте токен от @BotFather в .env")
+        print("Проверить настройки и токен без запуска:  osintx bot --check")
+        return 1
+    app = build_application(settings.bot_token)
     print("OsintX-бот запущен. Нажмите Ctrl+C для остановки.")
     app.run_polling(allowed_updates=["message", "callback_query"])
     return 0

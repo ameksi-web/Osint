@@ -23,18 +23,15 @@ from pathlib import Path
 from . import __version__
 from .config import get_settings
 from .core.registry import count_sources, load_sites, describe_site
-from .core.store import Store, get_store
-from .core.utils import detect_target_type, human_ms
+from .core.store import get_store
+from .core.utils import detect_target_type
 from .engine import Engine, PLAN
 from .report import FORMATS, save as save_report, to_text
 
 try:
     from rich.console import Console
-    from rich.panel import Panel
     from rich.table import Table
-    from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, MofNCompleteColumn
     from rich.live import Live
-    from rich.text import Text
     RICH = True
 except ImportError:  # pragma: no cover
     RICH = False
@@ -293,7 +290,7 @@ def cmd_password(args: argparse.Namespace) -> int:
                f"Смените его везде, где он использовался." if RICH else
                f"ПАРОЛЬ В УТЕЧКАХ: {result['count']} совпадений")
     else:
-        _print(f"[green]В базе HIBP (800+ млн утёкших паролей) пароль не найден.[/green]"
+        _print("[green]В базе HIBP (800+ млн утёкших паролей) пароль не найден.[/green]"
                if RICH else "Пароль в базе не найден.")
     _print("Проверка выполнена по k-anonymity: наружу уходили только первые 5 символов SHA-1 хеша, "
            "сам пароль не передавался.")
@@ -395,8 +392,11 @@ def cmd_serve(args: argparse.Namespace) -> int:
 
 
 def cmd_bot(args: argparse.Namespace) -> int:
-    from .bot.run import main as bot_main
-    return bot_main()
+    from .bot import run as bot_run
+    if getattr(args, "check", False):
+        from argparse import Namespace
+        return bot_run.check_bot(Namespace(token=getattr(args, "token", "")))
+    return bot_run.main()
 
 
 def cmd_tgauth(args: argparse.Namespace) -> int:
@@ -533,6 +533,9 @@ def build_parser() -> argparse.ArgumentParser:
     p.set_defaults(func=cmd_serve)
 
     p = sub.add_parser("bot", help="Запустить Telegram-бота")
+    p.add_argument("--check", action="store_true",
+                   help="Проверить токен и настройки (getMe), не запуская бота")
+    p.add_argument("--token", help="Токен бота (если не задан в .env)")
     p.set_defaults(func=cmd_bot)
 
     p = sub.add_parser("tgauth", aliases=["tg-auth"], help="Авторизовать MTProto-сессию Telegram")

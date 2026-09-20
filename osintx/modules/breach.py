@@ -19,7 +19,7 @@ from typing import Any
 
 from ..core.models import ModuleResult, SourceStatus
 from ..core.store import get_store
-from .base import Context, Module, add_edge, add_entity, entity_id
+from .base import Context, add_edge, add_entity, entity_id
 
 BREACH_DIRECT_LINKS = [
     ("Have I Been Pwned", "https://haveibeenpwned.com/account/{email}"),

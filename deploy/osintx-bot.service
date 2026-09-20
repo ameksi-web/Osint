@@ -1,0 +1,26 @@
+[Unit]
+Description=OsintX Telegram bot (OSINT search bot)
+Documentation=https://github.com/ameksi-web/Osint
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+# ── поправьте путь под себя ──
+WorkingDirectory=/opt/Osint
+EnvironmentFile=/opt/Osint/.env
+ExecStart=/opt/Osint/.venv/bin/python -m osintx.bot.run
+Restart=always
+RestartSec=5
+# логи: journalctl -u osintx-bot -f
+StandardOutput=journal
+StandardError=journal
+# изоляция (необязательно, но полезно)
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=read-only
+ReadWritePaths=/opt/Osint/.osintx-data
+
+[Install]
+WantedBy=multi-user.target

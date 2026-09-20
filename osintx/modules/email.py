@@ -16,12 +16,11 @@ from __future__ import annotations
 
 import asyncio
 import hashlib
-import re
 import socket
 import smtplib
 from typing import Any
 
-from ..core.models import Finding, ModuleResult, SourceStatus
+from ..core.models import ModuleResult, SourceStatus
 from ..core.registry import load_sites
 from ..core.utils import is_valid_email, mask_email, parse_dork_target
 from ..core.variants import email_variants, email_local_parts
@@ -71,7 +70,6 @@ def _dns_available() -> bool:
 def dns_lookup(domain: str, rtype: str, timeout: float = 6.0) -> list[str]:
     """Реальный DNS-запрос через dnspython (или сокеты, если нет библиотеки)."""
     if _dns_available():
-        import dns.exception
         import dns.resolver
         try:
             resolver = dns.resolver.Resolver()
@@ -92,23 +90,13 @@ def dns_lookup(domain: str, rtype: str, timeout: float = 6.0) -> list[str]:
             return []
     try:
         if rtype == "MX":
-            return [h for _, h in sorted(_mx_fallback(domain))]
+            return []  # MX требует dnspython: сокеты запись MX не отдают
         if rtype == "A":
             return sorted({ai[4][0] for ai in socket.getaddrinfo(domain, None, socket.AF_INET)})
         if rtype == "AAAA":
             return sorted({ai[4][0] for ai in socket.getaddrinfo(domain, None, socket.AF_INET6)})
     except Exception:
         return []
-    return []
-
-
-def _mx_fallback(domain: str) -> list[tuple[int, str]]:
-    """MX через системный резолвер (getaddrinfo не даёт MX — используем socket.dns если есть)."""
-    try:
-        import dns.resolver  # pragma: no cover
-        return []
-    except ImportError:
-        pass
     return []
 
 
@@ -411,10 +399,6 @@ class EmailModule(Module):
                          value=email, url=links[0], data={"links": links},
                          evidence="ссылки на поисковые системы с точным совпадением адреса; "
                                   "автоматических утверждений нет — это точки входа для проверки")
-
-    async def _breaches_inline(self, ctx: Context, email: str, result: ModuleResult) -> None:  # pragma: no cover
-        from .breach import check_breaches
-        await check_breaches(ctx, email, result)
 
 
 def _root_domain(domain: str) -> str:
